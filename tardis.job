@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --job-name parkinsonGrid
+#SBATCH --time 24:0:0
+##SBATCH --partition long ##commented out
+#SBATCH --mem 400mb
+#SBATCH --cpus-per-task 1
+#SBATCH --workdir .
+#SBATCH --array=1-372 ##Update with new data
+#SBATCH -o /home/mpib/cwu/gridsearch_parkinsons/logs/%A_%a.out
+
+
+module load R
+
+Rscript --vanilla crossvalidation.R $SLURM_ARRAY_TASK_ID ## MPIB cluster
+
