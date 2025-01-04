@@ -1,7 +1,6 @@
 #data cleaning
-#Simon Ciranka 2023
+#Björn Meder and Charley Wu 2025, based on a version by Simon Ciranka 2023
 
-# revised Björn Meder 2024
 library('jsonlite')
 library('plyr')
 library('tidyverse')
@@ -129,4 +128,111 @@ for (i in seq_along(json_files)) {
 
 results <- bind_rows(list_of_dfs)
 write.csv(results, "data/results.csv", row.names = FALSE)
+
+
+#############################################################################################################################
+# Model Results
+#############################################################################################################################
+# imports and preprocesses model results from adolescent data
+importModelResults <- function(dataFolder, kernels, acqFuncs){
+  #Participant data
+  #data<-dataImport()
+  # import preprocessed data
+  data = read.csv('data/data_gridsearch_Parkinson.csv')
+  uids = unique(data$id)
+  
+  #initialize data frames
+  modelFit <- data.frame() 
+  paramEstimates <- data.frame()
+  #loop through data
+  for (k in kernels){
+    for (a in acqFuncs){
+      # for (i in 1:length(uids)){ #subjects
+      for (i in uids){ #subjects
+        filename <- paste0(dataFolder, k, a, i, ".csv") #read output file
+        if (file.exists(filename)){
+          dp<-read.csv(filename)
+          #print(filename)
+          #interpret parameters based on model combination
+          if (k==""){#Heuristics
+            colnames(dp) <- c("", "leaveoutindex", "nLL", "tau")
+          }else if (k=="BMT" | k=="LBMT"){#Bayesian mean tracker
+            ifelse(a=='UCB' | a=='Counts', colnames(dp)<- c("", "leaveoutindex", "nLL", "kError", "beta","tau"), colnames(dp)<- c("",  "leaveoutindex", "nLL","kError", "tau"))
+          }else if (k=="LIN" | k=="LLIN"){ #linear kernel
+            ifelse(a=='UCB', colnames(dp)<- c("",  "leaveoutindex", "nLL", "beta","tau"), colnames(dp)<- c("", "leaveoutindex", "nLL", "tau"))
+          }else { #normal GP kernel
+            if (a=='UCB' | a=='Counts') {
+              colnames(dp)<- c("", "leaveoutindex", "nLL", "lambda", "beta","tau")
+            } else if (a=='EG') {
+              colnames(dp)<- c("", "leaveoutindex", "nLL", "lambda", "beta", "epsilon")
+            } else {
+              colnames(dp)<- c("", "leaveoutindex", "nLL", "lambda", "tau")
+            }
+          }
+          
+          rounds = length(dp$nLL)
+          
+          #demographics
+          dummy <- subset(data, id==i) #subset participant in the dataframe
+          #environment <- dummy$Condition[1]
+          id <- dummy$id[1]  #replicate ID
+          kernel <- k
+          acq <- a
+          #Total out of sample nLL
+          nLL <- sum(dp$nLL)
+          randomModelLL <- -log(1/64)*rounds*25
+          R2 <- 1 - (nLL/randomModelLL)
+          #blank median parameter estimates
+          kErrorMed <- NA
+          lambdaMed <- NA
+          betaMed <- NA
+          tauMed <- NA
+          epsilonMed <- NA
+          #blank mean parameter estimates
+          kErrorMean <- NA
+          lambdaMean <- NA
+          betaMean <- NA
+          tauMean <- NA
+          epsilonMean <- NA
+          #mean parameter estimates for UCB RBF
+          if (a=="UCB"| a=='Counts' | a=='EG'){ #UCB has beta
+            betaMed <- median(exp(dp$beta))
+            betaMean <- mean(exp(dp$beta))
+          }
+          if (k=="RBF" | k=="LRBF"){
+            lambdaMed <- median(exp(dp$lambda))
+            lambdaMean <- mean(exp(dp$lambda))
+          }
+          if (k=="BMT" | k=="LBMT"){ #BMT
+            kErrorMed <- median(exp(dp$kError))
+            kErrorMean <- mean(exp(dp$kError))
+          }
+          if (a!='EG') {
+            tauMed <- median(exp(dp$tau))
+            tauMean <- mean(exp(dp$tau))
+          }
+          if (a=='EG') {
+            epsilon <- 1/(1+exp(-(dp$epsilon)))
+            epsilonMed <- median(epsilon)
+            epsilonMean <- mean(epsilon)
+          }
+          #save modelFit
+          dadd <- data.frame(id=id, nLL=nLL, kernel=kernel, acq=acq, R2=R2, kError=kErrorMean, lambda=lambdaMean, beta = betaMean, tau=tauMean, epsilon=epsilonMean)
+          modelFit <-rbind(modelFit, dadd)
+          #loop through leave out index to save all 9 parameter estimates for each subject
+          for (loo in 2:(rounds+1)){
+            subDP <- subset(dp, leaveoutindex == loo)
+            roundnLL <- subDP$nLL
+            #exponentiation of all parameters
+            kError <- ifelse("kError" %in% colnames(subDP), exp(subDP$kError), NA)
+            lambda <- ifelse("lambda" %in% colnames(subDP), exp(subDP$lambda), NA)
+            beta <- ifelse("beta" %in% colnames(subDP), exp(subDP$beta),  NA)
+            tau <- ifelse("tau" %in% colnames(subDP), exp(subDP$tau),  NA)
+            epsilon <- ifelse("epsilon" %in% colnames(subDP), 1/(1+exp(-(dp$epsilon))), NA)
+            dadd<-data.frame(id=id, leaveoutindex=loo, nLL=nLL, R2 =R2,  kernel=kernel, acq=acq, kError=kError, lambda=lambda, beta=beta, tau=tau, epsilon=epsilon, roundnLL=roundnLL)
+            paramEstimates <-rbind(paramEstimates, dadd)
+          }}}}}
+  return(list(modelFit, paramEstimates))
+}
+
 
