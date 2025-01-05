@@ -1,6 +1,6 @@
 ---
 title: "Gridsearch Parkinson"
-author: "Björn Meder, Martha Sterf, Charley Wu, Matthias Guggenmos"
+author: "Björn Meder, Martha Sterf, Charley M. Wu, Matthias Guggenmos"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -135,7 +135,7 @@ dat       <- read_delim("data/data_gridsearch_parkinson.csv",
 dat <- dat %>%
   select(-condition, -comments) %>% 
   mutate(group = case_match(group,
-                            c("PPD -", "PPD-") ~ "PD-",
+                            "PPD-" ~ "PD-",
                             "PPD+" ~ "PD+",
                             "PNP" ~ "PNP",
                             .default = NA)) %>% 
