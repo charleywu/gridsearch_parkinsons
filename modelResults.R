@@ -8,7 +8,7 @@ rm(list=ls())
 # load packages
 packages <- c('plyr', 'jsonlite', 'gridExtra', 'reshape2',  'cowplot', 'lme4', 'sjPlot',
               "grid", 'corrplot', 'ggbeeswarm', 'tidyverse', 'viridis', 'colorspace', 'ggrepel', 'tidybayes',
-              'brms')
+              'brms', 'ggpubr')
 lapply(packages, require, character.only = TRUE)
 
 source("dataProcessing_gridSearchParkinson.R")
@@ -21,6 +21,7 @@ dropLeadingZero <- function(l){
 
 modelPal <- c('black', '#6c7195', '#ea9d67', '#7ec3aa')
 paramPal = c("#FFEE67", '#27AD88', "#D1495B")
+groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 
 data = read.csv('data/data_gridsearch_Parkinson.csv')
 #############################################################################################################################
@@ -50,7 +51,8 @@ modelFits$shortname <- factor(modelFits$ModelName, levels = c('GP-UCB','BMT-UCB'
 levels(modelFits$shortname) <- c('GP\nUCB', 'lambda\nlesion', 'beta\nlesion')
 
 
-p_R2_comp <- ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +
+p_R2_comp <- 
+  ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +
   #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+
   geom_quasirandom( size = 0.5)+
   geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+
