@@ -10,9 +10,9 @@
 <meta name="author" content="Martha Sterf">
 <meta name="author" content="Charley M. Wu">
 <meta name="author" content="Matthias Guggenmos">
-<meta name="dcterms.date" content="2025-01-29">
+<meta name="dcterms.date" content="2025-01-30">
 
-<title>Gridsearch Parkinson: Computational Analyses</title>
+<title>Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -95,8 +95,6 @@ div.csl-indent {
 <script src="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
-<script src="gridsearch_parkinson_computational_analyses_files/libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="gridsearch_parkinson_computational_analyses_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -140,7 +138,12 @@ window.Quarto = {
   <ul>
   <li><a href="#computational-analyses" id="toc-computational-analyses" class="nav-link active" data-scroll-target="#computational-analyses">Computational Analyses</a>
   <ul class="collapse">
-  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model" class="nav-link" data-scroll-target="#gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) model</a></li>
+  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model" class="nav-link" data-scroll-target="#gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
+  <ul class="collapse">
+  <li><a href="#learning-model" id="toc-learning-model" class="nav-link" data-scroll-target="#learning-model">Learning Model</a></li>
+  <li><a href="#sampling-strategy" id="toc-sampling-strategy" class="nav-link" data-scroll-target="#sampling-strategy">Sampling Strategy</a></li>
+  <li><a href="#choice-rule" id="toc-choice-rule" class="nav-link" data-scroll-target="#choice-rule">Choice rule</a></li>
+  </ul></li>
   <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison">Model comparison</a></li>
   <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates" class="nav-link" data-scroll-target="#analysis-of-parameter-estimates">Analysis of parameter estimates</a></li>
   </ul></li>
@@ -154,7 +157,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Gridsearch Parkinson: Computational Analyses</h1>
+<h1 class="title">Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses</h1>
 </div>
 
 
@@ -174,7 +177,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 29, 2025</p>
+      <p class="date">January 30, 2025</p>
     </div>
   </div>
   
@@ -191,7 +194,12 @@ window.Quarto = {
   <ul>
   <li><a href="#computational-analyses" id="toc-computational-analyses">Computational Analyses</a>
   <ul>
-  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) model</a></li>
+  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
+  <ul>
+  <li><a href="#learning-model" id="toc-learning-model">Learning Model</a></li>
+  <li><a href="#sampling-strategy" id="toc-sampling-strategy">Sampling Strategy</a></li>
+  <li><a href="#choice-rule" id="toc-choice-rule">Choice rule</a></li>
+  </ul></li>
   <li><a href="#model-comparison" id="toc-model-comparison">Model comparison</a></li>
   <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates">Analysis of parameter estimates</a></li>
   </ul></li>
@@ -231,8 +239,19 @@ window.Quarto = {
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  fit</span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># get random performance for reward </span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="co"># df_random_performance &lt;- read.csv2('data/rand_performance.csv')</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting some plotting params</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>w_box          <span class="ot">&lt;-</span> <span class="fl">0.2</span>      <span class="co"># width of boxplot, also used for jittering points and lines    </span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>line_jitter    <span class="ot">&lt;-</span> w_box <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>xAnnotate      <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.3</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co"># jitter params</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>jit_height  <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>jit_width   <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>jit_alpha   <span class="ot">&lt;-</span> <span class="fl">0.6</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="co"># colors for age groups</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>groupcolors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#1b9e77"</span>, <span class="st">"#d95f02"</span>, <span class="st">"#7570b3"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell" data-layout-align="center">
@@ -274,215 +293,21 @@ window.Quarto = {
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(group)</span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat) <span class="sc">%&gt;%</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="st">"html"</span>, <span class="at">caption =</span> <span class="st">"Behavioral data."</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>, <span class="st">"condensed"</span>), <span class="at">full_width =</span> F) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scroll_box</span>(<span class="at">width =</span> <span class="st">"100%"</span>, <span class="at">height =</span> <span class="st">"300px"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co"># head(dat) %&gt;%</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#   kable("html", caption = "Behavioral data.") %&gt;%</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %&gt;% </span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#   scroll_box(width = "100%", height = "300px")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output-display">
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
-<table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
-<caption>Behavioral data.</caption>
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">id</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">session</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">x</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">y</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">chosen</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">z</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">zscaled</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">time</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">trial</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">round</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">distance</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">type_choice</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">previous_reward</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">age</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">gender</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">group</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">BDI</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">MMSE</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">hoehn_yahr</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">last_ldopa</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">next_ldopa</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">time_exp</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">wearing_off_min</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">time_since_ldopa</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">18</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">21</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">Far</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">34</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">Near</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: left;">Far</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">38</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: left;">Far</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">115</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">1.72e+17</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">Near</td>
-<td style="text-align: right;">38</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">f</td>
-<td style="text-align: left;">PNP</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"></td>
-<td style="text-align: right;"></td>
-</tr>
-</tbody>
-</table>
-</div>
-
-</div>
 </div>
 <section id="computational-analyses" class="level1">
 <h1>Computational Analyses</h1>
-<p>We conducted model-based analyses to gain a more comprehensive understanding of participants’ learning, exploration, and decision-making processes. We analyze patients’ behavior through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, which in previous research using the same paradigm has provided the best account <span class="citation" data-cites="Wu:2018grid Schulz:2019kwg Wu:2020neurogrid Meder_directed__random_exploration_children Giron_et_al-2022-development_optimization Wu_et_al-generalization">(<a href="#ref-Giron_et_al-2022-development_optimization" role="doc-biblioref">Giron et al., 2023</a>; <a href="#ref-Meder_directed__random_exploration_children" role="doc-biblioref">Meder et al., 2021</a>; <a href="#ref-Schulz:2019kwg" role="doc-biblioref">Schulz et al., 2019</a>; <a href="#ref-Wu:2018grid" role="doc-biblioref">Wu et al., 2018</a>; <a href="#ref-Wu:2020neurogrid" role="doc-biblioref">Wu et al., 2020</a>, <a href="#ref-Wu_et_al-generalization" role="doc-biblioref">2025</a>)</span></p>
+<p>In addition to the behavioral analyses, we study exploration and exploitation in PD through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, a computational model that integrates similarity-based generalization with two distinct exploration mechanisms: <em>directed exploration</em>, which seeks to reduce uncertainty about rewards, and <em>random exploration</em>, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms <span class="citation" data-cites="Wu:2018grid Schulz:2019kwg Wu:2020neurogrid Meder_directed__random_exploration_children Giron_et_al-2022-development_optimization Wu_et_al-generalization">(<a href="#ref-Giron_et_al-2022-development_optimization" role="doc-biblioref">Giron et al., 2023</a>; <a href="#ref-Meder_directed__random_exploration_children" role="doc-biblioref">Meder et al., 2021</a>; <a href="#ref-Schulz:2019kwg" role="doc-biblioref">Schulz et al., 2019</a>; <a href="#ref-Wu:2018grid" role="doc-biblioref">Wu et al., 2018</a>; <a href="#ref-Wu:2020neurogrid" role="doc-biblioref">Wu et al., 2020</a>, <a href="#ref-Wu_et_al-generalization" role="doc-biblioref">2025</a>)</span>.</p>
 <section id="gaussian-process-upper-confidence-bound-gp-ucb-model" class="level2">
-<h2 class="anchored" data-anchor-id="gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) model</h2>
+<h2 class="anchored" data-anchor-id="gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</h2>
 <p>The GP-UCB model comprises three components:</p>
 <ol type="1">
 <li>a <em>learning model</em>, which uses Bayesian inference to generate predictions about the rewards associated with each option (tile),</li>
-<li>a <em>sampling strategy</em>, which uses the reward predictions to evaluate how promising each option is, and</li>
+<li>a <em>sampling strategy</em>, which uses reward expectations and associated uncertainty to evaluate how promising each option is, and</li>
 <li>a <em>choice rule</em>, which converts options’ values into choice probabilities.</li>
 </ol>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -498,12 +323,21 @@ Note
 <p>Add details</p>
 </div>
 </div>
+<section id="learning-model" class="level3">
+<h3 class="anchored" data-anchor-id="learning-model">Learning Model</h3>
+</section>
+<section id="sampling-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="sampling-strategy">Sampling Strategy</h3>
+</section>
+<section id="choice-rule" class="level3">
+<h3 class="anchored" data-anchor-id="choice-rule">Choice rule</h3>
 <p>Associated with each model component is a free parameter that we estimate through out-of-sample cross validation. These parameters provide a window into distinct aspects of learning and exploration:</p>
 <ol type="1">
 <li>The length-scale parameter <span class="math inline">\(\lambda\)</span> of the RBF kernel captures how strongly a participant generalizes based on the observed evidence, i.e., the rewards obtained from previous choices.</li>
 <li>The uncertainty bonus <span class="math inline">\(\beta\)</span> represents to the level of directed exploration, i.e., how much expected rewards are inflated through an “uncertainty bonus”.</li>
 <li>The temperature parameter <span class="math inline">\(\tau\)</span> corresponds to the amount of sampling noise, i.e., extent of random exploration.</li>
 </ol>
+</section>
 </section>
 <section id="model-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="model-comparison">Model comparison</h2>
@@ -577,22 +411,23 @@ Note
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># p_R2_comp &lt;- </span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_quasirandom( size = 0.5)+</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># xlab('') +</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ylab(expression(R^2)) +</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #ylab(expression(italic(pxp))) +</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># facet_wrap(~group, nrow = 1)+</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggtitle('Model fits') +</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme_classic() +</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme(strip.background=element_blank(),</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">#       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"plots/model_comparison.png"</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">5</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># p_R2_comp &lt;- </span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_quasirandom( size = 0.5)+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># xlab('') +</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ylab(expression(R^2)) +</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #ylab(expression(italic(pxp))) +</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># facet_wrap(~group, nrow = 1)+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggtitle('Model fits') +</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme_classic() +</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme(strip.background=element_blank(),</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">#       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -640,7 +475,12 @@ Note
 </figure>
 </div>
 </div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"plots/GP-UCB_params.png"</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+<p>The increased exploration bonus <span class="math inline">\(\beta\)</span> aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected (<span class="citation" data-cites="Chakroun2020restless_ldopa">Chakroun et al. (<a href="#ref-Chakroun2020restless_ldopa" role="doc-biblioref">2020</a>)</span>).</p>
 </section>
 </section>
 <section id="session-information" class="level1">
@@ -653,7 +493,7 @@ Note
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.1 (2024-06-14)
@@ -692,29 +532,30 @@ loaded via a namespace (and not attached):
 [10] reshape2_1.4.4       crayon_1.5.3         pkgconfig_2.0.3     
 [13] fastmap_1.2.0        backports_1.5.0      labeling_0.4.3      
 [16] rmarkdown_2.29       tzdb_0.4.0           nloptr_2.1.1        
-[19] bit_4.5.0.1          MatrixModels_0.5-3   xfun_0.50           
-[22] jsonlite_1.8.9       sjmisc_2.8.10        ggeffects_2.1.0     
-[25] broom_1.0.7          parallel_4.4.1       R6_2.5.1            
-[28] stringi_1.8.4        car_3.1-3            boot_1.3-31         
-[31] numDeriv_2016.8-1.1  estimability_1.5.1   knitr_1.49          
-[34] bayesplot_1.11.1     splines_4.4.1        timechange_0.3.0    
-[37] tidyselect_1.2.1     rstudioapi_0.17.1    abind_1.4-8         
-[40] yaml_2.3.10          sjlabelled_1.2.0     lattice_0.22-6      
-[43] lmerTest_3.1-3       plyr_1.8.9           withr_3.0.2         
-[46] bridgesampling_1.1-2 posterior_1.6.0      evaluate_1.0.3      
-[49] RcppParallel_5.1.10  xml2_1.3.6           pillar_1.10.1       
-[52] carData_3.0-5        tensorA_0.36.2.1     checkmate_2.3.2     
-[55] reformulas_0.4.0     insight_1.0.1        distributional_0.5.0
-[58] generics_0.1.3       vroom_1.6.5          rstantools_2.4.0    
-[61] munsell_0.5.1        minqa_1.2.8          xtable_1.8-4        
-[64] glue_1.8.0           tools_4.4.1          ggsignif_0.6.4      
-[67] mvtnorm_1.3-3        grid_4.4.1           rbibutils_2.3       
-[70] datawizard_1.0.0     colorspace_2.1-1     nlme_3.1-167        
-[73] performance_0.13.0   Formula_1.2-5        cli_3.6.3           
-[76] svglite_2.1.3        Brobdingnag_1.2-9    sjstats_0.19.0      
-[79] gtable_0.3.6         rstatix_0.7.2        digest_0.6.37       
-[82] farver_2.1.2         htmlwidgets_1.6.4    htmltools_0.5.8.1   
-[85] lifecycle_1.0.4      bit64_4.6.0-1        MASS_7.3-64         </code></pre>
+[19] ragg_1.3.3           bit_4.5.0.1          MatrixModels_0.5-3  
+[22] xfun_0.50            jsonlite_1.8.9       sjmisc_2.8.10       
+[25] ggeffects_2.1.0      broom_1.0.7          parallel_4.4.1      
+[28] R6_2.5.1             stringi_1.8.4        car_3.1-3           
+[31] boot_1.3-31          numDeriv_2016.8-1.1  estimability_1.5.1  
+[34] knitr_1.49           bayesplot_1.11.1     splines_4.4.1       
+[37] timechange_0.3.0     tidyselect_1.2.1     rstudioapi_0.17.1   
+[40] abind_1.4-8          yaml_2.3.10          sjlabelled_1.2.0    
+[43] lattice_0.22-6       lmerTest_3.1-3       plyr_1.8.9          
+[46] withr_3.0.2          bridgesampling_1.1-2 posterior_1.6.0     
+[49] evaluate_1.0.3       RcppParallel_5.1.10  xml2_1.3.6          
+[52] pillar_1.10.1        carData_3.0-5        tensorA_0.36.2.1    
+[55] checkmate_2.3.2      reformulas_0.4.0     insight_1.0.1       
+[58] distributional_0.5.0 generics_0.1.3       vroom_1.6.5         
+[61] rstantools_2.4.0     munsell_0.5.1        minqa_1.2.8         
+[64] xtable_1.8-4         glue_1.8.0           tools_4.4.1         
+[67] ggsignif_0.6.4       mvtnorm_1.3-3        grid_4.4.1          
+[70] rbibutils_2.3        datawizard_1.0.0     colorspace_2.1-1    
+[73] nlme_3.1-167         performance_0.13.0   Formula_1.2-5       
+[76] cli_3.6.3            textshaping_1.0.0    svglite_2.1.3       
+[79] Brobdingnag_1.2-9    sjstats_0.19.0       gtable_0.3.6        
+[82] rstatix_0.7.2        digest_0.6.37        farver_2.1.2        
+[85] htmlwidgets_1.6.4    htmltools_0.5.8.1    lifecycle_1.0.4     
+[88] bit64_4.6.0-1        MASS_7.3-64         </code></pre>
 </div>
 </div>
 </div>
@@ -723,6 +564,9 @@ loaded via a namespace (and not attached):
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Chakroun2020restless_ldopa" class="csl-entry" role="listitem">
+Chakroun, K., Mathar, D., Wiehler, A., Ganzer, F., &amp; Peters, J. (2020). Dopaminergic modulation of the exploration/exploitation trade-off in human decision-making. <em>eLife</em>, <em>9</em>, e51260. <a href="https://doi.org/10.7554/eLife.51260">https://doi.org/10.7554/eLife.51260</a>
+</div>
 <div id="ref-Giron_et_al-2022-development_optimization" class="csl-entry" role="listitem">
 Giron, A. P., Ciranka, S. K., Schulz, E., Bos, W. van den, Ruggeri, A., Meder, B., &amp; Wu, C. M. (2023). <em>Developmental changes in exploration resemble stochastic optimization</em>. 1955–1967. <a href="https://doi.org/10.1038/s41562-023-01662-1">https://doi.org/10.1038/s41562-023-01662-1</a>
 </div>
@@ -733,7 +577,7 @@ Meder, B., Wu, C. M., Schulz, E., &amp; Ruggeri, A. (2021). Development of direc
 Schulz, E., Wu, C. M., Ruggeri, A., &amp; Meder, B. (2019). Searching for rewards like a child means less generalization and more directed exploration. <em>Psychological Science</em>, <em>30</em>(11), 1561–1572. <a href="https://doi.org/10.1177/0956797619863663">https://doi.org/10.1177/0956797619863663</a>
 </div>
 <div id="ref-Wu_et_al-generalization" class="csl-entry" role="listitem">
-Wu, C. M., Meder, B., &amp; Schulz, E. (2025). Unifying principles of generalization: Past, present, and future [Journal Article]. <em>Annual Review of Psychology</em>, <em>76</em>(Volume 76, 2025), 275–302. https://doi.org/<a href="https://doi.org/10.1146/annurev-psych-021524-110810">https://doi.org/10.1146/annurev-psych-021524-110810</a>
+Wu, C. M., Meder, B., &amp; Schulz, E. (2025). Unifying principles of generalization: Past, present, and future. <em>Annual Review of Psychology</em>, <em>76</em>(Volume 76, 2025), 275–302. https://doi.org/<a href="https://doi.org/10.1146/annurev-psych-021524-110810">https://doi.org/10.1146/annurev-psych-021524-110810</a>
 </div>
 <div id="ref-Wu:2020neurogrid" class="csl-entry" role="listitem">
 Wu, C. M., Schulz, E., Garvert, M. M., Meder, B., &amp; Schuck, N. W. (2020). Similarities and differences in spatial and non-spatial cognitive maps. <em>PLOS Computational Biology</em>, <em>16</em>(9), e1008149. <a href="https://doi.org/10.1371/journal.pcbi.1008149">https://doi.org/10.1371/journal.pcbi.1008149</a>

@@ -1,5 +1,5 @@
 ---
-title: "Gridsearch Parkinson: Computational Analyses"
+title: "Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses"
 author: 
   - Björn Meder
   - Martha Sterf
@@ -60,12 +60,7 @@ run_model <- function(expr, modelName, path='brm', reuse = TRUE) {
   fit
 }
 
-# get random performance for reward 
-# df_random_performance <- read.csv2('data/rand_performance.csv')
-```
 
-
-```{r setup, include=FALSE}
 # Setting some plotting params
 w_box          <- 0.2      # width of boxplot, also used for jittering points and lines    
 line_jitter    <- w_box / 2
@@ -118,29 +113,32 @@ df_sample <- dat %>%
   slice_head(n = 1) %>% 
   arrange(group)
 
-head(dat) %>%
-  kable("html", caption = "Behavioral data.") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
-  scroll_box(width = "100%", height = "300px")
+# head(dat) %>%
+#   kable("html", caption = "Behavioral data.") %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
+#   scroll_box(width = "100%", height = "300px")
 
 ```
 # Computational Analyses
 
-We conducted model-based analyses to gain a more comprehensive understanding of participants' learning, exploration, and decision-making processes. We analyze patients' behavior through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, which in previous research using the same paradigm has provided the best account
-[@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder_directed__random_exploration_children; @Giron_et_al-2022-development_optimization; @Wu_et_al-generalization]
+In addition to the behavioral analyses, we study exploration and exploitation in PD through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, a computational model that integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
+[@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder_directed__random_exploration_children; @Giron_et_al-2022-development_optimization; @Wu_et_al-generalization].
 
 
-## Gaussian Process Upper Confidence Bound (GP-UCB) model
+## Gaussian Process Upper Confidence Bound (GP-UCB) Model
 
 The GP-UCB model comprises three components:
 
 1. a _learning model_, which uses Bayesian inference to generate predictions about the rewards associated with each option (tile),
-2. a _sampling strategy_, which uses the reward predictions to evaluate how promising each option is, and
+2. a _sampling strategy_, which uses reward expectations and associated uncertainty to evaluate how promising each option is, and
 3. a _choice rule_, which converts options' values into choice probabilities.
 
 ::: callout-note
 Add details
 :::
+### Learning Model
+### Sampling Strategy
+### Choice rule
 
 Associated with each model component is a free parameter that we estimate through out-of-sample cross validation. These parameters provide a window into distinct aspects of learning and exploration: 
 
@@ -217,7 +215,7 @@ ggboxplot(modelFits,
         legend.position = "none"
   )
 
-
+ggsave("plots/model_comparison.png", width = 9, height = 5)
 # p_R2_comp <- 
   # ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +
   # #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+
@@ -278,9 +276,10 @@ ggboxplot(df_gpucb_params,
         legend.position = "none"
   )
 
+ggsave("plots/GP-UCB_params.png", width = 9, height = 5)
 ```
 
-
+The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected (@Chakroun2020restless_ldopa).
 
 # Session Information
 
