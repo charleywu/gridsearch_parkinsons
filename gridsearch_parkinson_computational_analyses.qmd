@@ -1,10 +1,15 @@
 ---
 title: "Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses"
 author: 
-  - Björn Meder
-  - Martha Sterf
-  - Charley M. Wu
-  - Matthias Guggenmos
+  - name: Björn Meder
+    affiliation: Health and Medical University, Potsdam, Germany
+  - name: Martha Sterf
+    affiliation: Medical School Berlin, Berlin, Germany
+  - name: Charley M. Wu
+    affiliation: University of Tübingen, Tübingen, Germany
+  - name: Matthias Guggenmos
+    affiliation: Health and Medical University, Potsdam, Germany
+  
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
   html:
@@ -14,11 +19,21 @@ format:
     toc-location: left-body
     classoption: fleqn
     lightbox: true
-     
+    number-sections: true
+    number-figures: true
+    grid:
+      sidebar-width: 300px
+      body-width: 1000px
+      margin-width: 200px
+      gutter-width: 1.5rem
   pdf:
     toc: true
+    number-sections: true
+    number-figures: true
   docx:
     toc: true
+    number-sections: true
+    number-figures: true
 editor: 
   default: source
 editor_options: 
@@ -39,7 +54,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -121,7 +136,7 @@ df_sample <- dat %>%
 ```
 # Computational Analyses
 
-In addition to the behavioral analyses, we study exploration and exploitation in PD through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, a computational model that integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
+Complementing the behavioral analyses, we study exploration and exploitation in PD through the lens of a computational model, the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
 [@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder_directed__random_exploration_children; @Giron_et_al-2022-development_optimization; @Wu_et_al-generalization].
 
 
@@ -158,12 +173,15 @@ All models were fitted using leave-one-round-out cross-validation based on maxim
 Out-of-sample predictive accuracy was assessed using a pseudo-$R^2$ measure, based on the sum of negative log-likelihoods across all out-of-sample predictions. The summed negative log likelihoods are compared to a random model, such that $R^2=0$ corresponds to chance performance and $R^2=1$ corresponds to theoretically perfect predictions. 
 
 $$
-    R^2 = 1 - \frac{\log \mathcal{L}(M_k)}{\log\mathcal{L}(M_{rand})},
+R^2 = 1 - \frac{\log \mathcal{L}(M_k)}{\log\mathcal{L}(M_{rand})},
 $$
 
 
 
 ```{r}
+#| fig-cap: "Predictive accuracy of GP-UCB model and lesioned variants."
+#| label: fig_model_comparison
+
 modelFits <- read.csv('data/modelFit.csv')
 groupDF <- dat %>% filter(round==1 & trial==0) #Get one row per participant
 # modelFits <- merge(modelFits, groupDF[,c('id', 'group', 'condition')], by = "id") #merge to add group and condition data
@@ -171,12 +189,12 @@ modelFits <- merge(modelFits, groupDF[,c('id', 'group')], by = "id") #merge to a
 
 modelFits <-  modelFits %>%
   mutate(kernel=factor(kernel, levels=c('RBF', 'BMT'), labels=c('GP', 'BMT'))) #%>%
-  # mutate(group = case_match(group,
-  #                           "PPD-" ~ "PD-",
-  #                           "PPD+" ~ "PD+",
-  #                           "PNP" ~ "PNP",
-  #                           .default = NA)) %>%
-  # mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))
+# mutate(group = case_match(group,
+#                           "PPD-" ~ "PD-",
+#                           "PPD+" ~ "PD+",
+#                           "PNP" ~ "PNP",
+#                           .default = NA)) %>%
+# mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))
 
 modelFits$ModelName = paste(modelFits$kernel, modelFits$acq, sep="-")
 modelFits$ModelName = factor(modelFits$ModelName, levels = c('GP-UCB', 'BMT-UCB', 'GP-GM', 'BMT-GM', 'GP-GV', 'BMT-GV'))
@@ -198,16 +216,16 @@ ggboxplot(modelFits,
   ylab(bquote(R^2)) +
   xlab("") +
   stat_compare_means(
-  comparisons = list( 
-    c("GP\nUCB", "lambda\nlesion"), 
-    c("GP\nUCB", "beta\nlesion"), 
-    c("lambda\nlesion", "beta\nlesion")  
-  ), 
-  paired = TRUE, 
-  method = "t.test", 
-   aes(label = paste0("p = ", after_stat(p.format)))
-  
-) +
+    comparisons = list( 
+      c("GP\nUCB", "lambda\nlesion"), 
+      c("GP\nUCB", "beta\nlesion"), 
+      c("lambda\nlesion", "beta\nlesion")  
+    ), 
+    paired = TRUE, 
+    method = "t.test", 
+    aes(label = paste0("p = ", after_stat(p.format)))
+    
+  ) +
   stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
   theme_classic() +
   theme(strip.background = element_blank(),  
@@ -217,21 +235,21 @@ ggboxplot(modelFits,
 
 ggsave("plots/model_comparison.png", width = 9, height = 5)
 # p_R2_comp <- 
-  # ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +
-  # #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+
-  # geom_quasirandom( size = 0.5)+
-  # geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+
-  # stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+
-  # xlab('') +
-  # ylab(expression(R^2)) +
-  # #ylab(expression(italic(pxp))) +
-  # scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +
-  # scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +
-  # facet_wrap(~group, nrow = 1)+
-  # ggtitle('Model fits') +
-  # theme_classic() +
-  # theme(strip.background=element_blank(),
-  #       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())
+# ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +
+# #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+
+# geom_quasirandom( size = 0.5)+
+# geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+
+# stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+
+# xlab('') +
+# ylab(expression(R^2)) +
+# #ylab(expression(italic(pxp))) +
+# scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +
+# scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +
+# facet_wrap(~group, nrow = 1)+
+# ggtitle('Model fits') +
+# theme_classic() +
+# theme(strip.background=element_blank(),
+#       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())
 
 ```
 
@@ -242,17 +260,18 @@ ggsave("plots/model_comparison.png", width = 9, height = 5)
 ## Analysis of parameter estimates
 
 
-
 ```{r}
+#| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
+#| label: fig_GP-CUB_params
 df_gpucb_params <- modelFits %>% filter(kernel=='GP' & acq == 'UCB') %>% 
   pivot_longer(c('lambda', 'beta', 'tau'), names_to = 'param', values_to = 'estimate') %>% 
   mutate(param = factor(param, levels = c('lambda', 'beta', 'tau'))) #%>% 
-  # mutate(group = case_match(group,
-  #                           "PPD-" ~ "PD-",
-  #                           "PPD+" ~ "PD+",
-  #                           "PNP" ~ "PNP",
-  #                           .default = NA)) %>% 
-  # mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  
+# mutate(group = case_match(group,
+#                           "PPD-" ~ "PD-",
+#                           "PPD+" ~ "PD+",
+#                           "PNP" ~ "PNP",
+#                           .default = NA)) %>% 
+# mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  
 
 ggboxplot(df_gpucb_params, 
           x = "group", 
@@ -279,7 +298,108 @@ ggboxplot(df_gpucb_params,
 ggsave("plots/GP-UCB_params.png", width = 9, height = 5)
 ```
 
-The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected (@Chakroun2020restless_ldopa).
+The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected @Chakroun2020restless_ldopa.
+
+### Correlation of Parameters with Performance
+
+```{r}
+#| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1. "
+#| label: fig_params_reward_cor
+#| fig-width: 12
+#| fig-height: 5
+
+# mean reward per subject across all trials and rounds (practice and bonus round excluded)
+df_mean_reward_subject <- dat %>% 
+  filter(trial != 0 & round %in% 2:9) %>% # exclude first (randomly revealed) tile and practice round and bonus round
+  group_by(id) %>% 
+  summarise(group = first(group),
+            sum_reward = sum(z),
+            mean_reward = mean(z), 
+            sd_reward = sd(z)) 
+
+df_params_performance <- df_gpucb_params %>% 
+  pivot_wider(names_from = param, values_from = estimate ) %>% 
+  mutate(id = as.factor(id)) %>% 
+  left_join(df_mean_reward_subject, by = "id")
+
+df_params_performance <- df_gpucb_params %>% 
+  #pivot_wider(names_from = param, values_from = estimate ) %>% 
+  mutate(id = as.factor(id)) %>% 
+  left_join(df_mean_reward_subject, by = "id") 
+
+
+# p_GP_UCB_params_cor_reward <-  ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
+#    add = "reg.line",  
+#    add.params = list(color = "darkred", fill = "lightgray"), 
+#    conf.int = TRUE 
+#    ) +
+#    facet_wrap(~param, scales = "free_x") +
+#    #stat_cor(method = "kendall", label.x = c(0,3,3), label.y = 45) +
+#    scale_x_log10(breaks = c(0.001, 0.01, 0.1, 1, 10, 100), labels = c("0.001", "0.01", "0.1", "1", "10", "100")) +
+#    ggtitle("Correlation between GP-UCB parameters and reward") +
+#   theme_classic() +
+#   theme(strip.background = element_blank(),  
+#         strip.text = element_text(color = "black", size=12),
+#         legend.title = element_blank())
+#  
+#  ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward, width = 12, height= 4, dpi=300)
+
+
+# plot correlation between parameter estimates and mean reward, with inset for smaller estimate range (ie. removal of outliers to test whether corrleation remains stable)
+main_plot <- ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
+                       add = "reg.line",  
+                       add.params = list(color = "darkred", fill = "lightgray"), 
+                       conf.int = TRUE 
+) +
+  facet_wrap(~param, scales = "free_x") +
+  stat_cor(method = "pearson", label.x = c(0,3,3), label.y = 45) +
+  ggtitle("Correlation between GP-UCB parameters and reward") +
+  scale_y_continuous("Mean reward", breaks = seq(0,45,10)) +
+  xlab("Estimate") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=12),
+        legend.title = element_blank())
+
+# Inset-Plot für beta (nur Werte 0-1)
+inset_beta <- 
+  ggscatter(df_params_performance %>% filter(param == "beta" & estimate > 0 & estimate <= 1), 
+            x = "estimate", y = "mean_reward",
+            add = "reg.line",  
+            add.params = list(color = "darkred", fill = "lightgray"), 
+            conf.int = TRUE 
+  ) +
+  stat_cor(method = "pearson", label.x = 0.1, label.y = 42, size = 3) +
+  scale_x_continuous(breaks = seq(0,1,0.1)) +
+  theme_classic() +
+  theme(axis.title = element_blank(),strip.background = element_blank(), strip.text = element_blank(), legend.position = "none")
+
+# Inset-Plot für tau (nur Werte 0-1)
+inset_tau <- 
+  ggscatter(df_params_performance %>% filter(param == "tau" & estimate > 0 & estimate <= 1), 
+            x = "estimate", y = "mean_reward",
+            add = "reg.line",  
+            add.params = list(color = "darkred", fill = "lightgray"), 
+            conf.int = TRUE 
+  ) +
+  stat_cor(method = "pearson", label.x = 0.1, label.y = 42, size = 3) +
+  scale_x_continuous(breaks = seq(0,1,0.1)) +
+  theme_classic() +
+  theme(axis.title = element_blank(),strip.background = element_blank(), strip.text = element_blank(), legend.position = "none")
+
+
+# Hauptplot mit Insets für beta und tau
+p_GP_UCB_params_cor_reward_inset <- 
+  ggdraw(main_plot) +
+  draw_plot(inset_beta, x = 0.5, y = 0.5, width = 0.15, height = 0.3) +
+  draw_plot(inset_tau, x = 0.8, y = 0.5, width = 0.15, height = 0.3)
+
+p_GP_UCB_params_cor_reward_inset
+
+ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward_inset, width = 12, height= 4, dpi=300)
+
+```
+
 
 # Session Information
 

@@ -10,7 +10,7 @@
 <meta name="author" content="Martha Sterf">
 <meta name="author" content="Charley M. Wu">
 <meta name="author" content="Matthias Guggenmos">
-<meta name="dcterms.date" content="2025-01-30">
+<meta name="dcterms.date" content="2025-01-31">
 
 <title>Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses</title>
 <style>
@@ -91,7 +91,7 @@ div.csl-indent {
 <link href="gridsearch_parkinson_computational_analyses_files/libs/quarto-html/quarto-syntax-highlighting-29e2c20b02301cfff04dc8050bf30c7e.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="gridsearch_parkinson_computational_analyses_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="gridsearch_parkinson_computational_analyses_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="gridsearch_parkinson_computational_analyses_files/libs/bootstrap/bootstrap-90b5634b200392ee8783d2814208851c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="gridsearch_parkinson_computational_analyses_files/libs/bootstrap/bootstrap-9df3b77f96a118338fb72b27d6591707.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="gridsearch_parkinson_computational_analyses_files/libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -136,18 +136,21 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#computational-analyses" id="toc-computational-analyses" class="nav-link active" data-scroll-target="#computational-analyses">Computational Analyses</a>
+  <li><a href="#computational-analyses" id="toc-computational-analyses" class="nav-link active" data-scroll-target="#computational-analyses"><span class="header-section-number">1</span> Computational Analyses</a>
   <ul class="collapse">
-  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model" class="nav-link" data-scroll-target="#gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
+  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model" class="nav-link" data-scroll-target="#gaussian-process-upper-confidence-bound-gp-ucb-model"><span class="header-section-number">1.1</span> Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
   <ul class="collapse">
-  <li><a href="#learning-model" id="toc-learning-model" class="nav-link" data-scroll-target="#learning-model">Learning Model</a></li>
-  <li><a href="#sampling-strategy" id="toc-sampling-strategy" class="nav-link" data-scroll-target="#sampling-strategy">Sampling Strategy</a></li>
-  <li><a href="#choice-rule" id="toc-choice-rule" class="nav-link" data-scroll-target="#choice-rule">Choice rule</a></li>
+  <li><a href="#learning-model" id="toc-learning-model" class="nav-link" data-scroll-target="#learning-model"><span class="header-section-number">1.1.1</span> Learning Model</a></li>
+  <li><a href="#sampling-strategy" id="toc-sampling-strategy" class="nav-link" data-scroll-target="#sampling-strategy"><span class="header-section-number">1.1.2</span> Sampling Strategy</a></li>
+  <li><a href="#choice-rule" id="toc-choice-rule" class="nav-link" data-scroll-target="#choice-rule"><span class="header-section-number">1.1.3</span> Choice rule</a></li>
   </ul></li>
-  <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison">Model comparison</a></li>
-  <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates" class="nav-link" data-scroll-target="#analysis-of-parameter-estimates">Analysis of parameter estimates</a></li>
+  <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison"><span class="header-section-number">1.2</span> Model comparison</a></li>
+  <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates" class="nav-link" data-scroll-target="#analysis-of-parameter-estimates"><span class="header-section-number">1.3</span> Analysis of parameter estimates</a>
+  <ul class="collapse">
+  <li><a href="#correlation-of-parameters-with-performance" id="toc-correlation-of-parameters-with-performance" class="nav-link" data-scroll-target="#correlation-of-parameters-with-performance"><span class="header-section-number">1.3.1</span> Correlation of Parameters with Performance</a></li>
   </ul></li>
-  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information">Session Information</a></li>
+  </ul></li>
+  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information"><span class="header-section-number">2</span> Session Information</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="gridsearch_parkinson_computational_analyses.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li><li><a href="gridsearch_parkinson_computational_analyses.docx"><i class="bi bi-file-word"></i>MS Word</a></li></ul></div></nav>
 </div>
@@ -161,23 +164,51 @@ window.Quarto = {
 </div>
 
 
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Authors</div>
+  <div class="quarto-title-meta-heading">Affiliations</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Björn Meder </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Health and Medical University, Potsdam, Germany
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Martha Sterf </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Medical School Berlin, Berlin, Germany
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Charley M. Wu </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Tübingen, Tübingen, Germany
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Matthias Guggenmos </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Health and Medical University, Potsdam, Germany
+          </p>
+      </div>
+  </div>
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Authors</div>
-    <div class="quarto-title-meta-contents">
-             <p>Björn Meder </p>
-             <p>Martha Sterf </p>
-             <p>Charley M. Wu </p>
-             <p>Matthias Guggenmos </p>
-          </div>
-  </div>
-    
+      
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 30, 2025</p>
+      <p class="date">January 31, 2025</p>
     </div>
   </div>
   
@@ -192,18 +223,21 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#computational-analyses" id="toc-computational-analyses">Computational Analyses</a>
+  <li><a href="#computational-analyses" id="toc-computational-analyses"><span class="header-section-number">1</span> Computational Analyses</a>
   <ul>
-  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
+  <li><a href="#gaussian-process-upper-confidence-bound-gp-ucb-model" id="toc-gaussian-process-upper-confidence-bound-gp-ucb-model"><span class="header-section-number">1.1</span> Gaussian Process Upper Confidence Bound (GP-UCB) Model</a>
   <ul>
-  <li><a href="#learning-model" id="toc-learning-model">Learning Model</a></li>
-  <li><a href="#sampling-strategy" id="toc-sampling-strategy">Sampling Strategy</a></li>
-  <li><a href="#choice-rule" id="toc-choice-rule">Choice rule</a></li>
+  <li><a href="#learning-model" id="toc-learning-model"><span class="header-section-number">1.1.1</span> Learning Model</a></li>
+  <li><a href="#sampling-strategy" id="toc-sampling-strategy"><span class="header-section-number">1.1.2</span> Sampling Strategy</a></li>
+  <li><a href="#choice-rule" id="toc-choice-rule"><span class="header-section-number">1.1.3</span> Choice rule</a></li>
   </ul></li>
-  <li><a href="#model-comparison" id="toc-model-comparison">Model comparison</a></li>
-  <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates">Analysis of parameter estimates</a></li>
+  <li><a href="#model-comparison" id="toc-model-comparison"><span class="header-section-number">1.2</span> Model comparison</a></li>
+  <li><a href="#analysis-of-parameter-estimates" id="toc-analysis-of-parameter-estimates"><span class="header-section-number">1.3</span> Analysis of parameter estimates</a>
+  <ul>
+  <li><a href="#correlation-of-parameters-with-performance" id="toc-correlation-of-parameters-with-performance"><span class="header-section-number">1.3.1</span> Correlation of Parameters with Performance</a></li>
   </ul></li>
-  <li><a href="#session-information" id="toc-session-information">Session Information</a></li>
+  </ul></li>
+  <li><a href="#session-information" id="toc-session-information"><span class="header-section-number">2</span> Session Information</a></li>
   </ul>
 </nav>
 <div class="cell">
@@ -218,7 +252,7 @@ window.Quarto = {
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">knitr.kable.NA =</span> <span class="st">''</span>)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'gridExtra'</span>, <span class="st">'BayesFactor'</span>, <span class="st">'tidyverse'</span>, <span class="st">"RColorBrewer"</span>, <span class="st">"lme4"</span>, <span class="st">"sjPlot"</span>, <span class="st">"lsr"</span>, <span class="st">"brms"</span>, <span class="st">"kableExtra"</span>, <span class="st">"afex"</span>, <span class="st">"emmeans"</span>, <span class="st">"viridis"</span>, <span class="st">"ggpubr"</span>, <span class="st">"hms"</span>, <span class="st">"scales"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'gridExtra'</span>, <span class="st">'BayesFactor'</span>, <span class="st">'tidyverse'</span>, <span class="st">"RColorBrewer"</span>, <span class="st">"lme4"</span>, <span class="st">"sjPlot"</span>, <span class="st">"lsr"</span>, <span class="st">"brms"</span>, <span class="st">"kableExtra"</span>, <span class="st">"afex"</span>, <span class="st">"emmeans"</span>, <span class="st">"viridis"</span>, <span class="st">"ggpubr"</span>, <span class="st">"hms"</span>, <span class="st">"scales"</span>, <span class="st">"cowplot"</span>)</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(packages, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">0815</span>)</span>
@@ -299,11 +333,11 @@ window.Quarto = {
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#   scroll_box(width = "100%", height = "300px")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="computational-analyses" class="level1">
-<h1>Computational Analyses</h1>
-<p>In addition to the behavioral analyses, we study exploration and exploitation in PD through the lens of the Gaussian Process Upper Confidence Bound (GP-UCB) model, a computational model that integrates similarity-based generalization with two distinct exploration mechanisms: <em>directed exploration</em>, which seeks to reduce uncertainty about rewards, and <em>random exploration</em>, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms <span class="citation" data-cites="Wu:2018grid Schulz:2019kwg Wu:2020neurogrid Meder_directed__random_exploration_children Giron_et_al-2022-development_optimization Wu_et_al-generalization">(<a href="#ref-Giron_et_al-2022-development_optimization" role="doc-biblioref">Giron et al., 2023</a>; <a href="#ref-Meder_directed__random_exploration_children" role="doc-biblioref">Meder et al., 2021</a>; <a href="#ref-Schulz:2019kwg" role="doc-biblioref">Schulz et al., 2019</a>; <a href="#ref-Wu:2018grid" role="doc-biblioref">Wu et al., 2018</a>; <a href="#ref-Wu:2020neurogrid" role="doc-biblioref">Wu et al., 2020</a>, <a href="#ref-Wu_et_al-generalization" role="doc-biblioref">2025</a>)</span>.</p>
-<section id="gaussian-process-upper-confidence-bound-gp-ucb-model" class="level2">
-<h2 class="anchored" data-anchor-id="gaussian-process-upper-confidence-bound-gp-ucb-model">Gaussian Process Upper Confidence Bound (GP-UCB) Model</h2>
+<section id="computational-analyses" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Computational Analyses</h1>
+<p>Complementing the behavioral analyses, we study exploration and exploitation in PD through the lens of a computational model, the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: <em>directed exploration</em>, which seeks to reduce uncertainty about rewards, and <em>random exploration</em>, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms <span class="citation" data-cites="Wu:2018grid Schulz:2019kwg Wu:2020neurogrid Meder_directed__random_exploration_children Giron_et_al-2022-development_optimization Wu_et_al-generalization">(<a href="#ref-Giron_et_al-2022-development_optimization" role="doc-biblioref">Giron et al., 2023</a>; <a href="#ref-Meder_directed__random_exploration_children" role="doc-biblioref">Meder et al., 2021</a>; <a href="#ref-Schulz:2019kwg" role="doc-biblioref">Schulz et al., 2019</a>; <a href="#ref-Wu:2018grid" role="doc-biblioref">Wu et al., 2018</a>; <a href="#ref-Wu:2020neurogrid" role="doc-biblioref">Wu et al., 2020</a>, <a href="#ref-Wu_et_al-generalization" role="doc-biblioref">2025</a>)</span>.</p>
+<section id="gaussian-process-upper-confidence-bound-gp-ucb-model" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="gaussian-process-upper-confidence-bound-gp-ucb-model"><span class="header-section-number">1.1</span> Gaussian Process Upper Confidence Bound (GP-UCB) Model</h2>
 <p>The GP-UCB model comprises three components:</p>
 <ol type="1">
 <li>a <em>learning model</em>, which uses Bayesian inference to generate predictions about the rewards associated with each option (tile),</li>
@@ -323,14 +357,14 @@ Note
 <p>Add details</p>
 </div>
 </div>
-<section id="learning-model" class="level3">
-<h3 class="anchored" data-anchor-id="learning-model">Learning Model</h3>
+<section id="learning-model" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="learning-model"><span class="header-section-number">1.1.1</span> Learning Model</h3>
 </section>
-<section id="sampling-strategy" class="level3">
-<h3 class="anchored" data-anchor-id="sampling-strategy">Sampling Strategy</h3>
+<section id="sampling-strategy" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="sampling-strategy"><span class="header-section-number">1.1.2</span> Sampling Strategy</h3>
 </section>
-<section id="choice-rule" class="level3">
-<h3 class="anchored" data-anchor-id="choice-rule">Choice rule</h3>
+<section id="choice-rule" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="choice-rule"><span class="header-section-number">1.1.3</span> Choice rule</h3>
 <p>Associated with each model component is a free parameter that we estimate through out-of-sample cross validation. These parameters provide a window into distinct aspects of learning and exploration:</p>
 <ol type="1">
 <li>The length-scale parameter <span class="math inline">\(\lambda\)</span> of the RBF kernel captures how strongly a participant generalizes based on the observed evidence, i.e., the rewards obtained from previous choices.</li>
@@ -339,14 +373,14 @@ Note
 </ol>
 </section>
 </section>
-<section id="model-comparison" class="level2">
-<h2 class="anchored" data-anchor-id="model-comparison">Model comparison</h2>
+<section id="model-comparison" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="model-comparison"><span class="header-section-number">1.2</span> Model comparison</h2>
 <p>We tested the GP-UCB model in its ability to model learning and predicting each participants’ search and decision-making behavior. To assess the contribution of each component of the model (generalization, uncertainty-directed exploration, and random exploration) we compare the predictive accuracy of the GP-UCB model to model variants where we lesion away each component.</p>
 <p><span class="math inline">\(\lambda\)</span></p>
 <p>All models were fitted using leave-one-round-out cross-validation based on maximum likelihood estimation. Model fits are evaluated using the sum of negative log-likelihoods across all out-of-sample predictions.</p>
 <p>Out-of-sample predictive accuracy was assessed using a pseudo-<span class="math inline">\(R^2\)</span> measure, based on the sum of negative log-likelihoods across all out-of-sample predictions. The summed negative log likelihoods are compared to a random model, such that <span class="math inline">\(R^2=0\)</span> corresponds to chance performance and <span class="math inline">\(R^2=1\)</span> corresponds to theoretically perfect predictions.</p>
 <p><span class="math display">\[
-    R^2 = 1 - \frac{\log \mathcal{L}(M_k)}{\log\mathcal{L}(M_{rand})},
+R^2 = 1 - \frac{\log \mathcal{L}(M_k)}{\log\mathcal{L}(M_{rand})},
 \]</span></p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
@@ -358,12 +392,12 @@ Note
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>modelFits <span class="ot">&lt;-</span>  modelFits <span class="sc">%&gt;%</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">kernel=</span><span class="fu">factor</span>(kernel, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">'RBF'</span>, <span class="st">'BMT'</span>), <span class="at">labels=</span><span class="fu">c</span>(<span class="st">'GP'</span>, <span class="st">'BMT'</span>))) <span class="co">#%&gt;%</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(group = case_match(group,</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PPD-" ~ "PD-",</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PPD+" ~ "PD+",</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PNP" ~ "PNP",</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           .default = NA)) %&gt;%</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># mutate(group = case_match(group,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PPD-" ~ "PD-",</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PPD+" ~ "PD+",</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PNP" ~ "PNP",</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">#                           .default = NA)) %&gt;%</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))</span></span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>modelFits<span class="sc">$</span>ModelName <span class="ot">=</span> <span class="fu">paste</span>(modelFits<span class="sc">$</span>kernel, modelFits<span class="sc">$</span>acq, <span class="at">sep=</span><span class="st">"-"</span>)</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>modelFits<span class="sc">$</span>ModelName <span class="ot">=</span> <span class="fu">factor</span>(modelFits<span class="sc">$</span>ModelName, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'GP-UCB'</span>, <span class="st">'BMT-UCB'</span>, <span class="st">'GP-GM'</span>, <span class="st">'BMT-GM'</span>, <span class="st">'GP-GV'</span>, <span class="st">'BMT-GV'</span>))</span>
@@ -385,16 +419,16 @@ Note
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">bquote</span>(R<span class="sc">^</span><span class="dv">2</span>)) <span class="sc">+</span></span>
 <span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">""</span>) <span class="sc">+</span></span>
 <span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_compare_means</span>(</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">comparisons =</span> <span class="fu">list</span>( </span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"GP</span><span class="sc">\n</span><span class="st">UCB"</span>, <span class="st">"lambda</span><span class="sc">\n</span><span class="st">lesion"</span>), </span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"GP</span><span class="sc">\n</span><span class="st">UCB"</span>, <span class="st">"beta</span><span class="sc">\n</span><span class="st">lesion"</span>), </span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"lambda</span><span class="sc">\n</span><span class="st">lesion"</span>, <span class="st">"beta</span><span class="sc">\n</span><span class="st">lesion"</span>)  </span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  ), </span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">paired =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"t.test"</span>, </span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>   <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="st">"p = "</span>, <span class="fu">after_stat</span>(p.format)))</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">comparisons =</span> <span class="fu">list</span>( </span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">"GP</span><span class="sc">\n</span><span class="st">UCB"</span>, <span class="st">"lambda</span><span class="sc">\n</span><span class="st">lesion"</span>), </span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">"GP</span><span class="sc">\n</span><span class="st">UCB"</span>, <span class="st">"beta</span><span class="sc">\n</span><span class="st">lesion"</span>), </span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">"lambda</span><span class="sc">\n</span><span class="st">lesion"</span>, <span class="st">"beta</span><span class="sc">\n</span><span class="st">lesion"</span>)  </span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">paired =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"t.test"</span>, </span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="st">"p = "</span>, <span class="fu">after_stat</span>(p.format)))</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> mean, <span class="at">geom=</span><span class="st">"point"</span>, <span class="at">shape =</span> <span class="dv">23</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">size=</span><span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
 <span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.background =</span> <span class="fu">element_blank</span>(),  </span>
@@ -405,7 +439,12 @@ Note
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="gridsearch_parkinson_computational_analyses_files/figure-html/unnamed-chunk-3-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="gridsearch_parkinson_computational_analyses_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></a></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="gridsearch_parkinson_computational_analyses_files/figure-html/fig_model_comparison-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Predictive accuracy of GP-UCB model and lesioned variants."><img src="gridsearch_parkinson_computational_analyses_files/figure-html/fig_model_comparison-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672" alt="Predictive accuracy of GP-UCB model and lesioned variants."></a></p>
+</figure>
+</div>
+<figcaption>Predictive accuracy of GP-UCB model and lesioned variants.</figcaption>
 </figure>
 </div>
 </div>
@@ -413,38 +452,38 @@ Note
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"plots/model_comparison.png"</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">5</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># p_R2_comp &lt;- </span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_quasirandom( size = 0.5)+</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># xlab('') +</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ylab(expression(R^2)) +</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># #ylab(expression(italic(pxp))) +</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># facet_wrap(~group, nrow = 1)+</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggtitle('Model fits') +</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme_classic() +</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme(strip.background=element_blank(),</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">#       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(modelFits, aes(x=shortname, y=R2, fill=NA,color=shortname)) +</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># #geom_line(aes(group=id), color = 'grey', alpha  = 0.3)+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># geom_quasirandom( size = 0.5)+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># geom_boxplot(width = 0.4, color ='black', outlier.shape=NA, fill = NA)+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># stat_summary(fun.y = mean, geom='point', shape = 23, color = 'black', fill = 'white')+</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># xlab('') +</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ylab(expression(R^2)) +</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># #ylab(expression(italic(pxp))) +</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># scale_color_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co"># scale_fill_manual(values=modelPal, name = 'Model', labels = expression('GP-UCB', lambda*' lesion', beta* ' lesion')) +</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># facet_wrap(~group, nrow = 1)+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># ggtitle('Model fits') +</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># theme_classic() +</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># theme(strip.background=element_blank(),</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#       legend.position = 'none', legend.justification = c(1,0), axis.title.x=element_blank())</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
-<section id="analysis-of-parameter-estimates" class="level2">
-<h2 class="anchored" data-anchor-id="analysis-of-parameter-estimates">Analysis of parameter estimates</h2>
+<section id="analysis-of-parameter-estimates" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="analysis-of-parameter-estimates"><span class="header-section-number">1.3</span> Analysis of parameter estimates</h2>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_gpucb_params <span class="ot">&lt;-</span> modelFits <span class="sc">%&gt;%</span> <span class="fu">filter</span>(kernel<span class="sc">==</span><span class="st">'GP'</span> <span class="sc">&amp;</span> acq <span class="sc">==</span> <span class="st">'UCB'</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(<span class="st">'lambda'</span>, <span class="st">'beta'</span>, <span class="st">'tau'</span>), <span class="at">names_to =</span> <span class="st">'param'</span>, <span class="at">values_to =</span> <span class="st">'estimate'</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">param =</span> <span class="fu">factor</span>(param, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'lambda'</span>, <span class="st">'beta'</span>, <span class="st">'tau'</span>))) <span class="co">#%&gt;% </span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(group = case_match(group,</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PPD-" ~ "PD-",</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PPD+" ~ "PD+",</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           "PNP" ~ "PNP",</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                           .default = NA)) %&gt;% </span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  </span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># mutate(group = case_match(group,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PPD-" ~ "PD-",</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PPD+" ~ "PD+",</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "PNP" ~ "PNP",</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                           .default = NA)) %&gt;% </span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  </span></span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggboxplot</span>(df_gpucb_params, </span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">x =</span> <span class="st">"group"</span>, </span>
@@ -471,7 +510,12 @@ Note
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="gridsearch_parkinson_computational_analyses_files/figure-html/unnamed-chunk-4-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="gridsearch_parkinson_computational_analyses_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></a></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="gridsearch_parkinson_computational_analyses_files/figure-html/fig_GP-CUB_params-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."><img src="gridsearch_parkinson_computational_analyses_files/figure-html/fig_GP-CUB_params-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672" alt="Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."></a></p>
+</figure>
+</div>
+<figcaption>Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant.</figcaption>
 </figure>
 </div>
 </div>
@@ -480,11 +524,122 @@ Note
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"plots/GP-UCB_params.png"</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The increased exploration bonus <span class="math inline">\(\beta\)</span> aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected (<span class="citation" data-cites="Chakroun2020restless_ldopa">Chakroun et al. (<a href="#ref-Chakroun2020restless_ldopa" role="doc-biblioref">2020</a>)</span>).</p>
+<p>The increased exploration bonus <span class="math inline">\(\beta\)</span> aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected <span class="citation" data-cites="Chakroun2020restless_ldopa">Chakroun et al. (<a href="#ref-Chakroun2020restless_ldopa" role="doc-biblioref">2020</a>)</span>.</p>
+<section id="correlation-of-parameters-with-performance" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="correlation-of-parameters-with-performance"><span class="header-section-number">1.3.1</span> Correlation of Parameters with Performance</h3>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean reward per subject across all trials and rounds (practice and bonus round excluded)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df_mean_reward_subject <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(trial <span class="sc">!=</span> <span class="dv">0</span> <span class="sc">&amp;</span> round <span class="sc">%in%</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">9</span>) <span class="sc">%&gt;%</span> <span class="co"># exclude first (randomly revealed) tile and practice round and bonus round</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(id) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">group =</span> <span class="fu">first</span>(group),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">sum_reward =</span> <span class="fu">sum</span>(z),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">mean_reward =</span> <span class="fu">mean</span>(z), </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_reward =</span> <span class="fu">sd</span>(z)) </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>df_params_performance <span class="ot">&lt;-</span> df_gpucb_params <span class="sc">%&gt;%</span> </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> param, <span class="at">values_from =</span> estimate ) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">as.factor</span>(id)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_mean_reward_subject, <span class="at">by =</span> <span class="st">"id"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>df_params_performance <span class="ot">&lt;-</span> df_gpucb_params <span class="sc">%&gt;%</span> </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">#pivot_wider(names_from = param, values_from = estimate ) %&gt;% </span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">as.factor</span>(id)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_mean_reward_subject, <span class="at">by =</span> <span class="st">"id"</span>) </span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># p_GP_UCB_params_cor_reward &lt;-  ggscatter(df_params_performance, x = "estimate", y = "mean_reward",</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">#    add = "reg.line",  </span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co">#    add.params = list(color = "darkred", fill = "lightgray"), </span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">#    conf.int = TRUE </span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co">#    ) +</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">#    facet_wrap(~param, scales = "free_x") +</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">#    #stat_cor(method = "kendall", label.x = c(0,3,3), label.y = 45) +</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co">#    scale_x_log10(breaks = c(0.001, 0.01, 0.1, 1, 10, 100), labels = c("0.001", "0.01", "0.1", "1", "10", "100")) +</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co">#    ggtitle("Correlation between GP-UCB parameters and reward") +</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_classic() +</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme(strip.background = element_blank(),  </span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="co">#         strip.text = element_text(color = "black", size=12),</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         legend.title = element_blank())</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co">#  </span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">#  ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward, width = 12, height= 4, dpi=300)</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co"># plot correlation between parameter estimates and mean reward, with inset for smaller estimate range (ie. removal of outliers to test whether corrleation remains stable)</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>main_plot <span class="ot">&lt;-</span> <span class="fu">ggscatter</span>(df_params_performance, <span class="at">x =</span> <span class="st">"estimate"</span>, <span class="at">y =</span> <span class="st">"mean_reward"</span>,</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>                       <span class="at">add =</span> <span class="st">"reg.line"</span>,  </span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>                       <span class="at">add.params =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">"darkred"</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>), </span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>                       <span class="at">conf.int =</span> <span class="cn">TRUE</span> </span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>param, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_cor</span>(<span class="at">method =</span> <span class="st">"pearson"</span>, <span class="at">label.x =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">3</span>), <span class="at">label.y =</span> <span class="dv">45</span>) <span class="sc">+</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Correlation between GP-UCB parameters and reward"</span>) <span class="sc">+</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="st">"Mean reward"</span>, <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">45</span>,<span class="dv">10</span>)) <span class="sc">+</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Estimate"</span>) <span class="sc">+</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.background =</span> <span class="fu">element_blank</span>(),  </span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size=</span><span class="dv">12</span>),</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Inset-Plot für beta (nur Werte 0-1)</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>inset_beta <span class="ot">&lt;-</span> </span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggscatter</span>(df_params_performance <span class="sc">%&gt;%</span> <span class="fu">filter</span>(param <span class="sc">==</span> <span class="st">"beta"</span> <span class="sc">&amp;</span> estimate <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> estimate <span class="sc">&lt;=</span> <span class="dv">1</span>), </span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="st">"estimate"</span>, <span class="at">y =</span> <span class="st">"mean_reward"</span>,</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>            <span class="at">add =</span> <span class="st">"reg.line"</span>,  </span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>            <span class="at">add.params =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">"darkred"</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>), </span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>            <span class="at">conf.int =</span> <span class="cn">TRUE</span> </span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_cor</span>(<span class="at">method =</span> <span class="st">"pearson"</span>, <span class="at">label.x =</span> <span class="fl">0.1</span>, <span class="at">label.y =</span> <span class="dv">42</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="fl">0.1</span>)) <span class="sc">+</span></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_blank</span>(),<span class="at">strip.background =</span> <span class="fu">element_blank</span>(), <span class="at">strip.text =</span> <span class="fu">element_blank</span>(), <span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="co"># Inset-Plot für tau (nur Werte 0-1)</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>inset_tau <span class="ot">&lt;-</span> </span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggscatter</span>(df_params_performance <span class="sc">%&gt;%</span> <span class="fu">filter</span>(param <span class="sc">==</span> <span class="st">"tau"</span> <span class="sc">&amp;</span> estimate <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> estimate <span class="sc">&lt;=</span> <span class="dv">1</span>), </span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="st">"estimate"</span>, <span class="at">y =</span> <span class="st">"mean_reward"</span>,</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>            <span class="at">add =</span> <span class="st">"reg.line"</span>,  </span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>            <span class="at">add.params =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">"darkred"</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>), </span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>            <span class="at">conf.int =</span> <span class="cn">TRUE</span> </span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_cor</span>(<span class="at">method =</span> <span class="st">"pearson"</span>, <span class="at">label.x =</span> <span class="fl">0.1</span>, <span class="at">label.y =</span> <span class="dv">42</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="fl">0.1</span>)) <span class="sc">+</span></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_blank</span>(),<span class="at">strip.background =</span> <span class="fu">element_blank</span>(), <span class="at">strip.text =</span> <span class="fu">element_blank</span>(), <span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="co"># Hauptplot mit Insets für beta und tau</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>p_GP_UCB_params_cor_reward_inset <span class="ot">&lt;-</span> </span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggdraw</span>(main_plot) <span class="sc">+</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">draw_plot</span>(inset_beta, <span class="at">x =</span> <span class="fl">0.5</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">height =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">draw_plot</span>(inset_tau, <span class="at">x =</span> <span class="fl">0.8</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">height =</span> <span class="fl">0.3</span>)</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>p_GP_UCB_params_cor_reward_inset</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="gridsearch_parkinson_computational_analyses_files/figure-html/fig_params_reward_cor-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1."><img src="gridsearch_parkinson_computational_analyses_files/figure-html/fig_params_reward_cor-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="1152" alt="Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1."></a></p>
+</figure>
+</div>
+<figcaption>Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1.</figcaption>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"plots/GP-UCB_params_cor_reward.png"</span>, p_GP_UCB_params_cor_reward_inset, <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height=</span> <span class="dv">4</span>, <span class="at">dpi=</span><span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </section>
 </section>
-<section id="session-information" class="level1">
-<h1>Session Information</h1>
+</section>
+<section id="session-information" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Session Information</h1>
 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
 <p>Session Information</p>
 </button>
@@ -493,7 +648,7 @@ Note
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.1 (2024-06-14)
@@ -514,48 +669,48 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] scales_1.3.0           hms_1.1.3              ggpubr_0.6.0          
- [4] viridis_0.6.5          viridisLite_0.4.2      emmeans_1.10.6        
- [7] afex_1.4-1             kableExtra_1.4.0       brms_2.22.0           
-[10] Rcpp_1.0.14            lsr_0.5.2              sjPlot_2.8.17         
-[13] lme4_1.1-36            RColorBrewer_1.1-3     lubridate_1.9.4       
-[16] forcats_1.0.0          stringr_1.5.1          dplyr_1.1.4           
-[19] purrr_1.0.2            readr_2.1.5            tidyr_1.3.1           
-[22] tibble_3.2.1           ggplot2_3.5.1          tidyverse_2.0.0       
-[25] BayesFactor_0.9.12-4.7 Matrix_1.7-2           coda_0.19-4.1         
-[28] gridExtra_2.3         
+ [1] cowplot_1.1.3          scales_1.3.0           hms_1.1.3             
+ [4] ggpubr_0.6.0           viridis_0.6.5          viridisLite_0.4.2     
+ [7] emmeans_1.10.6         afex_1.4-1             kableExtra_1.4.0      
+[10] brms_2.22.0            Rcpp_1.0.14            lsr_0.5.2             
+[13] sjPlot_2.8.17          lme4_1.1-36            RColorBrewer_1.1-3    
+[16] lubridate_1.9.4        forcats_1.0.0          stringr_1.5.1         
+[19] dplyr_1.1.4            purrr_1.0.2            readr_2.1.5           
+[22] tidyr_1.3.1            tibble_3.2.1           ggplot2_3.5.1         
+[25] tidyverse_2.0.0        BayesFactor_0.9.12-4.7 Matrix_1.7-2          
+[28] coda_0.19-4.1          gridExtra_2.3         
 
 loaded via a namespace (and not attached):
  [1] Rdpack_2.6.2         pbapply_1.7-2        rlang_1.1.5         
  [4] magrittr_2.0.3       matrixStats_1.5.0    compiler_4.4.1      
- [7] loo_2.8.0            systemfonts_1.2.1    vctrs_0.6.5         
-[10] reshape2_1.4.4       crayon_1.5.3         pkgconfig_2.0.3     
-[13] fastmap_1.2.0        backports_1.5.0      labeling_0.4.3      
-[16] rmarkdown_2.29       tzdb_0.4.0           nloptr_2.1.1        
-[19] ragg_1.3.3           bit_4.5.0.1          MatrixModels_0.5-3  
-[22] xfun_0.50            jsonlite_1.8.9       sjmisc_2.8.10       
-[25] ggeffects_2.1.0      broom_1.0.7          parallel_4.4.1      
-[28] R6_2.5.1             stringi_1.8.4        car_3.1-3           
-[31] boot_1.3-31          numDeriv_2016.8-1.1  estimability_1.5.1  
-[34] knitr_1.49           bayesplot_1.11.1     splines_4.4.1       
-[37] timechange_0.3.0     tidyselect_1.2.1     rstudioapi_0.17.1   
-[40] abind_1.4-8          yaml_2.3.10          sjlabelled_1.2.0    
-[43] lattice_0.22-6       lmerTest_3.1-3       plyr_1.8.9          
-[46] withr_3.0.2          bridgesampling_1.1-2 posterior_1.6.0     
-[49] evaluate_1.0.3       RcppParallel_5.1.10  xml2_1.3.6          
-[52] pillar_1.10.1        carData_3.0-5        tensorA_0.36.2.1    
-[55] checkmate_2.3.2      reformulas_0.4.0     insight_1.0.1       
-[58] distributional_0.5.0 generics_0.1.3       vroom_1.6.5         
-[61] rstantools_2.4.0     munsell_0.5.1        minqa_1.2.8         
-[64] xtable_1.8-4         glue_1.8.0           tools_4.4.1         
-[67] ggsignif_0.6.4       mvtnorm_1.3-3        grid_4.4.1          
-[70] rbibutils_2.3        datawizard_1.0.0     colorspace_2.1-1    
-[73] nlme_3.1-167         performance_0.13.0   Formula_1.2-5       
-[76] cli_3.6.3            textshaping_1.0.0    svglite_2.1.3       
-[79] Brobdingnag_1.2-9    sjstats_0.19.0       gtable_0.3.6        
-[82] rstatix_0.7.2        digest_0.6.37        farver_2.1.2        
-[85] htmlwidgets_1.6.4    htmltools_0.5.8.1    lifecycle_1.0.4     
-[88] bit64_4.6.0-1        MASS_7.3-64         </code></pre>
+ [7] mgcv_1.9-1           loo_2.8.0            systemfonts_1.2.1   
+[10] vctrs_0.6.5          reshape2_1.4.4       crayon_1.5.3        
+[13] pkgconfig_2.0.3      fastmap_1.2.0        backports_1.5.0     
+[16] labeling_0.4.3       rmarkdown_2.29       tzdb_0.4.0          
+[19] nloptr_2.1.1         ragg_1.3.3           bit_4.5.0.1         
+[22] MatrixModels_0.5-3   xfun_0.50            jsonlite_1.8.9      
+[25] sjmisc_2.8.10        ggeffects_2.1.0      broom_1.0.7         
+[28] parallel_4.4.1       R6_2.5.1             stringi_1.8.4       
+[31] car_3.1-3            boot_1.3-31          numDeriv_2016.8-1.1 
+[34] estimability_1.5.1   knitr_1.49           bayesplot_1.11.1    
+[37] splines_4.4.1        timechange_0.3.0     tidyselect_1.2.1    
+[40] rstudioapi_0.17.1    abind_1.4-8          yaml_2.3.10         
+[43] sjlabelled_1.2.0     lattice_0.22-6       lmerTest_3.1-3      
+[46] plyr_1.8.9           withr_3.0.2          bridgesampling_1.1-2
+[49] posterior_1.6.0      evaluate_1.0.3       RcppParallel_5.1.10 
+[52] xml2_1.3.6           pillar_1.10.1        carData_3.0-5       
+[55] tensorA_0.36.2.1     checkmate_2.3.2      reformulas_0.4.0    
+[58] insight_1.0.1        distributional_0.5.0 generics_0.1.3      
+[61] vroom_1.6.5          rstantools_2.4.0     munsell_0.5.1       
+[64] minqa_1.2.8          xtable_1.8-4         glue_1.8.0          
+[67] tools_4.4.1          ggsignif_0.6.4       mvtnorm_1.3-3       
+[70] grid_4.4.1           rbibutils_2.3        datawizard_1.0.0    
+[73] colorspace_2.1-1     nlme_3.1-167         performance_0.13.0  
+[76] Formula_1.2-5        cli_3.6.3            textshaping_1.0.0   
+[79] svglite_2.1.3        Brobdingnag_1.2-9    sjstats_0.19.0      
+[82] gtable_0.3.6         rstatix_0.7.2        digest_0.6.37       
+[85] farver_2.1.2         htmlwidgets_1.6.4    htmltools_0.5.8.1   
+[88] lifecycle_1.0.4      bit64_4.6.0-1        MASS_7.3-64         </code></pre>
 </div>
 </div>
 </div>
@@ -577,7 +732,7 @@ Meder, B., Wu, C. M., Schulz, E., &amp; Ruggeri, A. (2021). Development of direc
 Schulz, E., Wu, C. M., Ruggeri, A., &amp; Meder, B. (2019). Searching for rewards like a child means less generalization and more directed exploration. <em>Psychological Science</em>, <em>30</em>(11), 1561–1572. <a href="https://doi.org/10.1177/0956797619863663">https://doi.org/10.1177/0956797619863663</a>
 </div>
 <div id="ref-Wu_et_al-generalization" class="csl-entry" role="listitem">
-Wu, C. M., Meder, B., &amp; Schulz, E. (2025). Unifying principles of generalization: Past, present, and future. <em>Annual Review of Psychology</em>, <em>76</em>(Volume 76, 2025), 275–302. https://doi.org/<a href="https://doi.org/10.1146/annurev-psych-021524-110810">https://doi.org/10.1146/annurev-psych-021524-110810</a>
+Wu, C. M., Meder, B., &amp; Schulz, E. (2025). Unifying principles of generalization: Past, present, and future. <em>Annual Review of Psychology</em>, <em>76</em>, 275–302. https://doi.org/<a href="https://doi.org/10.1146/annurev-psych-021524-110810">https://doi.org/10.1146/annurev-psych-021524-110810</a>
 </div>
 <div id="ref-Wu:2020neurogrid" class="csl-entry" role="listitem">
 Wu, C. M., Schulz, E., Garvert, M. M., Meder, B., &amp; Schuck, N. W. (2020). Similarities and differences in spatial and non-spatial cognitive maps. <em>PLOS Computational Biology</em>, <em>16</em>(9), e1008149. <a href="https://doi.org/10.1371/journal.pcbi.1008149">https://doi.org/10.1371/journal.pcbi.1008149</a>
