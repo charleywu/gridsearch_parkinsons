@@ -1,5 +1,5 @@
 ---
-title: "Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses"
+title: "Exploration and Exploitation in Parkinson’s Disease: Behavioral Analyses"
 author: 
   - name: Björn Meder
     affiliation: Health and Medical University, Potsdam, Germany
@@ -12,6 +12,7 @@ author:
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
   html:
+    prefer-html: true
     toc: true
     theme: zephyr
     code-fold: true
@@ -20,6 +21,7 @@ format:
     lightbox: true
     number-sections: true
     number-figures: true
+    self-contained: true
     grid:
       sidebar-width: 300px
       body-width: 1000px
@@ -29,6 +31,12 @@ format:
     toc: true
     number-sections: true
     number-figures: true
+    keep-tex: true
+    code: false
+    documentclass: scrreprt
+    header-includes:
+      - \usepackage{ragged2e}
+    code-annotations: none 
   docx:
     toc: true
     number-sections: true
@@ -40,6 +48,7 @@ editor_options:
 bibliography: gridsearch_parkinson.bib
 csl: https://www.zotero.org/styles/apa
 cite-method: citeproc
+
 ---
 
 
@@ -50,10 +59,11 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(fig.align='center')
+knitr::opts_chunk$set(prefer_html = TRUE)
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -88,6 +98,19 @@ jit_alpha   <- 0.6
 groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 
 ```
+# Abstract 
+
+We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking Levodopa (L-Dopa) or just before their next scheduled dose. Patients with polyneuropathy served as a control group, comparable in age, depressive symptoms, and basic cognitive functioning.
+
+We conducted both behavioral and computational analyses, revealing distinct behavioral patterns and computational signatures. PD patients on L-Dopa effectively balanced exploration and exploitation to obtain rewards, though not as efficiently as polyneuropathy patients. In stark contrast, participants off L-Dopa rarely exploited known high-value options and primarily explored novel ones. This overreliance on exploration impaired their ability to navigate the explore-exploit trade-off and maximize rewards.
+
+To better understand the mechanisms underlying these behavioral differences, we employed a computational approach using the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: directed exploration, which seeks to reduce uncertainty about rewards, and random exploration, which introduces stochastic variability in choice behavior. Analysis of the model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. Both PD groups exhibited lower generalization than the control group, which may underlie their overall poorer performance.
+
+In sum, PD patients off L-Dopa favored exploration over exploitation, leading to impaired reward maximization, while those on medication balanced the explore-exploit trade-off more successfully. 
+
+# Intro
+
+A central distinction between different forms of exploration behavior is  that _directed exploration_ reflects the drive for knowledge about novel options, whereas _undirected exploration_ refers to random variability in the choice process [@sadeghiyeh2020temporal; @Meder2021_ExplorationChildren; @Schulz:2019kwg; @giron2023developmental;@Wu_2018grid].
 
 # Experiment
 We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
@@ -104,7 +127,7 @@ Participants completed 10 rounds of the task, each featuring a new environment d
 At the start of each round, one tile was randomly revealed, and participants sequentially sampled 25 tiles. On each trial, they could choose to either click a new tile or re-click a previously selected tile. Selections were made by selecting the tile on the computer screen, upon which the received a reward arbitrarily scaled to the range [0,50].  Re-clicked tiles showed small variations in reward due to normally distributed noise. 
 
 ## Sample
-We collected data from adult participants with Parkinson's disease (PD) who receive Levodopa [L-Dopa; @abbott2010levodopa; @tambasco2018levodopa] for treatment. L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine. Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. 
+We collected data from adult participants with Parkinson's disease (PD) who receive Levodopa (L-Dopa) for treatment [@abbott2010levodopa; @tambasco2018levodopa]. L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine. Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. 
 
 PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (_n_=22), L-Dopa was administered at least 30 minutes before the start of the experiment to allow the drug sufficient time to take effect during the task. In the PD- group (_n_=20), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose. 
 
@@ -173,11 +196,15 @@ df_sample <- dat %>%
   slice_head(n = 1) %>% 
   arrange(group)
 
-head(dat) %>%
-  kable("html", caption = "Behavioral data.") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
-  scroll_box(width = "100%", height = "300px")
-
+if (knitr::is_html_output()) {
+  head(dat) %>%
+    kable("html", caption = "Behavioral data.") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
+    scroll_box(width = "100%", height = "300px")
+} else {
+  head(dat) %>%
+    kable("latex", caption = "Behavioral data.") 
+}
 ```
 
 The data frame *dat* with the raw data contains the following variables:
@@ -214,9 +241,14 @@ df_sample %>%
             mean_MMSE = mean(MMSE, na.rm= T),
             mean_HY = mean(hoehn_yahr, na.rm= T),
             mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% 
-  kable(format = "html", escape = F, digits = 1) %>%
-  kable_styling("striped", full_width = F)
-
+  {
+    if (knitr::is_html_output()) {
+      kable(., format = "html", escape = FALSE, digits = 1) %>%
+        kable_styling("striped", full_width = FALSE)
+    } else {
+      kable(., format = "latex", digits = 1) 
+    }
+  }
 
 ```
 
@@ -278,8 +310,17 @@ aov_rounds <- aov_ez(
   data = df_mean_reward_subject_by_round
 )
 
-kable(as.data.frame(aov_rounds$anova_table), format = "html", escape = F, digits = 2, caption = "ANOVA results with round as within-subjects factor and group as between subjects factor, where rewards per round were first aggregated within subjects.") %>%
-  kable_styling("striped", full_width = F)
+if (knitr::is_html_output()) {
+  kable(as.data.frame(aov_rounds$anova_table), 
+        format = "html", escape = FALSE, digits = 2, 
+        caption = "ANOVA results with round as within-subjects factor and group as between subjects factor, where rewards per round were first aggregated within subjects.") %>%
+    kable_styling("striped", full_width = FALSE)
+} else {
+  kable(as.data.frame(aov_rounds$anova_table), 
+        format = "latex", digits = 2, 
+        caption = "ANOVA results with round as within-subjects factor and group as between subjects factor, where rewards per round were first aggregated within subjects.")
+}
+
 
 
 brm_rounds <- run_model(brm(
@@ -343,9 +384,18 @@ df_mean_reward_subject %>%
             sd_reward = sd(mean_reward),
             se_reward = sd_reward / sqrt(n),
             lower_ci_reward = m_reward - qt(1 - (0.05 / 2), n - 1) * se_reward,
-            upper_ci_reward = m_reward + qt(1 - (0.05 / 2), n - 1) * se_reward) %>% 
-  kable(format = "html", escape = F, digits = 2) %>%
-  kable_styling("striped", full_width = F)
+            upper_ci_reward = m_reward + qt(1 - (0.05 / 2), n - 1) * se_reward) %>%
+  { 
+    if (knitr::is_html_output()) {
+      kable(., format = "html", escape = FALSE, digits = 2) %>%
+        kable_styling("striped", full_width = FALSE)
+    } else if (knitr::is_latex_output()) {
+      kable(., format = "latex", booktabs = TRUE, digits = 2)
+    } else {
+      kable(., format = "markdown", digits = 2)
+    }
+  }
+
 
 ##########################################
 # Boxplots of rewards for the groups
@@ -1016,9 +1066,15 @@ dat_bonus <- dat_bonus %>%
 
 dat_bonus <- dat_bonus %>% left_join(dat %>% select(id, group) %>% distinct(id, .keep_all = TRUE), by = "id")
 
-head(dat_bonus) %>% 
-  kable(format = "html", escape = F, digits = 2) %>%
-  kable_styling("striped", full_width = F)
+if (knitr::is_html_output()) {
+  head(dat_bonus) %>% 
+    kable(format = "html", escape = FALSE, digits = 2) %>%
+    kable_styling("striped", full_width = FALSE)
+} else {
+  head(dat_bonus) %>% 
+    kable(format = "latex", digits = 2)
+}
+
 ```
 
 ### Prediction error 

@@ -1,5 +1,5 @@
 ---
-title: "Balancing Exploration and Exploitation in Parkinson’s Disease: Computational Analyses"
+title: " Exploration and Exploitation in Parkinson’s Disease: Computational Analyses"
 author: 
   - name: Björn Meder
     affiliation: Health and Medical University, Potsdam, Germany
@@ -21,6 +21,7 @@ format:
     lightbox: true
     number-sections: true
     number-figures: true
+    self-contained: true
     grid:
       sidebar-width: 300px
       body-width: 1000px
@@ -104,6 +105,7 @@ dat       <- read_delim("data/data_gridsearch_parkinson.csv",
                           hoehn_yahr = col_double()
                         ))
 
+# length(unique(dat$id))
 # clean up
 dat <- dat %>%
   select(-condition, -comments) %>% 
@@ -137,7 +139,7 @@ df_sample <- dat %>%
 # Computational Analyses
 
 Complementing the behavioral analyses, we study exploration and exploitation in PD through the lens of a computational model, the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
-[@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder_directed__random_exploration_children; @Giron_et_al-2022-development_optimization; @Wu_et_al-generalization].
+[@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder2021_ExplorationChildren; @giron2023developmental; @Wu_et_al-generalization].
 
 
 ## Gaussian Process Upper Confidence Bound (GP-UCB) Model
@@ -182,9 +184,17 @@ $$
 #| fig-cap: "Predictive accuracy of GP-UCB model and lesioned variants."
 #| label: fig_model_comparison
 
-modelFits <- read.csv('data/modelFit.csv')
-groupDF <- dat %>% filter(round==1 & trial==0) #Get one row per participant
-# modelFits <- merge(modelFits, groupDF[,c('id', 'group', 'condition')], by = "id") #merge to add group and condition data
+modelFits <- read.csv('data/modelFit.csv') %>% mutate(id = as.factor(id))
+length(unique(modelFits$id))
+
+groupDF <- dat %>% 
+  group_by(id) %>%
+  slice(1) %>%
+  ungroup()
+
+# length(unique(dat$id))
+# length(unique(groupDF$id))
+
 modelFits <- merge(modelFits, groupDF[,c('id', 'group')], by = "id") #merge to add group and condition data
 
 modelFits <-  modelFits %>%
@@ -254,7 +264,54 @@ ggsave("plots/model_comparison.png", width = 9, height = 5)
 ```
 
 
+### Classification of participants according to max $R^2$
 
+```{r}
+
+
+df_participant_classification <- modelFits %>%
+  group_by(id) %>%
+  slice_max(order_by = R2, n = 1) %>%
+  select(id, group, ModelName, shortname, R2) %>% 
+  ungroup()
+
+df_counts <- df_participant_classification %>%
+  count(group, shortname)
+```
+
+We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$). Overall, `r sum(df_counts$n[df_counts$shortname == "GP\nUCB"])` out of `r sum(df_counts$n)` participants (`r round(sum(df_counts$n[df_counts$shortname == "GP\nUCB"]) / sum(df_counts$n),3)*100`%) were best described by the GP-UCB model, `r sum(df_counts$n[df_counts$shortname == "lambda\nlesion"])` by the lambda lesion model (`r round(sum(df_counts$n[df_counts$shortname == "lambda\nlesion"]) / sum(df_counts$n),3)*100`%) , `r sum(df_counts$n[df_counts$shortname == "beta\nlesion"])` by the beta lesion model (`r round(sum(df_counts$n[df_counts$shortname == "beta\nlesion"]) / sum(df_counts$n),3)*100`%), and `r sum(df_counts$n[df_counts$shortname == "tau\nlesion"])` by the tau lesion model (`r round(sum(df_counts$n[df_counts$shortname == "tau\nUCB"]) / sum(df_counts$n),3)*100`%) .
+
+```{r}
+#| fig-cap: "Predictive accuracy of GP-UCB model and lesioned variants."
+#| label: fig_articipant_classification
+#| fig-width: 7
+#| fig-height: 7
+
+ggplot(df_participant_classification, aes(x = shortname, fill = group)) +
+  facet_wrap(~group) +
+  geom_dotplot(method = 'histodot', binwidth = 1, dotsize = 0.6) +
+  geom_text(data = df_counts, aes(x = shortname, y = n + 0.5, label = n), size = 5, color = "black") +
+  scale_fill_manual(values = groupcolors) +
+  scale_x_discrete("") + 
+  scale_y_continuous(NULL, breaks = NULL) + 
+  # guides(fill = "none") +
+  # coord_fixed(0.9,ylim = c(0,15)) +
+  coord_cartesian(ylim=c(0,13), expand = FALSE) +
+  theme_classic() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = 'none',
+    strip.text = element_text(size=14),
+    legend.text =  element_text(colour="black"),
+    text = element_text(colour = "black"),
+    strip.background =element_blank(),
+    axis.text.x = element_text(colour="black", size = 14),
+    axis.text.y = element_text(colour="black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggsave("plots/participant_classification.png", width = 8, height = 8, dpi=300)
+```
 
 
 ## Analysis of parameter estimates
@@ -263,15 +320,10 @@ ggsave("plots/model_comparison.png", width = 9, height = 5)
 ```{r}
 #| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
 #| label: fig_GP-CUB_params
+
 df_gpucb_params <- modelFits %>% filter(kernel=='GP' & acq == 'UCB') %>% 
   pivot_longer(c('lambda', 'beta', 'tau'), names_to = 'param', values_to = 'estimate') %>% 
-  mutate(param = factor(param, levels = c('lambda', 'beta', 'tau'))) #%>% 
-# mutate(group = case_match(group,
-#                           "PPD-" ~ "PD-",
-#                           "PPD+" ~ "PD+",
-#                           "PNP" ~ "PNP",
-#                           .default = NA)) %>% 
-# mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  
+  mutate(param = factor(param, levels = c('lambda', 'beta', 'tau'))) 
 
 ggboxplot(df_gpucb_params, 
           x = "group", 
