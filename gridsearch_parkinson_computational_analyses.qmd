@@ -136,6 +136,13 @@ df_sample <- dat %>%
 #   scroll_box(width = "100%", height = "300px")
 
 ```
+# TO DO
+
+::: callout-note
+check why id 111 is in model results but not behavioral data
+:::
+
+
 # Computational Analyses
 
 Complementing the behavioral analyses, we study exploration and exploitation in PD through the lens of a computational model, the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
@@ -157,6 +164,7 @@ Add details
 ### Sampling Strategy
 ### Choice rule
 
+### Model parameters
 Associated with each model component is a free parameter that we estimate through out-of-sample cross validation. These parameters provide a window into distinct aspects of learning and exploration: 
 
 1. The length-scale parameter $\lambda$ of the RBF kernel captures how strongly a participant generalizes based on the observed evidence, i.e., the rewards obtained from previous choices.
@@ -172,7 +180,7 @@ $\lambda$
 
 All models were fitted using leave-one-round-out cross-validation based on maximum likelihood estimation. Model fits are evaluated using the sum of negative log-likelihoods across all out-of-sample predictions.
 
-Out-of-sample predictive accuracy was assessed using a pseudo-$R^2$ measure, based on the sum of negative log-likelihoods across all out-of-sample predictions. The summed negative log likelihoods are compared to a random model, such that $R^2=0$ corresponds to chance performance and $R^2=1$ corresponds to theoretically perfect predictions. 
+Models' predictive accuracy was assessed using a pseudo-$R^2$ measure, based on the sum of negative log-likelihoods across all out-of-sample predictions. The summed log loss is compared to a random model, such that $R^2=0$ corresponds to chance performance and $R^2=1$ corresponds to theoretically perfect predictions. 
 
 $$
 R^2 = 1 - \frac{\log \mathcal{L}(M_k)}{\log\mathcal{L}(M_{rand})},
@@ -264,7 +272,7 @@ ggsave("plots/model_comparison.png", width = 9, height = 5)
 ```
 
 
-### Classification of participants according to max $R^2$
+### Classification of participants according to model accuracy
 
 ```{r}
 
@@ -332,7 +340,7 @@ ggboxplot(df_gpucb_params,
           add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
   facet_wrap(~param, nrow = 1) +
   scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
-  ylab("Estimate") +
+  ylab("Estimate (log scale") +
   xlab("") +
   stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ), 
                      paired = F, 
@@ -350,9 +358,13 @@ ggboxplot(df_gpucb_params,
 ggsave("plots/GP-UCB_params.png", width = 9, height = 5)
 ```
 
-The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected @Chakroun2020restless_ldopa.
+The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected [@Chakroun2020restless_ldopa].
 
 ### Correlation of Parameters with Performance
+
+The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better.
+
+
 
 ```{r}
 #| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1. "
@@ -372,13 +384,20 @@ df_mean_reward_subject <- dat %>%
 df_params_performance <- df_gpucb_params %>% 
   pivot_wider(names_from = param, values_from = estimate ) %>% 
   mutate(id = as.factor(id)) %>% 
-  left_join(df_mean_reward_subject, by = "id")
+  left_join(df_mean_reward_subject, by = c("id", "group"))
+
+#df_params_performance$group == df_mean_reward_subject$group
 
 df_params_performance <- df_gpucb_params %>% 
   #pivot_wider(names_from = param, values_from = estimate ) %>% 
   mutate(id = as.factor(id)) %>% 
   left_join(df_mean_reward_subject, by = "id") 
 
+
+df_params_performance_wide <- df_gpucb_params %>% 
+  pivot_wider(names_from = param, values_from = estimate ) %>% 
+  mutate(id = as.factor(id)) %>% 
+  left_join(df_mean_reward_subject, by = "id") 
 
 # p_GP_UCB_params_cor_reward <-  ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
 #    add = "reg.line",  
@@ -450,7 +469,38 @@ p_GP_UCB_params_cor_reward_inset
 
 ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward_inset, width = 12, height= 4, dpi=300)
 
+
+# wilcox.test(df_params_performance_wide$mean_reward, df_params_performance_wide$lambda, paired = T)
+# cor(df_params_performance_wide$lambda,df_params_performance_wide$mean_reward, method = "kendall", paired=T)
+# ranktestPretty(df_params_performance_wide$mean_reward, df_params_performance_wide$lambda, paired=T)
+
+p_lambda_vs_reward <- ggplot(df_params_performance, aes(x = lambda, y=mean_reward, group = ageGroup2, fill = ageGroup2, color = ageGroup2)) +
+  geom_smooth(linetype = "dashed", size = 1, method="lm", se=F, alpha = 0.2) +
+  geom_point(aes(fill = ageGroup2), shape = 21, alpha = 0.8, colour = "black") +
+  scale_fill_manual(values = mycolors) +
+  scale_color_manual(values = mycolors) + 
+  scale_y_continuous("Mean reward")+  
+  scale_x_continuous(expression(paste("Generalization ", lambda)), trans="log10", breaks = c(.01, .1, 1, 10, 100), labels = c(.01, .1, 1, 10, 100)) +
+  ggtitle(expression(paste("Generalization ", lambda, " and performance"))) +
+  theme_classic() +
+  theme(aspect.ratio = 1,
+        plot.title = element_text(hjust = 0.5, size = 12),
+        legend.title = element_blank(),
+        legend.position = c(.8,.1),
+        legend.spacing.x = unit(0.01, 'cm'),
+        legend.key.size = unit(0.5, "cm"),
+        legend.background = element_blank(),
+        legend.text =  element_text(colour="black", size = 10),
+        strip.background = element_blank(),
+        text = element_text(colour = "black"),
+        axis.text =  element_text(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
 ```
+
+
+
 
 
 # Session Information
