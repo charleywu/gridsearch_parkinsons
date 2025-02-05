@@ -55,7 +55,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)

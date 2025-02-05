@@ -63,7 +63,7 @@ knitr::opts_chunk$set(prefer_html = TRUE)
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2", "parameters")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -159,15 +159,13 @@ All behavioral data are stored in file *data_gridsearch_parkinson.csv*.
 dat       <- read_delim("data/data_gridsearch_parkinson.csv", 
                         delim = ",",
                         col_types = cols(
-                          #id = readr::col_factor(),
+                          id = readr::col_factor(),
                           group = readr::col_factor(),
                           gender = readr::col_factor(),
                           z = col_double(),        
                           zscaled = col_double(),
                           hoehn_yahr = col_double()
-                        )) #%>% 
-  # arrange(as.numeric(as.character(id)))  
-
+                        )) 
 # clean up
 dat <- dat %>%
   select(-condition, -comments) %>% 
@@ -349,7 +347,20 @@ ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = 
 # tbl_regression(brm_rounds, exponentiate = F) 
 
 tab_model(brm_rounds)
-plot_model(brm_rounds, type = "est")
+
+# format_parameters(brm_rounds)
+# 
+# params <- model_parameters(brm_rounds) |> print_md()
+# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
+# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
+# params$Term <- gsub("round", "Round", params$Term)
+# 
+# 
+# params$Term <- gsub("groupPDP", "PD", params$Term)
+
+plot_model(brm_rounds, type = "est") +
+  theme_classic()
+
 ```
 
 ## Performance: Rewards by group
@@ -1057,8 +1068,8 @@ Charley: is this scaling still correct (taken from YKWG code)? `bonus_environmen
 dat_bonus           <- read.csv(file="data/data_gridsearch_Parkinson_bonusround.csv", header = T, sep=",", stringsAsFactors = T)
 dat_bonus <- dat_bonus %>% 
   mutate(chosen = if_else(x == chosen_x & y == chosen_y, "chosen", "not chosen")) %>% 
-  mutate(error = abs(givenValue - true_z)) #%>% # absolute error in estimated rewards
-  # mutate(id = factor(id))
+  mutate(error = abs(givenValue - true_z)) %>% # absolute error in estimated rewards
+  mutate(id = factor(id)) 
 
 dat_bonus <- dat_bonus %>% left_join(dat %>% select(id, group) %>% distinct(id, .keep_all = TRUE), by = "id")
 
