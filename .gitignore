@@ -47,3 +47,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Ignore Mac system files
+.DS_store
+
+# build files from Quarto
+*_files/
