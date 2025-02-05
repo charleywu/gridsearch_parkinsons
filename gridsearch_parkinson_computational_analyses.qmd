@@ -55,7 +55,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -97,7 +97,7 @@ groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 dat       <- read_delim("data/data_gridsearch_parkinson.csv", 
                         delim = ",",
                         col_types = cols(
-                          id = readr::col_factor(),
+                          #id = readr::col_factor(),
                           group = readr::col_factor(),
                           gender = readr::col_factor(),
                           z = col_double(),        
@@ -139,7 +139,7 @@ df_sample <- dat %>%
 # TO DO
 
 ::: callout-note
-check why id 111 is in model results but not behavioral data
+
 :::
 
 
@@ -190,9 +190,9 @@ $$
 
 ```{r}
 #| fig-cap: "Predictive accuracy of GP-UCB model and lesioned variants."
-#| label: fig_model_comparison
+#| label: fig-model_comparison
 
-modelFits <- read.csv('data/modelFit.csv') %>% mutate(id = as.factor(id))
+modelFits <- read.csv('data/modelFit.csv') #%>% mutate(id = as.factor(id))
 length(unique(modelFits$id))
 
 groupDF <- dat %>% 
@@ -275,8 +275,7 @@ ggsave("plots/model_comparison.png", width = 9, height = 5)
 ### Classification of participants according to model accuracy
 
 ```{r}
-
-
+# classify participants according to model R^2
 df_participant_classification <- modelFits %>%
   group_by(id) %>%
   slice_max(order_by = R2, n = 1) %>%
@@ -287,28 +286,65 @@ df_counts <- df_participant_classification %>%
   count(group, shortname)
 ```
 
-We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$). Overall, `r sum(df_counts$n[df_counts$shortname == "GP\nUCB"])` out of `r sum(df_counts$n)` participants (`r round(sum(df_counts$n[df_counts$shortname == "GP\nUCB"]) / sum(df_counts$n),3)*100`%) were best described by the GP-UCB model, `r sum(df_counts$n[df_counts$shortname == "lambda\nlesion"])` by the lambda lesion model (`r round(sum(df_counts$n[df_counts$shortname == "lambda\nlesion"]) / sum(df_counts$n),3)*100`%) , `r sum(df_counts$n[df_counts$shortname == "beta\nlesion"])` by the beta lesion model (`r round(sum(df_counts$n[df_counts$shortname == "beta\nlesion"]) / sum(df_counts$n),3)*100`%), and `r sum(df_counts$n[df_counts$shortname == "tau\nlesion"])` by the tau lesion model (`r round(sum(df_counts$n[df_counts$shortname == "tau\nUCB"]) / sum(df_counts$n),3)*100`%) .
+We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$; @fig-participant_classification). Overall, `r sum(df_counts$n[df_counts$shortname == "GP\nUCB"])` out of `r sum(df_counts$n)` participants (`r round(sum(df_counts$n[df_counts$shortname == "GP\nUCB"]) / sum(df_counts$n),3)*100`%) were best described by the GP-UCB model, `r sum(df_counts$n[df_counts$shortname == "lambda\nlesion"])` by the lambda lesion model (`r round(sum(df_counts$n[df_counts$shortname == "lambda\nlesion"]) / sum(df_counts$n),3)*100`%) , `r sum(df_counts$n[df_counts$shortname == "beta\nlesion"])` by the beta lesion model (`r round(sum(df_counts$n[df_counts$shortname == "beta\nlesion"]) / sum(df_counts$n),3)*100`%), and `r sum(df_counts$n[df_counts$shortname == "tau\nlesion"])` by the tau lesion model (`r round(sum(df_counts$n[df_counts$shortname == "tau\nUCB"]) / sum(df_counts$n),3)*100`%) .
 
 ```{r}
-#| fig-cap: "Predictive accuracy of GP-UCB model and lesioned variants."
-#| label: fig_articipant_classification
-#| fig-width: 7
-#| fig-height: 7
+#| fig-cap: "Classification of participants by models' cross-validated predictive accuracy."
+#| label: fig-participant_classification
 
-ggplot(df_participant_classification, aes(x = shortname, fill = group)) +
-  facet_wrap(~group) +
-  geom_dotplot(method = 'histodot', binwidth = 1, dotsize = 0.6) +
-  geom_text(data = df_counts, aes(x = shortname, y = n + 0.5, label = n), size = 5, color = "black") +
-  scale_fill_manual(values = groupcolors) +
-  scale_x_discrete("") + 
-  scale_y_continuous(NULL, breaks = NULL) + 
-  # guides(fill = "none") +
-  # coord_fixed(0.9,ylim = c(0,15)) +
-  coord_cartesian(ylim=c(0,13), expand = FALSE) +
-  theme_classic() +
+
+# dotplot
+# ggplot(df_participant_classification, aes(x = shortname, fill = group)) +
+#   facet_wrap(~group) +
+#   geom_dotplot(method = 'histodot', binwidth = 1, dotsize = 0.6) +
+#   geom_text(data = df_counts, aes(x = shortname, y = n + 0.5, label = n), size = 5, color = "black") +
+#   scale_fill_manual(values = groupcolors) +
+#   scale_x_discrete("") + 
+#   scale_y_continuous(NULL, breaks = NULL) + 
+#   # guides(fill = "none") +
+#   # coord_fixed(0.9,ylim = c(0,15)) +
+#   coord_cartesian(ylim=c(0,13), expand = FALSE) +
+#   theme_classic() +
+#   theme(
+#     legend.title = element_blank(),
+#     legend.position = 'none',
+#     strip.text = element_text(size=14),
+#     legend.text =  element_text(colour="black"),
+#     text = element_text(colour = "black"),
+#     strip.background =element_blank(),
+#     axis.text.x = element_text(colour="black", size = 14),
+#     axis.text.y = element_text(colour="black"),
+#     panel.grid.major = element_blank(),
+#     panel.grid.minor = element_blank())
+
+#ggsave("plots/participant_classification.png", width = 8, height = 8, dpi=300)
+
+# waffle plot
+ggplot(
+  data = df_counts, 
+  aes(fill=shortname, values=n)
+) +
+  geom_waffle(
+    color = "white", 
+    size = 1, 
+    n_rows = 5
+  ) +
+  facet_wrap(~group, nrow=1) +
+  scale_x_discrete(
+    expand = c(0,0,0,0)
+  ) +
+  scale_y_discrete(
+    expand = c(0,0,0,0)
+  ) +
+  ggthemes::scale_fill_tableau(name=NULL) +
+  coord_equal() +
+  labs(
+    title = "Model-Based Participant Classification"
+  ) +
+theme_classic() +
   theme(
     legend.title = element_blank(),
-    legend.position = 'none',
+    legend.position = 'bottom',
     strip.text = element_text(size=14),
     legend.text =  element_text(colour="black"),
     text = element_text(colour = "black"),
@@ -318,7 +354,8 @@ ggplot(df_participant_classification, aes(x = shortname, fill = group)) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank())
 
-ggsave("plots/participant_classification.png", width = 8, height = 8, dpi=300)
+ggsave("plots/participant_classification.png", width = 8, height = 4, dpi=300)
+
 ```
 
 
@@ -327,7 +364,7 @@ ggsave("plots/participant_classification.png", width = 8, height = 8, dpi=300)
 
 ```{r}
 #| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
-#| label: fig_GP-CUB_params
+#| label: fig-GP-CUB_params
 
 df_gpucb_params <- modelFits %>% filter(kernel=='GP' & acq == 'UCB') %>% 
   pivot_longer(c('lambda', 'beta', 'tau'), names_to = 'param', values_to = 'estimate') %>% 
@@ -368,7 +405,7 @@ The amount of generalization was positively related with obtained rewards, showi
 
 ```{r}
 #| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1. "
-#| label: fig_params_reward_cor
+#| label: fig-params_reward_cor
 #| fig-width: 12
 #| fig-height: 5
 
@@ -382,22 +419,11 @@ df_mean_reward_subject <- dat %>%
             sd_reward = sd(z)) 
 
 df_params_performance <- df_gpucb_params %>% 
-  pivot_wider(names_from = param, values_from = estimate ) %>% 
-  mutate(id = as.factor(id)) %>% 
   left_join(df_mean_reward_subject, by = c("id", "group"))
-
-#df_params_performance$group == df_mean_reward_subject$group
-
-df_params_performance <- df_gpucb_params %>% 
-  #pivot_wider(names_from = param, values_from = estimate ) %>% 
-  mutate(id = as.factor(id)) %>% 
-  left_join(df_mean_reward_subject, by = "id") 
-
 
 df_params_performance_wide <- df_gpucb_params %>% 
   pivot_wider(names_from = param, values_from = estimate ) %>% 
-  mutate(id = as.factor(id)) %>% 
-  left_join(df_mean_reward_subject, by = "id") 
+  left_join(df_mean_reward_subject, by = c("id", "group"))
 
 # p_GP_UCB_params_cor_reward <-  ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
 #    add = "reg.line",  
@@ -474,28 +500,31 @@ ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward_inset, w
 # cor(df_params_performance_wide$lambda,df_params_performance_wide$mean_reward, method = "kendall", paired=T)
 # ranktestPretty(df_params_performance_wide$mean_reward, df_params_performance_wide$lambda, paired=T)
 
-p_lambda_vs_reward <- ggplot(df_params_performance, aes(x = lambda, y=mean_reward, group = ageGroup2, fill = ageGroup2, color = ageGroup2)) +
-  geom_smooth(linetype = "dashed", size = 1, method="lm", se=F, alpha = 0.2) +
-  geom_point(aes(fill = ageGroup2), shape = 21, alpha = 0.8, colour = "black") +
-  scale_fill_manual(values = mycolors) +
-  scale_color_manual(values = mycolors) + 
-  scale_y_continuous("Mean reward")+  
-  scale_x_continuous(expression(paste("Generalization ", lambda)), trans="log10", breaks = c(.01, .1, 1, 10, 100), labels = c(.01, .1, 1, 10, 100)) +
-  ggtitle(expression(paste("Generalization ", lambda, " and performance"))) +
-  theme_classic() +
-  theme(aspect.ratio = 1,
-        plot.title = element_text(hjust = 0.5, size = 12),
-        legend.title = element_blank(),
-        legend.position = c(.8,.1),
-        legend.spacing.x = unit(0.01, 'cm'),
-        legend.key.size = unit(0.5, "cm"),
-        legend.background = element_blank(),
-        legend.text =  element_text(colour="black", size = 10),
-        strip.background = element_blank(),
-        text = element_text(colour = "black"),
-        axis.text =  element_text(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+# plot with individual lines for each group (from Meder et al., 2021)
+# p_lambda_vs_reward <- 
+  # 
+  # ggplot(df_params_performance_wide, aes(x = lambda, y=mean_reward, group = group, fill = group, color = group)) +
+  # geom_smooth(linetype = "dashed", size = 1, method="lm", se=F, alpha = 0.2) +
+  # geom_point(shape = 21, alpha = 0.8, colour = "black") +
+  # scale_fill_manual(values = groupcolors) +
+  # scale_color_manual(values = groupcolors) + 
+  # scale_y_continuous("Mean reward")+  
+  # scale_x_continuous(expression(paste("Generalization ", lambda)), trans="log10", breaks = c(.01, .1, 1, 10, 100), labels = c(.01, .1, 1, 10, 100)) +
+  # ggtitle(expression(paste("Generalization ", lambda, " and performance"))) +
+  # theme_classic() +
+  # theme(aspect.ratio = 1,
+  #       plot.title = element_text(hjust = 0.5, size = 12),
+  #       legend.title = element_blank(),
+  #       legend.position = c(.8,.1),
+  #       legend.spacing.x = unit(0.01, 'cm'),
+  #       legend.key.size = unit(0.5, "cm"),
+  #       legend.background = element_blank(),
+  #       legend.text =  element_text(colour="black", size = 10),
+  #       strip.background = element_blank(),
+  #       text = element_text(colour = "black"),
+  #       axis.text =  element_text(colour = "black"),
+  #       panel.grid.major = element_blank(),
+  #       panel.grid.minor = element_blank())
 
 ```
 

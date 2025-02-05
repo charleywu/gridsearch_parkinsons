@@ -260,7 +260,7 @@
 Analyses}
 \author{Björn Meder \and Martha Sterf \and Charley M. Wu \and Matthias
 Guggenmos}
-\date{2025-02-02}
+\date{2025-02-05}
 
 \begin{document}
 \maketitle
@@ -458,7 +458,7 @@ score of 0-11 is considered normal, 12-19 points indicate mild
 depressive symptoms, while values of 20 or higher suggest moderate to
 severe depression.
 
-\begin{tcolorbox}[enhanced jigsaw, left=2mm, opacitybacktitle=0.6, coltitle=black, toptitle=1mm, breakable, bottomtitle=1mm, rightrule=.15mm, colframe=quarto-callout-note-color-frame, opacityback=0, leftrule=.75mm, toprule=.15mm, colback=white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, arc=.35mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, bottomrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, leftrule=.75mm, colback=white, toptitle=1mm, breakable, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, colbacktitle=quarto-callout-note-color!10!white, opacitybacktitle=0.6, coltitle=black, colframe=quarto-callout-note-color-frame, left=2mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, arc=.35mm, toprule=.15mm]
 
 TO DO: check BDI scoring Wikipedia: Die Nationale Versorgungsleitlinie
 Unipolare Depression{[}3{]} listet im Anhang 1 S.217 (``Schwellenwerte
@@ -514,13 +514,14 @@ All behavioral data are stored in file
 \NormalTok{dat       }\OtherTok{\textless{}{-}} \FunctionTok{read\_delim}\NormalTok{(}\StringTok{"data/data\_gridsearch\_parkinson.csv"}\NormalTok{, }
                         \AttributeTok{delim =} \StringTok{","}\NormalTok{,}
                         \AttributeTok{col\_types =} \FunctionTok{cols}\NormalTok{(}
-                          \AttributeTok{id =}\NormalTok{ readr}\SpecialCharTok{::}\FunctionTok{col\_factor}\NormalTok{(),}
+                          \CommentTok{\#id = readr::col\_factor(),}
                           \AttributeTok{group =}\NormalTok{ readr}\SpecialCharTok{::}\FunctionTok{col\_factor}\NormalTok{(),}
                           \AttributeTok{gender =}\NormalTok{ readr}\SpecialCharTok{::}\FunctionTok{col\_factor}\NormalTok{(),}
                           \AttributeTok{z =} \FunctionTok{col\_double}\NormalTok{(),        }
                           \AttributeTok{zscaled =} \FunctionTok{col\_double}\NormalTok{(),}
                           \AttributeTok{hoehn\_yahr =} \FunctionTok{col\_double}\NormalTok{()}
-\NormalTok{                        ))}
+\NormalTok{                        )) }\CommentTok{\#\%\textgreater{}\% }
+  \CommentTok{\# arrange(as.numeric(as.character(id)))  }
 
 \CommentTok{\# clean up}
 \NormalTok{dat }\OtherTok{\textless{}{-}}\NormalTok{ dat }\SpecialCharTok{\%\textgreater{}\%}
@@ -562,7 +563,7 @@ All behavioral data are stored in file
 
 \caption{Behavioral data.}
 \centering
-\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r|l|r|r|l|l|r|r|r|l|l|l|l|r}
+\begin{tabular}[t]{r|r|r|r|r|r|r|r|r|r|r|l|r|r|l|l|r|r|r|l|l|l|l|r}
 \hline
 id & session & x & y & chosen & z & zscaled & time & trial & round & distance & type\_choice & previous\_reward & age & gender & group & BDI & MMSE & hoehn\_yahr & last\_ldopa & next\_ldopa & time\_exp & wearing\_off\_min & time\_since\_ldopa\\
 \hline
@@ -1443,14 +1444,14 @@ Data frame \emph{dat\_bonus} contains the following variables:
   confidence in their reward prediction)
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, left=2mm, opacitybacktitle=0.6, coltitle=black, toptitle=1mm, breakable, bottomtitle=1mm, rightrule=.15mm, colframe=quarto-callout-note-color-frame, opacityback=0, leftrule=.75mm, toprule=.15mm, colback=white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, arc=.35mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, bottomrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, leftrule=.75mm, colback=white, toptitle=1mm, breakable, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, colbacktitle=quarto-callout-note-color!10!white, opacitybacktitle=0.6, coltitle=black, colframe=quarto-callout-note-color-frame, left=2mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, arc=.35mm, toprule=.15mm]
 
 Charley: is this scaling still correct (taken from YKWG code)?
 \texttt{bonus\_environment\$z\ \textless{}-\ bonus\_environment\$z\ *\ scale\_factor\ +\ 5}
 
 \end{tcolorbox}
 
-\begin{tabular}{l|r|l|r|r|r|r|r|r|r|l|r|l}
+\begin{tabular}{r|r|l|r|r|r|r|r|r|r|l|r|l}
 \hline
 id & bonus\_env\_number & bonus\_environment & x & y & givenValue & howSecure & chosen\_x & chosen\_y & true\_z & chosen & error & group\\
 \hline
