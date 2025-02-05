@@ -146,7 +146,7 @@ df_sample <- dat %>%
 # Computational Analyses
 
 Complementing the behavioral analyses, we study exploration and exploitation in PD through the lens of a computational model, the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: _directed exploration_, which seeks to reduce uncertainty about rewards, and _random exploration_, which adds stochastic noise to the search process without being directed towards a particular goal. In previous research using the same paradigm, this model has provided the best account of human behavior and enabled the decomposition of exploration into distinct mechanisms
-[@Wu:2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder2021_ExplorationChildren; @giron2023developmental; @Wu_et_al-generalization].
+[@Wu_2018grid; @Schulz:2019kwg; @Wu:2020neurogrid; @Meder2021_ExplorationChildren; @giron2023developmental; @Wu_et_al-generalization].
 
 
 ## Gaussian Process Upper Confidence Bound (GP-UCB) Model
@@ -292,7 +292,6 @@ We classified participants based on which model achieved the highest cross-valid
 #| fig-cap: "Classification of participants by models' cross-validated predictive accuracy."
 #| label: fig-participant_classification
 
-
 # dotplot
 # ggplot(df_participant_classification, aes(x = shortname, fill = group)) +
 #   facet_wrap(~group) +
@@ -361,6 +360,10 @@ ggsave("plots/participant_classification.png", width = 8, height = 4, dpi=300)
 
 ## Analysis of parameter estimates
 
+To better understand the mechanisms underlying the observed behavioral differences, we analyzed the parameters of the Gaussian Process Upper Confidence Bound (GP-UCB) model (@fig-GP-UCB-params). Both PD groups showed reduced generalization ($/lambda$) compared to polyneuropathy patients, contributing to poorer overall performance.
+
+The model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. 
+
 
 ```{r}
 #| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
@@ -397,7 +400,7 @@ ggsave("plots/GP-UCB_params.png", width = 9, height = 5)
 
 The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected [@Chakroun2020restless_ldopa].
 
-### Correlation of Parameters with Performance
+### Correlation of Model Parameters with Performance
 
 The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better.
 
