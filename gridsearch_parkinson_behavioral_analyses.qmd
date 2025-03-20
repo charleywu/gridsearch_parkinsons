@@ -48,7 +48,6 @@ editor_options:
 bibliography: gridsearch_parkinson.bib
 csl: https://www.zotero.org/styles/apa
 cite-method: citeproc
-
 ---
 
 
@@ -155,41 +154,26 @@ The Hoehn-Yahr scale assesses disease severity and motor impairments [@hoehn1967
 # Behavioral data
 All behavioral data are stored in file *data_gridsearch_parkinson.csv*.
 ```{r}
-# read in data
-dat       <- read_delim("data/data_gridsearch_parkinson.csv", 
-                        delim = ",",
-                        col_types = cols(
-                          id = readr::col_factor(),
-                          group = readr::col_factor(),
-                          gender = readr::col_factor(),
-                          z = col_double(),        
-                          zscaled = col_double(),
-                          hoehn_yahr = col_double()
-                        )) 
-# clean up
-dat <- dat %>%
-  select(-condition, -comments) %>% 
-  mutate(group = case_match(group,
-                            "PPD-" ~ "PD-",
-                            "PPD+" ~ "PD+",
-                            "PNP" ~ "PNP",
-                            .default = NA)) %>% 
-  mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  %>% 
-  mutate(type_choice = factor(type_choice, levels = c("Repeat", "Near", "Far")))  %>% 
-  mutate(gender = recode(gender, "w" = "f")) %>% 
-  rename(MMSE = `mini_mental`) %>% 
+
+# get behavioral data
+dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types = FALSE) %>% 
+  mutate(type_choice  = as.factor(type_choice))
+
+# get subject data
+dat_sample <- read_delim("data/data_gridsearch_subjects.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE) %>% 
+    mutate(gender = as.factor(gender),
+         group  = as.factor(group)) %>% 
   mutate(last_ldopa = if_else(group != "PNP", as_hms(last_ldopa), as_hms(NA)),
          next_ldopa = if_else(group != "PNP", as_hms(next_ldopa), as_hms(NA)),
          time_exp = if_else(group != "PNP", as_hms(time_exp), as_hms(NA))) %>% 
   mutate(time_since_ldopa = as.numeric(time_exp - last_ldopa, unit = "mins"))
 
-# get subject information
-df_sample <- dat %>% 
-  select(id, age, gender,group,BDI,MMSE,hoehn_yahr,last_ldopa,next_ldopa,time_exp,time_since_ldopa) %>% 
-  group_by(id) %>%
-  slice_head(n = 1) %>% 
+# combine behavioral and subject data
+dat <- dat_sample %>% 
+  left_join(dat_gridsearch) %>% 
   arrange(group)
 
+# show data
 if (knitr::is_html_output()) {
   head(dat) %>%
     kable("html", caption = "Behavioral data.") %>%
@@ -219,13 +203,17 @@ The data frame *dat* with the raw data contains the following variables:
 - *next_ldopa*: scheduled time of the next L-Dopa dose (HH:MM)
 - *time_exp*: time of the experiment (HH:MM)
 - *time_since_ldopa*: time since last L-Dopa (in minutes)
-- *wearing_off_min*:
-
 
 ## Sample characteristics
-We collected data from 62 adult participants with Parkinson disease, on and off L-Dopa medication, and Polyneuropathy. Let's have a look at the sample:
+
+Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=22) or just before their next scheduled dose (N=20). Patients with polyneuropathy served as a control group (N=20), comparable in age, depressive symptoms, and basic cognitive functioning.
+
+
+
+We collected data from `r dat_sample %>% filter(group != "PNP") %>% nrow()` adult participants with Parkinson disease, who were tested either shortly after taking their regular L-Dopa dose (N=`r dat_sample %>% filter(group != "PD+") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group != "PD-") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning.
+
 ```{r}
-df_sample %>% 
+dat_sample %>% 
   group_by(group) %>% 
   summarise(n = n(),
             female = sum(gender == "f"),
@@ -334,7 +322,7 @@ df_mean_reward_subject_by_round$fitted_mean_reward <- fitted_values[, "Estimate"
 
 ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
   geom_point(data = df_summary_by_round, aes(x = round, y = mean_of_means, shape = group), size = 3) +
-  geom_line(aes(y = fitted_mean_reward), size = 1) +  
+  geom_line(aes(y = fitted_mean_reward), linewidth = 1) +  
   geom_jitter(aes(x = round, y = mean_reward), size = 1, alpha = 0.3, width = 0.2) +
   scale_y_continuous("Mean Reward", breaks = c(25,30,35)) +
   xlab("Round") +
@@ -405,7 +393,7 @@ df_mean_reward_subject %>%
 
 
 ##########################################
-# Boxplots of rewards for the groups
+# Boxplots of rewards by group
 ##########################################
 ggboxplot(df_mean_reward_subject, 
           x = "group", 

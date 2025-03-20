@@ -6,7 +6,7 @@ library('plyr')
 library('tidyverse')
 
 # set working directory
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 #setwd("/Users/meder/Library/CloudStorage/OneDrive-HMUHealthandMedicalUniversityPotsdam/_Projekte/gridsearch Parkinson/analysis/")
 
 
@@ -93,19 +93,8 @@ dataImport_Park <- function(dataFile, writecsv = FALSE){
 }
 
 
-cohensd.ci <- function(d, n1, n2, ci = 0.95) {
-  t <- d * sqrt((n1 * n2)/(n1 + n2))
-  capture.output(
-    fit <- compute.es::tes(t = t, n.1 = n1, n.2 = n2, level = 100 * ci),
-    file = "NUL"
-  )
-  c(lower.ci = fit$l.d, upper.ci = fit$u.d)
-}
-
-
-
 # get names of individual data files stored in .JSON format 
-json_files <- list.files(path = "data", pattern = "(?i)\\.json$", full.names = F )
+json_files <- list.files(path = "data/raw_data/all", pattern = "(?i)\\.json$", full.names = F )
 
 # convert .JSON files in .csv files
 # generates one file for behavioral data
@@ -113,7 +102,7 @@ list_of_dfs <- list()
 
 for (i in seq_along(json_files)) {
   
-  dataFile <- paste0("data/", json_files[i])
+  dataFile <- paste0("data/raw_data/all/", json_files[i])
   csv_file <- paste0(dataFile, ".csv")
   
   df <- dataImport_Park(dataFile) # get data
@@ -127,7 +116,18 @@ for (i in seq_along(json_files)) {
 }
 
 results <- bind_rows(list_of_dfs)
-write.csv(results, "data/results.csv", row.names = FALSE)
+write.csv(results, "data/data_gridsearch_Parkinson.csv", row.names = FALSE)
+
+
+
+cohensd.ci <- function(d, n1, n2, ci = 0.95) {
+  t <- d * sqrt((n1 * n2)/(n1 + n2))
+  capture.output(
+    fit <- compute.es::tes(t = t, n.1 = n1, n.2 = n2, level = 100 * ci),
+    file = "NUL"
+  )
+  c(lower.ci = fit$l.d, upper.ci = fit$u.d)
+}
 
 
 #############################################################################################################################

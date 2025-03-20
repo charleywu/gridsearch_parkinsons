@@ -9,7 +9,6 @@ author:
     affiliation: University of Tübingen, Tübingen, Germany
   - name: Matthias Guggenmos
     affiliation: Health and Medical University, Potsdam, Germany
-  
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
   html:
