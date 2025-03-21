@@ -50,7 +50,6 @@ csl: https://www.zotero.org/styles/apa
 cite-method: citeproc
 ---
 
-
 ```{r, results = "hide", message=FALSE}
 # Housekeeping: Load packages and helper functions
 # Housekeeping
@@ -97,6 +96,10 @@ jit_alpha   <- 0.6
 groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 
 ```
+
+
+
+
 # Abstract 
 
 We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=22) or just before their next scheduled dose (N=20). Patients with polyneuropathy served as a control group (N=20), comparable in age, depressive symptoms, and basic cognitive functioning.
@@ -153,6 +156,10 @@ The Hoehn-Yahr scale assesses disease severity and motor impairments [@hoehn1967
 
 # Behavioral data
 All behavioral data are stored in file *data_gridsearch_parkinson.csv*.
+
+
+
+
 ```{r}
 
 # get behavioral data
@@ -190,6 +197,10 @@ if (knitr::is_html_output()) {
 }
 ```
 
+
+
+
+
 The data frame *dat* with the raw data contains the following variables:
 
 - *id*: participant id
@@ -213,6 +224,10 @@ The data frame *dat* with the raw data contains the following variables:
 
 We collected data from `r dat_sample %>% filter(group != "PNP") %>% nrow()` adult participants with Parkinson disease, who were tested either shortly after taking their regular L-Dopa dose (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning.
 
+
+
+
+
 ```{r}
 dat_sample %>% 
   group_by(group) %>% 
@@ -235,10 +250,18 @@ dat_sample %>%
 
 ```
 
+
+
+
+
 We analyzed the behavioral data in terms of performance and exploration behavior. These analyses exclude the tutorial and bonus rounds, leaving a total of 200 search decisions (8 rounds $\times$ 25 trials) for each participant. We then report the results of the bonus round, where we analyze participants' reward predictions and confidence judgments. We report both frequentist statistics and Bayes factors ($BF$) to quantify the relative evidence of the data in favor of the alternative hypothesis ($H_A$) over the null hypothesis ($H_0$); see Appendix for details and references. Various helper functions are implemented in *statisticalTests.R*. Regression analyses were performed in a Bayesian framework with *Stan*, accessed via R-package *brms*, complemented by frequentist hierachical regression analyses (via package *lmer*). 
 
 ## Performance: Rewards by round
 First, let's plot the obtained rewards as function of group and round.
+
+
+
+
 
 ```{r echo=FALSE, fig.width=6, fig.height=3}
 # mean reward per subject (practice and bonus round excluded)
@@ -282,7 +305,15 @@ ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, sha
 ggsave("plots/performance_rounds.png", width = 6, height = 3)
 ```
 
+
+
+
+
 ANOVA results with _round_ as within- and _group_ as between-subjects factor show a difference between groups, with PNP patients achieving the greatest rewards, followed by PD+ and PD- patients, but no change across rounds (and no interaction). A Bayesian regression analysis yield the same results. Therefore, for the subsequent analyses we collapse across rounds.
+
+
+
+
 ```{r}
 
 aov_rounds <- aov_ez(
@@ -352,9 +383,17 @@ plot_model(brm_rounds, type = "est") +
 
 ```
 
+
+
+
+
 ## Performance: Rewards by group
 
 The plot shows the overall performance of each group, where we compute for each subjects the mean reward across all trials. Each dot is one participants' mean reward across all rounds and trials.
+
+
+
+
 
 ```{r echo=FALSE, fig.width=9, fig.height=7}
 
@@ -444,12 +483,20 @@ ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
 # ggsave("plots/performance_by_group.png", dpi=300, height = 3, width = 5 )
 ```
 
+
+
+
+
 All groups differed, with PNP achieving the greatest amount of reward, followed by PD+ and PD-.
 
 
 - PNP vs. PD+: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
 - PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
 - PD+ vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
+
+
+
+
 
 ```{r echo=FALSE}
 ### Comparison of groups
@@ -468,10 +515,18 @@ All groups differed, with PNP achieving the greatest amount of reward, followed 
 # ttestBF(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward)
 ```
 
+
+
+
+
 ## Performance: Learning curves
 Participants’ learning curves illustrate the average reward obtained in each trial across rounds. For both polyneuropathy patients (PNP) and Parkinson’s patients on medication (PD+), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, Parkinson’s patients off medication (PD-) showed no improvement across trials.
 
 TO DO: Add random reward as baseline
+
+
+
+
 ```{r echo=FALSE, fig.width=8, fig.height=5}
 # mean reward per trial, by environment x age group
 df_learning_curve <- dat %>% 
@@ -526,11 +581,19 @@ ggsave("plots/learning_curves.png", dpi=300,height=5,width=6)
 
 ```
 
+
+
+
+
 ### Performance: Role of physiological and cognitive assessments (BDI, MMSE, Hoehn-Yahr)
 
 We also assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only).
 
 We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI amd MMSE score were not related to performance.
+
+
+
+
 ```{r}
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
 lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id), 
@@ -557,7 +620,15 @@ brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
 
 ```
 
+
+
+
+
 Next, we ran a hierarchical regression for Parkinson's patients only, with reward as dependent variable and group, BDI, MMSE, and Hoehn-Yahr score as predictors; with random intercepts for participants to account for individual differences. This analysis only yielded an influence of group, i.e. being on or off L-Dopa.
+
+
+
+
 ```{r}
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)   
 lmer_reward_PD_only_BDI_MMSE_HY <- lmer(z ~ group + BDI + MMSE + hoehn_yahr + (1 | id), 
@@ -587,8 +658,16 @@ brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1
 
 ```
 
+
+
+
+
 ## Exploration vs. exploitation choices
 As a global measure of exploration behavior, we calculated the proportion of unique tiles (out of 25) selected during each round. Higher proportions indicate a greater tendency to explore novel options, while lower proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task.
+
+
+
+
 
 ```{r}
 # proportion of unique choices per round per subject
@@ -637,7 +716,15 @@ ggboxplot(df_unique_choices_subject,
 ggsave("plots/unique_choices.png", dpi=300, width =5, height=4.5)  
 ```
 
+
+
+
+
 To investigate the temporal dynamics of exploration and exploitation, we determined for each trial whether the chosen tile was novel (an exploration decision) or had already been selected previously (an exploitation decision). The data reveal that the likelihood of exploiting a previously chosen option increased significantly over time for both PNP and PD+ patients, indicating a gradual shift in behavior from exploration to exploitation  as the round progressed. In contrast, PD- patients predominantly engaged in exploration throughout the round and showed only a weak tendency towards increased exploitation as the search horizon approached its end.
+
+
+
+
 
 ```{r}
 
@@ -680,10 +767,18 @@ ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, shape = gr
 ggsave("plots/explore-exploit_time.png", dpi=300, width = 6, height =4)
 ```
 
+
+
+
+
 ## Spatial trajectories
 We next consider participant's spatial search trajectories (distance among consecutive clicks). Distance is measured as Manhattan distance between consecutive clicks, such that repeat clicks have distance 0, clicking directly neighbouring tiles has distance 1, and clicks further away have distances >1.
 
 The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach (Wu et al., 2018). On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
+
+
+
+
 
 ```{r, echo=F}
 #  distance by participant
@@ -738,8 +833,16 @@ ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
 ggsave("plots/distance.png", dpi=300,height=3, width=5)
 ```
 
+
+
+
+
 PNP patients had lower search distances than the PD+ group: `r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)` and lower distances than the PD- group, `r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`
 There was no difference between Parkinson patient with (PD+) and without (PD-) medication, `r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
+
+
+
+
 
 ```{r echo=F}
 
@@ -760,10 +863,18 @@ There was no difference between Parkinson patient with (PD+) and without (PD-) m
 # ttestBF(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
 ```
 
+
+
+
+
 ### Types of choices
 We can also categorize each consecutive click as "repeat" (clicking the same tile as in the previous round), "near" (clicking a directly neighboring tile, i.e. distance=1), or "far" (clicking a tile with distance > 1). We first computed for each participant the proportion of type of choices across all 8 rounds x 25 clicks = 200 search decisions and then plot the mean proportion for each group.
 
 The analyses reveal distinct search patterns across patient groups. PNP participants had the highest proportion of repeat (exploit) decisions, followed by the PD+ group. The proportion of repeat decisions in the PD- group was minimal. These behaviors help explain the differences in learning curves, where PNP patients showed the most significant improvement, followed by PD+ patients. In contrast, PD- patients exhibited no improvement across trials, due to their lower tendency to exploit high-reward options.
+
+
+
+
 
 ```{r, echo=FALSE, message=FALSE, warning = FALSE, fig.width=9}
 df_types_choices_subject <- dat %>% 
@@ -810,7 +921,15 @@ ggsave("plots/distance_types.png", dpi=300,height=3, width=5)
 
 ```
 
+
+
+
+
 An analysis of consecutive choice types over time reveals clear differences in search behavior between the groups. Both PNP and PD+ patients adapt their strategies as the round progresses by decreasing the number of local (distance = 1) and far (distance > 1) choices, while increasing the number of exploit decisions, indicating a shift from exploration to exploitation. Notably, the data indicate a faster shift to exploitation for PNP patients compared to PD+ patients, with an earlier and stronger preference for re-selecting known high-reward options. In contrast, PD- patients show limited adaptation, with the proportions of each decision type remaining relatively stable throughout the round, aside from a slight increase in exploit decisions.
+
+
+
+
 
 ```{r fig.width=10, fig.height=4}
 df_types_choices_trial_subject <- dat %>%
@@ -851,6 +970,10 @@ ggsave("plots/types_choice_by_trial.png", dpi=300, width = 8, height = 4)
 
 ```
 
+
+
+
+
 ### Distance as function of previous reward
 Finally, we analysed the relation between the value of a reward obtained at time $t$ and the search distance on the subsequent trial $t+1$. If a large reward was obtained, searchers should search more locally, while conversely, if a low reward was obtained, searchers should be more likely to search farther away. 
 
@@ -859,6 +982,10 @@ First, we examined the correlations based on the raw data, without accounting fo
 * PNP: `r corTestPretty(subset(dat, group == "PNP" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PNP" & trial != 0 & round %in% 2:9)$distance)`
 * PD+: `r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`
 * PD-: `r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`
+
+
+
+
 
 ```{r}
 # correlation of previous reward and distance of consecutive choices, by age group and environment
@@ -904,9 +1031,17 @@ First, we examined the correlations based on the raw data, without accounting fo
 
 ```
 
+
+
+
+
 Given the nested structure of the data, we next employed hierarchical regression analyses to predict search distance based on the reward obtained in the previous step, group, and their interaction as population-level (fixed) effects. We accounted for individual differences by allowing participants to have random intercepts (Note BM: we can also include random slopes when we have more data points, but lmer did not converge and brm also need some tweaks).
 
 These analyses show that both the magnitude of reward obtained on the last step and group influence search distance. Notably, Parkinson patients off medication (PD-) adapted their search behavior less in response to reward magnitude, while patients on medication (PD+) exhibit more adaptation, but still less than the PNP group.
+
+
+
+
 
 ```{r}
 # for now, random intercepts only, Random intercept + random slope not stable
@@ -936,7 +1071,15 @@ plot_model(lmer_distance_reward, type = "pred", terms = c("previous_reward", "gr
 ggsave("plots/regression_distance_reward_lmer.png", dpi=300, height=3, width=4)
 ```
 
+
+
+
+
 Results of a Bayesian hierarchical regression with random intercepts and random slopes for subjects yield comparable findings, again indicating distinct search patterns and responses to reward magnitude across groups, with the PD- group exhibiting less adaptive behavior.
+
+
+
+
 ```{r}
 # Bayesian regression analysis
 # run_model() is a wrapper for brm models such that it saves the full model the first time it is run, otherwise it loads it from disk from directory `~brm`
@@ -960,7 +1103,6 @@ brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (1|id)
 #bayes_R2(brm_distance_reward) 
 
 ```
-
 
 ```{r}
 
@@ -1030,6 +1172,10 @@ ggplot() +
 ggsave("plots/regression_distance_reward_brms.png", dpi=300, height=3, width=4)
 ```
 
+
+
+
+
 ## Bonus round judgments
 In the bonus round, participants made 15 search decisions and then predicted the rewards for 5 randomly chosen, previously unobserved tiles. Subsequently, they chose one of the five tiles and continued the round until the search horizon of 25 clicks was met.
 
@@ -1049,6 +1195,10 @@ Data frame *dat_bonus* contains the following variables:
 ::: callout-note
 Charley: is this scaling still correct (taken from YKWG code)? `bonus_environment$z <- bonus_environment$z * scale_factor + 5`
 :::
+
+
+
+
 
 ```{r, echo=FALSE}
 
@@ -1070,8 +1220,16 @@ if (knitr::is_html_output()) {
 
 ```
 
+
+
+
+
 ### Prediction error 
 The plot shows the mean absolute error between participants' estimates and the true underlying expected reward, for each age group and environment.
+
+
+
+
 ```{r, echo=FALSE}
 # Error (MAE) of random performance
 randomGuesses     <- runif(10000,0,50)
@@ -1140,6 +1298,10 @@ ggsave("plots/bonusround_prediction_error.png", dpi=300, height = 5, width = 6 )
 #         panel.grid.minor = element_blank())
 ```
 
+
+
+
+
 Compared to a random baseline, all groups performed better than chance level:
 
 * PNP: `r ttestPretty(subset(dat_bonus_error, group=='PNP')$mean_error, mu =randomPerformance)` 
@@ -1147,6 +1309,10 @@ Compared to a random baseline, all groups performed better than chance level:
 * PD-: `r ttestPretty(subset(dat_bonus_error, group=='PD-')$mean_error, mu =randomPerformance)`
 
 There was no difference between Parkinson patients on and off medication. PNP participants has had higher prediction error than Parkinson patients on medication (PD+), but were not worse than Parkinson participants off medication: (PD-).
+
+
+
+
 
 ```{r echo = F}
 # t.test(subset(dat_bonus_error, group == "PD+")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error, var.equal = T)
@@ -1183,7 +1349,15 @@ There was no difference between Parkinson patients on and off medication. PNP pa
 
 
 
+
+
+
+
 ### Prediction error and confidence
+
+
+
+
 
 ```{r}
 # Across all judgments and participants, there was no systematic relation between confidence and prediction error:
@@ -1192,7 +1366,15 @@ There was no difference between Parkinson patients on and off medication. PNP pa
 # correlationBF(dat_bonus$error, dat_bonus$howSecure, method = "kendall") 
 ```
 
+
+
+
+
 A Bayesian regression with  with prediction error as dependent variable, and confidence and group and their interaction as population-level (“fixed”) effects, and a random intercept for participants showed that for PNP patients confidence and predictione rror were negatively correlated (i.e., lower confidence was associated with a higher error), whereas for the two Parkinson groups there was no relation.
+
+
+
+
 
 ```{r}
 brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group + (1|id), 
@@ -1245,8 +1427,16 @@ ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
 
 ```
 
+
+
+
+
 ### Analysis of selected tiles
 To analyze selected and not-selected options, we first averaged the predicted reward and confidence of the not-chosen tiles within subjects, and then compared chosen and not chosen options. Selected tiles tended to have higher predicted rewards. Participants were not more confident in selected options, and selected tiles did not have a higher true reward than not selected tiles. 
+
+
+
+
 
 
 ```{r}
@@ -1362,9 +1552,17 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 ```
 
 
+
+
+
+
 # Appendix
 
 ## Distribution of BDI, MMSE, and YH in each group
+
+
+
+
 ```{r}
 
 # dotplot BDI
@@ -1431,10 +1629,18 @@ p_dotplot_HY <- ggplot(filter(dat_sample, group != "PNP"), aes(x = hoehn_yahr, f
 
 ```
 
+
+
+
+
 ## Performance as function of BDI, MMSE, and Hoehn-Yahr
 
 ### Performance as function of depression score (BDI)
 The plots show performance as function of depression score (BDI-II), separately for each group. Opposing trends were found in the different groups: for patients with polyneuropathy (PNP), there was a negative relation such that patients with higher depression scores obtained _lower_ rewards. For the two Parkinson groups, the relation was positive, such that patients reporting more severe symptoms obtained _higher_ rewards. 
+
+
+
+
 
 ```{r echo=FALSE, fig.width= 10, fig.height=5}
 # df_correlation_BDI <- df_mean_reward_subject %>%  summarise(correlation = cor(BDI, mean_reward, use = "complete.obs"))
@@ -1500,7 +1706,15 @@ ggplot(df_mean_reward_subject, aes(x = BDI, y = mean_reward)) +
 ggsave("plots/performance_groups_BDI.png", dpi=300, height = 3, width = 7)
 ```
 
+
+
+
+
 ### Performance as function of Mini-Mental State Examination (MMSE)
+
+
+
+
 
 ```{r echo=FALSE, fig.width= 10, fig.height=5}
 # df_correlation_MMSE <- df_mean_reward_subject %>%  summarise(correlation = cor(MMSE, mean_reward, use = "complete.obs"))
@@ -1562,8 +1776,16 @@ ggplot(df_mean_reward_subject, aes(x = MMSE, y = mean_reward)) +
 ggsave("plots/performance_groups_MMSE.png", dpi=300, height = 3, width = 7)
 ```
 
+
+
+
+
 ### Performance as function of Hoehn-Yahr (Parkinson patients only)
 The Hoehn-Yahr scale provides information about the severity of motor impairments in Parkinson’s disease, with higher scores indicating greater severity.
+
+
+
+
 
 ```{r echo=FALSE, fig.width= 10, fig.height=5}
 # df_correlation_hoehn_yahr <- df_mean_reward_subject %>%  
