@@ -128,7 +128,7 @@ cohensd.ci <- function(d, n1, n2, ci = 0.95) {
   )
   c(lower.ci = fit$l.d, upper.ci = fit$u.d)
 }
-<<<<<<< HEAD
+
 
 #############################################################################################################################
 # read bonus round data from json and write to .csv --------------------------------------------------
@@ -197,10 +197,6 @@ for (i in 1:nrow(myjson)){
 }
 
 write.table(df_bonus_round, file="data/data_gridsearch_Parkinson_bonusround.csv", sep=",", row.names = F)
-return(df_bonus_round)
-=======
->>>>>>> 8912e19a396887a64b806d375115c93543008900
-
 
 #############################################################################################################################
 # Model Results
