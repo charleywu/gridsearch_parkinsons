@@ -161,6 +161,10 @@ All behavioral data are stored in file *data_gridsearch_parkinson.csv*.
 dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types = FALSE) %>% 
   mutate(type_choice  = factor(type_choice, levels = c("Repeat", "Near", "Far")))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ee52d68455dab6c004425712200fb2c6393b6f5d
 # get bonus round data
 dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>% 
   mutate(bonus_environment = as.factor(bonus_environment))
