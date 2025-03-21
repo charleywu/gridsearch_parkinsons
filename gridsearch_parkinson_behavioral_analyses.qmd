@@ -27,20 +27,6 @@ format:
       body-width: 1000px
       margin-width: 200px
       gutter-width: 1.5rem
-  pdf:
-    toc: true
-    number-sections: true
-    number-figures: true
-    keep-tex: true
-    code: false
-    documentclass: scrreprt
-    header-includes:
-      - \usepackage{ragged2e}
-    code-annotations: none 
-  docx:
-    toc: true
-    number-sections: true
-    number-figures: true
 editor: 
   default: source
 editor_options: 
@@ -97,79 +83,23 @@ jit_alpha   <- 0.6
 groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 
 ```
-# Abstract 
 
-We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=22) or just before their next scheduled dose (N=20). Patients with polyneuropathy served as a control group (N=20), comparable in age, depressive symptoms, and basic cognitive functioning.
-Behavioral and computational analyses revealed distinct patterns of exploration and exploitation. PD patients on L-Dopa balanced exploration and exploitation, though not as efficiently as polyneuropathy patients. In stark contrast, patients off L-Dopa rarely exploited known high-value options and primarily explored novel ones. This overreliance on exploration impaired their ability to navigate the explore-exploit trade-off and maximize rewards.
-To better understand the mechanisms underlying these behavioral differences, we employed a computational approach using the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: directed exploration, which seeks to reduce uncertainty about rewards, and random exploration, which introduces stochastic variability in choice behavior. The model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. Both PD groups showed reduced generalization compared to controls, contributing to poorer overall performance.
-Our findings indicate that L-Dopa selectively modulates uncertainty-directed exploration, providing a more nuanced understanding of the central role of dopamine in the regulation of exploratory behavior.
-
-# Intro
-
-A central distinction between different forms of exploration behavior is  that _directed exploration_ reflects the drive for knowledge about novel options, whereas _undirected exploration_ refers to random variability in the choice process [@sadeghiyeh2020temporal; @Meder2021_ExplorationChildren; @Schulz:2019kwg; @giron2023developmental;@Wu_2018grid].
-
-# Experiment
-We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
-
-![Screenshot from experiment and example environments [from @giron2023developmental]](img/task_overview_Giron_et_al_2021.png)
-
-
-## Materials and procedure
-
-40 distinct environments were generated using a radial basis function kernel with $\lambda = 4$, creating a bivariate reward function on a grid that maps each tile location to a specific reward value. These smooth reward functions gradually varied across the grid.
-
-Participants completed 10 rounds of the task, each featuring a new environment drawn without replacement from the set of 40 environments. In each round, participants had 25 choices to maximize rewards. The first round served as a tutorial to familiarize participants with the task and was excluded from the analyses. The final round (round 10) was a bonus round where, after 15 choices, participants were asked to predict rewards for five unrevealed options. Data from this round were also excluded from the main analysis and analyzed separately.
-
-At the start of each round, one tile was randomly revealed, and participants sequentially sampled 25 tiles. On each trial, they could choose to either click a new tile or re-click a previously selected tile. Selections were made by selecting the tile on the computer screen, upon which the received a reward arbitrarily scaled to the range [0,50].  Re-clicked tiles showed small variations in reward due to normally distributed noise. 
-
-## Sample
-We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for treatment [@abbott2010levodopa; @tambasco2018levodopa]. L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine. Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. 
-
-PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (_n_=22), patients scheduled L-Dopa was administered at least 30 minutes before the start of the experiment to allow the drug sufficient time to take effect during the task. In the PD- group (_n_=20), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose. 
-
-Patients with polyneuropathies (PNP) served as control group. The PNP group (_n_=20) consisted of individuals with polyneuropathies, which is associated with physical symptoms similar to the motor impairments seen in Parkinson’s disease. However, since polyneuropathy primarily affects peripheral nerves it is typically not associated with cognitive impairments, enabling a comparison in terms of physical symptomatology and the resulting burden of suffering.
-
-Possible participants with Parkinson’s disease were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale, which ranges from 1 to 5, assesses disease severity and motor impairments, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment.
-
-## Questionnaires
-### Beck's depression inventory II (BDI-II)
-All participants answered the German version of the Beck Depression Inventory II, a self-report inventory consisting of 21 items measuring the severity of depression [@beck1996beck; @hautzinger2006beck]. Each item is scored from 0 to 3, with higher values representing more severe symptoms, such that the total score ranges between 0 and 63. A score of 0-11 is considered normal, 12-19 points indicate mild depressive symptoms, while values of 20 or higher suggest moderate to severe depression. 
-
-::: callout-note
-TO DO: check BDI scoring
-Wikipedia: Die Nationale Versorgungsleitlinie Unipolare Depression[3] listet im Anhang 1 S.217 ("Schwellenwerte bei psychometrischen Testverfahren") folgende Grenzwerte für das BDI-II auf: https://www.leitlinien.de/themen/depression https://doi.org/10.6101/AZQ%2F000496 
-
-- 0–13: keine Depression bzw. klinisch unauffällig oder remittiert
-- 14–19: leichtes depressives Syndrom
-- 20–28: mittelgradiges depressives Syndrom
-- ≥ 29: schweres depressives Syndrom
-:::
-
-### Mini-Mental State Examination (MMSE)
-The Mini-Mental State Examination (MMSE) is a clinical test used assess cognitive function and impairment, frequently used in in patients with dementia [@folstein1975mini]. The test comprises 30 questions pertaining to different domains, including as memory (e.g., recalling three objects), temporal and spatial orientation (e.g., date and location), arithmetic ability, and various others. Each correct answer receives one point, up to a maximum score of 30 points. In this study, an MMSE score between 27 and 30 points was defined as a criterion to establish a clear cutoff for excluding the presence of dementia or significant cognitive impairment, but none of the patients received such high scores.
-
-### Hoehn-Yahr scale for severity of Parkinson
-The Hoehn-Yahr scale assesses disease severity and motor impairments [@hoehn1967parkinsonism]. Participants can receive a score between one and five, with higher scores indicating more severe problems. We limited our recruitment to patients with scores ranging from to 1 to 3. 
-
-# Behavioral data
-All behavioral data are stored in file *data_gridsearch_parkinson.csv*.
 ```{r}
-#| label: tbl-sample
-#| fig-cap: "Overview of data."
-
+########################################################
 # get behavioral data
+########################################################
 dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types = FALSE) %>% 
   mutate(type_choice  = factor(type_choice, levels = c("Repeat", "Near", "Far")))
 
-<<<<<<< HEAD
-=======
-
->>>>>>> ee52d68455dab6c004425712200fb2c6393b6f5d
+########################################################
 # get bonus round data
+########################################################
 dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>% 
   mutate(bonus_environment = as.factor(bonus_environment))
 
+########################################################
 # get subject data
+########################################################
 dat_sample <- read_delim("data/data_gridsearch_subjects.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE) %>% 
   mutate(gender = as.factor(gender),
          group  = factor(group, levels = c("PNP", "PD+", "PD-"))) %>% 
@@ -183,9 +113,76 @@ dat <- dat_sample %>%
   left_join(dat_gridsearch) %>% 
   arrange(group)
 
-# show data
-head(dat) %>%
-  kable("html", caption = "Behavioral data.") %>%
+```
+
+
+# Abstract 
+
+We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning.
+Behavioral and computational analyses revealed distinct patterns of exploration and exploitation. PD patients on L-Dopa balanced exploration and exploitation, though not as efficiently as polyneuropathy patients. In stark contrast, patients off L-Dopa rarely exploited known high-value options and primarily explored novel ones. This overreliance on exploration impaired their ability to navigate the explore-exploit trade-off and maximize rewards.
+To better understand the mechanisms underlying these behavioral differences, we employed a computational approach using the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: directed exploration, which seeks to reduce uncertainty about rewards, and random exploration, which introduces stochastic variability in choice behavior. The model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. Both PD groups showed reduced generalization compared to controls, contributing to poorer overall performance. Our findings indicate that L-Dopa selectively modulates uncertainty-directed exploration, providing a more nuanced understanding of the central role of dopamine in the regulation of exploratory behavior.
+
+# Intro
+
+A central distinction between different forms of exploration behavior is  that _directed exploration_ reflects the drive for knowledge about novel options, whereas _undirected exploration_ refers to random variability in the choice process [@sadeghiyeh2020temporal; @Meder2021_ExplorationChildren; @Schulz:2019kwg; @giron2023developmental;@Wu_2018grid].
+
+# Experiment
+We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
+
+![Screenshot from experiment and example environments [from @giron2023developmental]](img/task_overview_Giron_et_al_2021.png)
+
+
+## Materials and procedure
+
+40 distinct environments were generated using a radial basis function kernel with $\lambda = 4$, creating a bivariate reward function on a grid that maps each tile location to a specific reward value. These smooth reward functions gradually varied across the grid, creating environments with spatially-correlated rewards.
+
+Participants completed 10 rounds of the task, each featuring a new environment drawn without replacement from the set of 40 environments. In each round, participants had 25 choices to maximize rewards. The first round served as a tutorial to familiarize participants with the task and was excluded from the analyses. The final round (round 10) was a bonus round where, after 15 choices, participants were asked to predict rewards for five unrevealed options. Data from this round were also excluded from the main analysis and analyzed separately.
+
+At the start of each round, one tile was randomly revealed, and participants sequentially sampled 25 tiles. On each trial, they could choose to either click a new tile or re-click a previously selected tile. Selections were made by selecting the tile on the computer screen, upon which the received a reward arbitrarily scaled to the range [0,50].  Re-clicked tiles showed small variations in reward due to normally distributed noise. 
+
+## Sample
+We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for treatment [@abbott2010levodopa; @tambasco2018levodopa]. L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine. Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. 
+
+PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (_n_=), patients scheduled L-Dopa was administered at least 30 minutes before the start of the experiment to allow the drug sufficient time to take effect during the task. In the PD- group (_n_=), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose. 
+
+Patients with polyneuropathies (PNP) served as control group. The PNP group (_n_=) consisted of individuals with polyneuropathies, which is associated with physical symptoms similar to the motor impairments seen in Parkinson’s disease. However, since polyneuropathy primarily affects peripheral nerves it is typically not associated with cognitive impairments, enabling a comparison in terms of physical symptomatology and the resulting burden of suffering.
+
+Possible participants with Parkinson’s disease were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale, which ranges from 1 to 5, assesses disease severity and motor impairments, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment.
+
+## Questionnaires
+### Beck's depression inventory II (BDI-II)
+All participants answered the German version of the Beck Depression Inventory II, a self-report inventory consisting of 21 items measuring the severity of depression [@beck1996beck; @hautzinger2006beck]. Each item is scored from 0 to 3, with higher values representing more severe symptoms, such that the total score ranges between 0 and 63. A score of 0-11 is considered normal, 12-19 points indicate mild depressive symptoms, while values of 20 or higher suggest moderate to severe depression. 
+
+<!--
+::: callout-note
+TO DO: check BDI scoring
+Wikipedia: Die Nationale Versorgungsleitlinie Unipolare Depression[3] listet im Anhang 1 S.217 ("Schwellenwerte bei psychometrischen Testverfahren") folgende Grenzwerte für das BDI-II auf: https://www.leitlinien.de/themen/depression https://doi.org/10.6101/AZQ%2F000496 
+
+- 0–13: keine Depression bzw. klinisch unauffällig oder remittiert
+- 14–19: leichtes depressives Syndrom
+- 20–28: mittelgradiges depressives Syndrom
+- ≥ 29: schweres depressives Syndrom
+:::
+-->
+
+### Mini-Mental State Examination (MMSE)
+The Mini-Mental State Examination (MMSE) is a clinical test used assess cognitive function and impairment, frequently used in in patients with dementia [@folstein1975mini]. The test comprises 30 questions pertaining to different domains, including as memory (e.g., recalling three objects), temporal and spatial orientation (e.g., date and location), arithmetic ability, and various others. Each correct answer receives one point, up to a maximum score of 30 points. In this study, an MMSE score between 27 and 30 points was defined as a criterion to establish a clear cutoff for excluding the presence of dementia or significant cognitive impairment, but none of the patients received such high scores.
+
+### Hoehn-Yahr scale for severity of Parkinson
+The Hoehn-Yahr scale assesses disease severity and motor impairments [@hoehn1967parkinsonism]. Participants can receive a score between one and five, with higher scores indicating more severe problems. We limited our recruitment to patients with scores ranging from to 1 to 3. 
+
+# Behavioral data
+All behavioral data are stored in *data_gridsearch_parkinson.csv*.
+```{r}
+#| label: tbl-sample
+#| fig-cap: "Overview of data."
+
+# show example data
+head(dat %>%
+  group_by(group) %>%
+  slice_head(n=5)  %>% 
+  ungroup()) %>%
+  kable("html", caption = "Example behavioral data.") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
   scroll_box(width = "100%", height = "300px")
 
@@ -532,8 +529,7 @@ ggsave("plots/learning_curves.png", dpi=300,height=5,width=6)
 ### Performance: Role of physiological and cognitive assessments (BDI, MMSE, Hoehn-Yahr)
 
 We also assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only).
-
-We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI amd MMSE score were not related to performance.
+We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance.
 
 ```{r}
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
@@ -544,15 +540,15 @@ lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id),
 tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
 
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI and MMSE score (all patients)                              
-# brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id), 
-#                                        data=subset(dat, trial > 0 & round %in% 2:9 ), 
-#                                        cores=4,  
-#                                        seed = 0815,
-#                                        iter = 5000,
-#                                        warmup=1000,
-#                                        control = list(adapt_delta = 0.99, max_treedepth = 15)),
-#                                    #prior = prior(normal(0,10), class = "b")), 
-#                                    modelName = 'brm_performance_BDI_MMSE')
+brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
+                                       data=subset(dat, trial > 0 & round %in% 2:9 ),
+                                       cores=1,
+                                       seed = 0815,
+                                       iter = 5000,
+                                       warmup=1000,
+                                       control = list(adapt_delta = 0.99, max_treedepth = 15)),
+                                   #prior = prior(normal(0,10), class = "b")),
+                                   modelName = 'brm_performance_BDI_MMSE')
 #tab_model(brm_performance_assessment, bpe="mean", title = "Hierarchical Bayesian regression: Performance as function of BDI and MMSE score.") 
 #bayes_R2(brm_performance_assessment) 
 #tab_model(lmer_performance_BDI_MMSE, brm_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
@@ -572,15 +568,15 @@ tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression resu
 
 
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)                          
-# brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id), 
-#                                        data=subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"), 
-#                                        cores=1, 
-#                                        seed = 0815,
-#                                        iter = 5000,
-#                                        warmup=1000,
-#                                        control = list(adapt_delta = 0.99)),
-#                                    #prior = prior(normal(0,10), class = "b")), 
-#                                    modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
+brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
+                                       data=subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"),
+                                       cores=1,
+                                       seed = 0815,
+                                       iter = 5000,
+                                       warmup=1000,
+                                       control = list(adapt_delta = 0.99)),
+                                   #prior = prior(normal(0,10), class = "b")),
+                                   modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
 
 # tab_model(lmer_reward_PD_only_BDI_MMSE_HY, brm_performance_PD_only_BDI_MMSE_HYtitle = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
 
@@ -589,9 +585,8 @@ tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression resu
 ## Exploration vs. exploitation choices
 To investigate the temporal dynamics of exploration and exploitation, we determined for each trial whether the chosen tile was novel (an exploration decision) or had already been selected previously (an exploitation decision). The data reveal that the likelihood of exploiting a previously chosen option increased significantly over time for both PNP and PD+ patients, indicating a gradual shift in behavior from exploration to exploitation  as the round progressed. In contrast, PD- patients predominantly engaged in exploration throughout the round and showed only a weak tendency towards increased exploitation as the search horizon approached its end.
 
-As a global measure of exploration behavior, we calculated the proportion of unique tiles (out of 25) selected during each round. Higher proportions indicate a greater tendency to explore novel options, while lower proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task.
+As a global measure of exploration behavior, we calculated the proportion of exploration choices (unique tiles, out of 25) selected during each round. Higher proportions indicate a greater tendency to explore novel options, while lower proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task.
 
-TO DO: make labels (unique, novel etc) consistent
 
 ```{r}
 #| label: fig-choices
@@ -650,7 +645,7 @@ p_main <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, 
   theme_classic() +
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=12),
-        #legend.position = c(0.15, 1),  # Top-left
+        legend.position = c(0.01, 0.35),  
         legend.justification = c(0, 1),
         legend.title = element_blank()
   )
@@ -660,13 +655,14 @@ p_inset <- ggboxplot(df_unique_choices_subject,
                      x = "group", 
                      y = "m_prop_unique",
                      color = "group", palette = groupcolors, fill = "group", alpha = 0.2, size=0.2,
-                     add = "jitter", jitter.size = 0.0, shape = "group", title = "Proportion exploration choices") +
-  scale_y_continuous("Unique choices", 
-                     breaks = c(0, 0.5, 1),  
+                     add = "jitter", jitter.size = 0.0, shape = "group", title = "   Total exploration choices") +
+  scale_y_continuous("", , #"Exploration choices", 
+                     breaks = c(0, 0.5, 1), 
+                     # limits = c(0,1),
                      labels = percent_format(accuracy = 1)) +
   coord_cartesian(ylim=c(0,1.25)) +
   xlab("") +
-  ggtitle("") +
+  # ggtitle("") +
   # stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-")  ),
   #                    paired = FALSE, 
   #                    method = "t.test", 
@@ -676,16 +672,16 @@ p_inset <- ggboxplot(df_unique_choices_subject,
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=12),
         legend.position = "none",
-        axis.title.y = element_text(size=10),
-        axis.text.y = element_text(size=8),
+        axis.title.y = element_text(size=8),
+        axis.text.y = element_text(size=7),
         plot.margin = margin(0, 0, 0, 0),
-        plot.title = element_text(size = 0, hjust = 0.5, margin = margin(b = 0)), 
+        plot.title = element_text(size = 9, margin = margin(b = -10)), 
   )
 
 # Combine plots
 ggdraw() +
   draw_plot(p_main) +
-  draw_plot(p_inset, x = 0.08, y = 0.52, width = 0.3, height = 0.4)
+  draw_plot(p_inset, x = 0.07, y = 0.56, width = 0.3, height = 0.35)
 
 ggsave("plots/explore_exploit_choices.png", dpi=300, width = 9, height = 5)
 
@@ -994,22 +990,24 @@ Results of a Bayesian hierarchical regression with random intercepts and random 
 # brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (previous_reward + group | id), 
 
 # random intercept                                     
-# brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (1|id), 
-#                                      data=subset(dat, trial > 0 & round %in% 2:9 ), 
-#                                      cores=4,  
-#                                      seed = 0815,
-#                                      iter = 5000,
-#                                      warmup=1000,
-#                                      control = list(adapt_delta = 0.99, max_treedepth = 15)),
-#                                  #prior = prior(normal(0,10), class = "b")), 
-#                                  modelName = 'brm_distance_reward')
-# #tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.") 
+brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (1|id),
+                                     data=subset(dat, trial > 0 & round %in% 2:9 ),
+                                     cores=1,
+                                     seed = 0815,
+                                     iter = 5000,
+                                     warmup=1000,
+                                     control = list(adapt_delta = 0.99, max_treedepth = 15)),
+                                 #prior = prior(normal(0,10), class = "b")),
+                                 modelName = 'brm_distance_reward')
+tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.") 
 #bayes_R2(brm_distance_reward) 
 
 ```
 
 
 ```{r}
+#| label: fig-brm_distance_reward
+#| tbl-cap: "Bayesian hierarchical regression analysis with search distance as function of previous reward."
 
 # Compute marginal effects for distance as a function of previous_reward across groups
 # marginal_effects_data <- conditional_effects(brm_distance_reward, effects = "previous_reward:group") + theme_classic()
@@ -1251,7 +1249,7 @@ A Bayesian regression with  with prediction error as dependent variable, and con
 ```{r}
 brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group + (1|id), 
                                                      data=dat_bonus, 
-                                                     cores=4,  
+                                                     cores=1,  
                                                      control = list(adapt_delta = 0.99),
                                                      seed = 0815), 
                                                  modelName = 'brm_bonus_confidence_error_by_group')
@@ -1395,7 +1393,7 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 ```
 
 ```{r}
-#| label: fig-bonusround-chosen-reward
+#| label: fig-bonusround-chosen-confidence
 #| fig-cap: "Confidence in reward prediction  of chosen vs. not chosen options in bonus round."
 #| fig-width: 7
 #| fig-height: 5
