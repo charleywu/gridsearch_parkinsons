@@ -48,7 +48,7 @@ knitr::opts_chunk$set(prefer_html = TRUE)
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2", "parameters")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2", "parameters", "bridgesampling")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -79,8 +79,9 @@ jit_height  <- 0.01
 jit_width   <- 0.05
 jit_alpha   <- 0.6
 
-# colors for age groups
-groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
+# colors 
+groupcolors    <- c("#1b9e77", "#d95f02", "#7570b3")
+choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 
 ```
 
@@ -126,6 +127,8 @@ To better understand the mechanisms underlying these behavioral differences, we 
 
 A central distinction between different forms of exploration behavior is  that _directed exploration_ reflects the drive for knowledge about novel options, whereas _undirected exploration_ refers to random variability in the choice process [@sadeghiyeh2020temporal; @Meder2021_ExplorationChildren; @Schulz:2019kwg; @giron2023developmental;@Wu_2018grid].
 
+[TO BE CONTINUED]
+
 # Experiment
 We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
 
@@ -143,63 +146,44 @@ At the start of each round, one tile was randomly revealed, and participants seq
 ## Sample
 We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for treatment [@abbott2010levodopa; @tambasco2018levodopa]. L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine. Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. 
 
-PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (_n_=), patients scheduled L-Dopa was administered at least 30 minutes before the start of the experiment to allow the drug sufficient time to take effect during the task. In the PD- group (_n_=), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose. 
+PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`), patients scheduled L-Dopa was administered at least 30 minutes before the start of the experiment to allow the drug sufficient time to take effect during the task. In the PD- group (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose. 
 
-Patients with polyneuropathies (PNP) served as control group. The PNP group (_n_=) consisted of individuals with polyneuropathies, which is associated with physical symptoms similar to the motor impairments seen in Parkinson’s disease. However, since polyneuropathy primarily affects peripheral nerves it is typically not associated with cognitive impairments, enabling a comparison in terms of physical symptomatology and the resulting burden of suffering.
+Patients with polyneuropathies (PNP) served as control group. The PNP group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`) consisted of individuals with polyneuropathies, which is associated with physical symptoms similar to the motor impairments seen in Parkinson’s disease. However, since polyneuropathy primarily affects peripheral nerves it is typically not associated with cognitive impairments, enabling a comparison in terms of physical symptomatology and the resulting burden of suffering.
 
 Possible participants with Parkinson’s disease were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale, which ranges from 1 to 5, assesses disease severity and motor impairments, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment.
 
-## Questionnaires
+## Clinical assessment
 ### Beck's depression inventory II (BDI-II)
-All participants answered the German version of the Beck Depression Inventory II, a self-report inventory consisting of 21 items measuring the severity of depression [@beck1996beck; @hautzinger2006beck]. Each item is scored from 0 to 3, with higher values representing more severe symptoms, such that the total score ranges between 0 and 63. A score of 0-11 is considered normal, 12-19 points indicate mild depressive symptoms, while values of 20 or higher suggest moderate to severe depression. 
+All participants answered the German version of the Beck Depression Inventory II, a self-report inventory consisting of 21 items measuring the severity of depression [@beck1996beck; @hautzinger2006beck]. Each item is scored from 0 to 3, with higher values representing more severe symptoms, such that the total score ranges between 0 and 63.
 
 <!--
-::: callout-note
-TO DO: check BDI scoring
 Wikipedia: Die Nationale Versorgungsleitlinie Unipolare Depression[3] listet im Anhang 1 S.217 ("Schwellenwerte bei psychometrischen Testverfahren") folgende Grenzwerte für das BDI-II auf: https://www.leitlinien.de/themen/depression https://doi.org/10.6101/AZQ%2F000496 
 
 - 0–13: keine Depression bzw. klinisch unauffällig oder remittiert
 - 14–19: leichtes depressives Syndrom
 - 20–28: mittelgradiges depressives Syndrom
 - ≥ 29: schweres depressives Syndrom
-:::
 -->
 
 ### Mini-Mental State Examination (MMSE)
-The Mini-Mental State Examination (MMSE) is a clinical test used assess cognitive function and impairment, frequently used in in patients with dementia [@folstein1975mini]. The test comprises 30 questions pertaining to different domains, including as memory (e.g., recalling three objects), temporal and spatial orientation (e.g., date and location), arithmetic ability, and various others. Each correct answer receives one point, up to a maximum score of 30 points. In this study, an MMSE score between 27 and 30 points was defined as a criterion to establish a clear cutoff for excluding the presence of dementia or significant cognitive impairment, but none of the patients received such high scores.
+The Mini-Mental State Examination (MMSE) assesses basic cognitive function and impairment, frequently used in in patients with dementia [@folstein1975mini]. The test comprises 30 questions pertaining to different domains, including memory (e.g., recalling three objects), temporal and spatial orientation (e.g., date and location), and arithmetic ability. Each correct answer receives one point, up to a maximum score of 30 points. 
 
 ### Hoehn-Yahr scale for severity of Parkinson
-The Hoehn-Yahr scale assesses disease severity and motor impairments [@hoehn1967parkinsonism]. Participants can receive a score between one and five, with higher scores indicating more severe problems. We limited our recruitment to patients with scores ranging from to 1 to 3. 
+The Hoehn-Yahr scale assesses disease severity and motor impairments in Parkinson patients, such as postural instability and ability to walk [@hoehn1967parkinsonism]. Participants can receive a score between one and five, with higher scores indicating more severe problems. We limited our recruitment to patients with scores ranging from to 1 to 3, based on the values in their patient records.
 
 # Behavioral data
-All behavioral data are stored in *data_gridsearch_parkinson.csv*.
-```{r}
-#| label: tbl-sample
-#| fig-cap: "Overview of data."
-
-# show example data
-head(dat %>%
-  group_by(group) %>%
-  slice_head(n=5)  %>% 
-  ungroup()) %>%
-  kable("html", caption = "Example behavioral data.") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
-  scroll_box(width = "100%", height = "300px")
-
-```
-
-The data frame *dat* with the raw data contains the following variables:
+All behavioral data are stored in *data_gridsearch_parkinson.csv*, which contains the following variables (@tbl-dat):
 
 - *id*: participant id
 - *age* is participant age in years
 - *gender*: (m)ale, (f)emale, (d)iverse
 - *x* and *y* are the sampled coordinates on the grid
 - *chosen*: are the *x* and *y* coordinates of the chosen tile
-- *z* is the reward obtained from the chosen tile. Re-clicked tiles could show small variations in the observed color (i.e., underlying reward) due to normally distributednoise,$\epsilon∼N(0,1)$.
-- *z_scaled* is the observed outcome (reward), scaled in each round to a randomly drawn maximum value in the range of 70% to 90% of the darkest reward value
-- *trial* is the trial number (0-25), with 0 corresponding to the initially revealed random tile.
+- *z* is the reward obtained from the chosen tile, 0-50. Re-clicked tiles could show small variations in the observed color (i.e., underlying reward) due to normally distributed noise,$\epsilon∼N(0,1)$.
+- *z_scaled* is the observed outcome (reward), scaled in each round to a randomly drawn maximum value in the range of 70% to 90% of the highest reward value
+- *trial* is the trial number (0-25), with 0 corresponding to the initially revealed random tile, i.e. trial 1 is the first choice
 - *round* is the round number (1 through 10), with 1=practice round (not analyzed) and 10=bonus round (analyzed only for bonus round judgments)
-- *distance* is the Manhattan distance between consecutive clicks. *NA* for trial 0, i.e., initially revealed random tile.
+- *distance* is the Manhattan distance between consecutive clicks. *NA* for trial 0, the initially revealed random tile
 - *type_choice* categorizes consecutive clicks as "repeat" (clicking the same tile as in the previous round), "near" (clicking a directly neighboring tile, i.e. distance=1), and "far" (clicking a tile with distance > 1). *NA* for trial 0, i.e., the initially revealed random tile.
 - *previous_reward* is the reward *z* obtained on the previous step. *NA* for trial 0, i.e., the initially revealed random tile.
 - *last_ldopa*: time of the last L-Dopa dose (HH:MM)
@@ -207,9 +191,25 @@ The data frame *dat* with the raw data contains the following variables:
 - *time_exp*: time of the experiment (HH:MM)
 - *time_since_ldopa*: time since last L-Dopa (in minutes)
 
+```{r}
+#| label: tbl-dat
+#| fig-cap: "Example data."
+
+# show example data
+head(dat %>%
+       group_by(group) %>%
+       slice_head(n=25)  %>% 
+       ungroup()) %>%
+  kable("html", caption = "Example behavioral data.") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
+  scroll_box(width = "100%", height = "300px")
+
+```
+
+
 ## Sample characteristics
 
-We collected data from `r dat_sample %>% filter(group != "PNP") %>% nrow()` adult participants with Parkinson disease, who were tested either shortly after taking their regular L-Dopa dose (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning.
+@tbl-demographics shows the demographics of our sample, along with their BDI, Hoehn-Yahr, and MMSE values. In the PD+ group, the mean time since their last L-Dopa dose was `r dat_sample %>% filter(group == "PD+") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa) %>% round(1)` min. Time since the last L-Dopa dose in the PD- group was `r dat_sample %>% filter(group == "PD-") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa)%>% round(1) `min. 
 
 ```{r}
 #| label: tbl-demographics
@@ -231,10 +231,9 @@ dat_sample %>%
 
 ```
 
-We analyzed the behavioral data in terms of performance and exploration behavior. These analyses exclude the tutorial and bonus rounds, leaving a total of 200 search decisions (8 rounds $\times$ 25 trials) for each participant. We then report the results of the bonus round, where we analyze participants' reward predictions and confidence judgments. We report both frequentist statistics and Bayes factors ($BF$) to quantify the relative evidence of the data in favor of the alternative hypothesis ($H_A$) over the null hypothesis ($H_0$); see Appendix for details and references. Various helper functions are implemented in *statisticalTests.R*. Regression analyses were performed in a Bayesian framework with *Stan*, accessed via R-package *brms*, complemented by frequentist hierachical regression analyses (via package *lmer*). 
+We analyzed the behavioral data in terms of performance and exploration behavior. These analyses exclude the tutorial and bonus rounds, leaving a total of 200 search decisions (8 rounds $\times$ 25 trials) for each participant. We then report the results of the bonus round, where we analyze participants' reward predictions and confidence judgments. We report both frequentist statistics and Bayes factors ($BF$) to quantify the relative evidence of the data in favor of the alternative hypothesis ($H_A$) over the null hypothesis ($H_0$); see Appendix for details and references. Various helper functions are implemented in *statisticalTests.R*. Regression analyses were performed in a Bayesian framework with *Stan*, accessed via R-package *brms*, complemented by frequentist hierarchical regression analyses (via package *lmer*). 
 
 ## Performance: Rewards by round
-First, let's plot the obtained rewards as function of group and round.
 
 ```{r}
 #| label: fig-performance-rounds
@@ -251,7 +250,6 @@ df_mean_reward_subject_by_round <- dat %>%
             sum_reward = sum(z),
             mean_reward = mean(z), 
             sd_reward = sd(z)) 
-
 
 df_summary_by_round <- df_mean_reward_subject_by_round %>%
   group_by(round, group) %>%
@@ -281,7 +279,7 @@ ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, sha
 ggsave("plots/performance_rounds.png", width = 6, height = 3)
 ```
 
-ANOVA results with _round_ as within- and _group_ as between-subjects factor show a difference between groups, with PNP patients achieving the greatest rewards, followed by PD+ and PD- patients, but no change across rounds (and no interaction). A Bayesian regression analysis yield the same results. Therefore, for the subsequent analyses we collapse across rounds.
+
 ```{r}
 #| label: fig-brms-performance-rounds
 #| fig-cap: "Bayesian regression analysis for performance over rounds (excluding tutorial and bonus round)."
@@ -301,7 +299,6 @@ kable(as.data.frame(aov_rounds$anova_table),
   kable_styling("striped", full_width = FALSE)
 
 
-
 brm_rounds <- run_model(brm(
   mean_reward ~ round * group + (1 | id),   # Random intercept for subject
   data = df_mean_reward_subject_by_round,   
@@ -310,14 +307,15 @@ brm_rounds <- run_model(brm(
   warmup = 1000,                            
   chains = 4,                               
   cores = 4,                                
-  seed = 0511),
+  seed = 0511,
+  save_pars = save_pars(all = TRUE)),
   modelName = 'brm_reward_rounds')
 
 # Extract fitted values and add to data df
 fitted_values <- fitted(brm_rounds, re_formula = NA)
 df_mean_reward_subject_by_round$fitted_mean_reward <- fitted_values[, "Estimate"]
 
-ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
+p <- ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
   geom_point(data = df_summary_by_round, aes(x = round, y = mean_of_means, shape = group), size = 3) +
   geom_line(aes(y = fitted_mean_reward), linewidth = 1) +  
   geom_jitter(aes(x = round, y = mean_reward), size = 1, alpha = 0.3, width = 0.2) +
@@ -330,8 +328,24 @@ ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = 
   theme(legend.title = element_blank())
 
 # tbl_regression(brm_rounds, exponentiate = F) 
+#tab_model(brm_rounds)
 
-tab_model(brm_rounds)
+# Reduced model for computing BF: no round term
+brm_rounds_reduced <- run_model(brm(
+  mean_reward ~ group + (1 | id),
+  data = df_mean_reward_subject_by_round,
+  family = gaussian(),
+  iter = 4000, 
+  warmup = 1000, 
+  chains = 4, 
+  cores = 4, 
+  seed = 0511,
+  save_pars = save_pars(all = TRUE)),
+modelName='brm_reward_rounds_reduced')
+
+# Compute Bayes Factor: Full vs. Reduced
+#bf_brm_rounds <- bayes_factor(brm_rounds, brm_rounds_reduced)
+
 
 # format_parameters(brm_rounds)
 # 
@@ -343,21 +357,16 @@ tab_model(brm_rounds)
 # 
 # params$Term <- gsub("groupPDP", "PD", params$Term)
 
-plot_model(brm_rounds, type = "est") +
-  theme_classic()
+# plot_model(brm_rounds, type = "est") +
+#   theme_classic()
 
 ```
 
+@fig-performance-rounds shows the obtained rewards by round, for each group. An ANOVA with _round_ as within- and _group_ as between-subjects factor showed a difference between groups, with PNP patients achieving the greatest rewards, followed by PD+ and PD- patients, but no change across rounds (and no interaction). A Bayesian regression analysis yielded comparable results, with the estimated effect of round on mean reward being very small (Estimate = `r round(fixef(brm_rounds)["round", "Estimate"], 2)`, 95% CI [`r round(fixef(brm_rounds)["round", "Q2.5"], 2)`, `r round(fixef(brm_rounds)["round", "Q97.5"], 2)`]) and the credible interval including zero. In the subsequent analyses, we therefore aggregate across rounds.
+
+
 ## Performance: Rewards by group
-
-The plot shows the overall performance of each group, where we compute for each subjects the mean reward across all trials. Each dot is one participants' mean reward across all rounds and trials.
-
 ```{r}
-#| label: fig-performance
-#| fig-cap: "Performance by group (excluding tutorial and bonus round)."
-#| fig-width: 9
-#| fig-height: 7
-
 df_mean_reward_subject <- dat %>% 
   filter(trial != 0 & round %in% 2:9) %>% # exclude first (randomly revealed) tile and practice round and bonus round
   group_by(id) %>% 
@@ -371,78 +380,52 @@ df_mean_reward_subject <- dat %>%
             hoehn_yahr = first(hoehn_yahr))
 
 # some summary stats for obtained mean rewards
-df_mean_reward_subject %>%
-  group_by(group) %>%
-  summarise(n = n(),
-            m_reward = mean(mean_reward),
-            md_reward = median(mean_reward),
-            var_reward = var(mean_reward),
-            sd_reward = sd(mean_reward),
-            se_reward = sd_reward / sqrt(n),
-            lower_ci_reward = m_reward - qt(1 - (0.05 / 2), n - 1) * se_reward,
-            upper_ci_reward = m_reward + qt(1 - (0.05 / 2), n - 1) * se_reward) %>%
-  
-  kable(., format = "html", escape = FALSE, digits = 2) %>%
-  kable_styling("striped", full_width = FALSE)
+# df_mean_reward_subject %>%
+#   group_by(group) %>%
+#   summarise(n = n(),
+#             m_reward = mean(mean_reward),
+#             md_reward = median(mean_reward),
+#             var_reward = var(mean_reward),
+#             sd_reward = sd(mean_reward),
+#             se_reward = sd_reward / sqrt(n),
+#             lower_ci_reward = m_reward - qt(1 - (0.05 / 2), n - 1) * se_reward,
+#             upper_ci_reward = m_reward + qt(1 - (0.05 / 2), n - 1) * se_reward) %>%
+#   
+#   kable(., format = "html", escape = FALSE, digits = 2) %>%
+#   kable_styling("striped", full_width = FALSE)
+```
 
 
+@fig-performance shows the overall performance of each group, where we compute for each subjects the mean reward across all trials. PNP participants achieved higher rewards than both Parkinson patients on medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`) and off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`). Notably, Parkinson patients on medication achieved substantially higher rewards than patients off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`), indicating as strong beneficial effect of L-Dopa on the ability to balance exploration and exploitation.  
 
-##########################################
+
+```{r}
+#| label: fig-performance
+#| fig-cap: "Obtained rewards by group. Each dot is one participants' mean reward across all rounds and trials."
+#| fig-width: 6
+#| fig-height: 5
+
 # Boxplots of rewards by group
-##########################################
-ggboxplot(df_mean_reward_subject, 
-          x = "group", 
-          y = "mean_reward",
-          color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", jitter.size = 0.5, shape = "group", title = "Performance") +
+ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA) +  
+  geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
   ylab("Mean reward") +
   xlab("") +
-  stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ), 
-                     paired = F, 
-                     method = "t.test", 
-                     # label = "p.format",
-                     aes(label = paste0("p = ", after_stat(p.format)))
-  ) +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+  ggtitle("Performance") +
   theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=12),
-        legend.title = element_blank()
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(color = "black", size = 12),
+    legend.position = 'none'
   )
 
 ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
-
-# ggplot(df_mean_reward_subject, aes(x=group, y=mean_reward, group = group, fill = group)) +
-#   #geom_hline(data=filter(df_random_performance, environment=="Rough"), linetype="dotted", aes(yintercept=z_learn_envs)) + 
-#   #geom_hline(data=filter(df_random_performance, environment=="Smooth"), linetype="dotted",aes(yintercept=z_learn_envs)) +
-#   geom_boxplot(outlier.shape = NA, width = w_box) +
-#   stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=1.8) +   
-#   geom_jitter(aes(x = as.numeric(group) +  0.1 + 0.15,  colour=group),  shape = 21, size = 1.3, height = jit_height, width = jit_width, alpha = jit_alpha, colour = "black") +
-#   scale_fill_manual(values=groupcolors) +
-#   #scale_color_viridis(discrete=TRUE, name='Group', direction=1) +
-#   #scale_fill_viridis(discrete=TRUE, name='Group', direction=1) +
-#   scale_y_continuous("Mean reward", limits = c(18, 42), breaks = seq(20,40,5)) +
-#   scale_x_discrete("") +
-#   ggtitle("Performance of groups") +
-#   theme_classic() +
-#   theme(#aspect.ratio = 1,
-#     plot.title = element_text(hjust = 0.5, size=10),
-#     legend.title = element_blank(),
-#     legend.position = 'none',
-#     legend.text =  element_text(colour="black"),
-#     strip.background = element_blank(),
-#     axis.text = element_text(colour = "black"),
-#     panel.grid.major = element_blank(),
-#     panel.grid.minor = element_blank())
-
-# ggsave("plots/performance_by_group.png", dpi=300, height = 3, width = 5 )
 ```
 
-All groups differed, with PNP achieving the greatest amount of reward, followed by PD+ and PD-.
 
-- PNP vs. PD+: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
-- PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
-- PD+ vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
 
 ```{r}
 
@@ -463,7 +446,7 @@ All groups differed, with PNP achieving the greatest amount of reward, followed 
 ```
 
 ## Performance: Learning curves
-Participants’ learning curves illustrate the average reward obtained in each trial across rounds. For both polyneuropathy patients (PNP) and Parkinson’s patients on medication (PD+), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, Parkinson’s patients off medication (PD-) showed no improvement across trials.
+Participants’ learning curves (@fig-learning-curves) show the average reward obtained in each trial across rounds. For both polyneuropathy patients (PNP) and Parkinson’s patients on medication (PD+), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, Parkinson’s patients off medication (PD-) showed no improvement across trials.
 
 TO DO: Add random reward as baseline
 ```{r echo=FALSE}
@@ -541,14 +524,14 @@ tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: P
 
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI and MMSE score (all patients)                              
 brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
-                                       data=subset(dat, trial > 0 & round %in% 2:9 ),
-                                       cores=1,
-                                       seed = 0815,
-                                       iter = 5000,
-                                       warmup=1000,
-                                       control = list(adapt_delta = 0.99, max_treedepth = 15)),
-                                   #prior = prior(normal(0,10), class = "b")),
-                                   modelName = 'brm_performance_BDI_MMSE')
+                                          data=subset(dat, trial > 0 & round %in% 2:9 ),
+                                          cores=1,
+                                          seed = 0815,
+                                          iter = 5000,
+                                          warmup=1000,
+                                          control = list(adapt_delta = 0.99, max_treedepth = 15)),
+                                      #prior = prior(normal(0,10), class = "b")),
+                                      modelName = 'brm_performance_BDI_MMSE')
 #tab_model(brm_performance_assessment, bpe="mean", title = "Hierarchical Bayesian regression: Performance as function of BDI and MMSE score.") 
 #bayes_R2(brm_performance_assessment) 
 #tab_model(lmer_performance_BDI_MMSE, brm_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
@@ -569,32 +552,23 @@ tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression resu
 
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)                          
 brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
-                                       data=subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"),
-                                       cores=1,
-                                       seed = 0815,
-                                       iter = 5000,
-                                       warmup=1000,
-                                       control = list(adapt_delta = 0.99)),
-                                   #prior = prior(normal(0,10), class = "b")),
-                                   modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
+                                                     data=subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"),
+                                                     cores=1,
+                                                     seed = 0815,
+                                                     iter = 5000,
+                                                     warmup=1000,
+                                                     control = list(adapt_delta = 0.99)),
+                                                 #prior = prior(normal(0,10), class = "b")),
+                                                 modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
 
 # tab_model(lmer_reward_PD_only_BDI_MMSE_HY, brm_performance_PD_only_BDI_MMSE_HYtitle = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
 
 ```
 
 ## Exploration vs. exploitation choices
-To investigate the temporal dynamics of exploration and exploitation, we determined for each trial whether the chosen tile was novel (an exploration decision) or had already been selected previously (an exploitation decision). The data reveal that the likelihood of exploiting a previously chosen option increased significantly over time for both PNP and PD+ patients, indicating a gradual shift in behavior from exploration to exploitation  as the round progressed. In contrast, PD- patients predominantly engaged in exploration throughout the round and showed only a weak tendency towards increased exploitation as the search horizon approached its end.
-
-As a global measure of exploration behavior, we calculated the proportion of exploration choices (unique tiles, out of 25) selected during each round. Higher proportions indicate a greater tendency to explore novel options, while lower proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task.
-
+To investigate the temporal dynamics of exploration and exploitation, we determined for each trial whether the chosen tile was novel (an exploration decision) or had already been selected previously (an exploitation decision). Intuitively, at the beginning of each round learners should predominantly engage in exploration to identify high-reward options, and gradually shift toward exploitative behavior as they approach the end of the round. 
 
 ```{r}
-#| label: fig-choices
-#| fig-cap: "Exploration and exploitation choices across all rounds. The inset shows the total proportion of exploration choices (unique tiles per round)."
-#| fig-width: 9
-#| fig-height: 5
-
-
 # proportion of unique choices per round per subject
 df_unique_choices_round <- 
   dat %>%
@@ -626,8 +600,24 @@ dat_repeat_prop <- dat %>%
   filter(trial > 0 & round %in% 2:9) %>% 
   group_by(id, group, trial) %>%
   summarize(
-    prop_repeat = mean(is_new == "repeat", na.rm = TRUE)  # Calculate proportion of "repeat" choices
+    prop_repeat = mean(is_new == "repeat", na.rm = TRUE)  # Calculate proportion of "repeat" (exploitation) choices
+    # prop_new = mean(is_new == "new", na.rm = TRUE)  # Calculate proportion of "new" (exporation) choices
   )
+```
+
+@fig-exploration-exploitation-choices shows that both PNP and PD+ patients increased the amount of exploitation over time, indicating a gradual shift from exploration to exploitation. The PNP group began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to the PD+ group, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD- patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. This pattern is also reflected in the overall proportion of exploitation decisions (@fig-exploration-exploitation-choices, inset). PNP patients made more exploitation decisions than PD+ patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PNP")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, var.equal = TRUE)`), who exploited more than PD- patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD-")$m_prop_repeat, var.equal = TRUE)`). Notably, PD- patients almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns show how suboptimal balance of exploration and exploitation affects obtained rewards.   
+
+<!--
+As a global measure we calculated the total proportion of exploitation choices (unique tiles, out of 25) across all rounds. Lower proportions indicate a greater tendency to explore novel options, while higher proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options, compared to PNP patients. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns underlie the differences in performance, showing how suboptimal balance of exploration and exploitation affects obtained rewards. 
+-->
+
+```{r}
+#| label: fig-exploration-exploitation-choices
+#| fig-cap: "Balancing exploration and exploitation. The main plot shows the mean proportion of exploitation decisions per trial, aggregated over rounds. The inset shows the total proportion of exploitation choices across all trials and rounds."
+#| fig-width: 8
+#| fig-height: 4.5
+
+
 
 # Main plot
 p_main <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, shape = group, color = group)) +
@@ -639,7 +629,7 @@ p_main <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, 
   scale_y_continuous(labels = percent_format(accuracy = 1)) + 
   labs(
     x = "Trial",
-    y = "Proportion of exploitation choices (%)",
+    y = "Exploitation choices (Mean proportion ±95% CI)",
     title = "Exploration and exploitation over time"
   ) +
   theme_classic() +
@@ -651,39 +641,65 @@ p_main <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, 
   )
 
 # Inset plot
-p_inset <- ggboxplot(df_unique_choices_subject, 
-                     x = "group", 
-                     y = "m_prop_unique",
-                     color = "group", palette = groupcolors, fill = "group", alpha = 0.2, size=0.2,
-                     add = "jitter", jitter.size = 0.0, shape = "group", title = "   Total exploration choices") +
-  scale_y_continuous("", , #"Exploration choices", 
+p_inset <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
+  geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA) +  
+  geom_jitter(width = 0.15, size = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  scale_y_continuous("", 
                      breaks = c(0, 0.5, 1), 
-                     # limits = c(0,1),
                      labels = percent_format(accuracy = 1)) +
-  coord_cartesian(ylim=c(0,1.25)) +
+  coord_cartesian(ylim = c(0, 1.25)) +
   xlab("") +
-  # ggtitle("") +
-  # stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-")  ),
-  #                    paired = FALSE, 
-  #                    method = "t.test", 
-  #                    aes(label = paste0("p = ", after_stat(p.format)))  ) +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+  ggtitle("   Total exploitation choices") +
   theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=12),
-        legend.position = "none",
-        axis.title.y = element_text(size=8),
-        axis.text.y = element_text(size=7),
-        plot.margin = margin(0, 0, 0, 0),
-        plot.title = element_text(size = 9, margin = margin(b = -10)), 
+  theme(
+    strip.background = element_blank(),  
+    strip.text = element_text(color = "black", size = 12),
+    legend.position = "none",
+    axis.title.y = element_text(size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.margin = margin(0, 0, 0, 0),
+    plot.title = element_text(size = 9, margin = margin(b = -10))
   )
+
 
 # Combine plots
 ggdraw() +
   draw_plot(p_main) +
-  draw_plot(p_inset, x = 0.07, y = 0.56, width = 0.3, height = 0.35)
+  draw_plot(p_inset, x = 0.075, y = 0.55, width = 0.3, height = 0.35)
 
-ggsave("plots/explore_exploit_choices.png", dpi=300, width = 9, height = 5)
+ggsave("plots/explore_exploit_choices.png", dpi=300, width = 8, height = 4.5)
+
+# ggboxplot(df_unique_choices_subject, 
+#                    x = "group", 
+#                    # y = "m_prop_unique",
+#                    y = "m_prop_repeat",
+#                    color = "group", palette = groupcolors, fill = "group", alpha = 0.2, size=0.2,
+#                    add = "jitter", jitter.size = 0.0, shape = "group", title = "   Total exploitation choices") +
+# scale_y_continuous("", , #"Exploration choices", 
+#                    breaks = c(0, 0.5, 1), 
+#                    # limits = c(0,1),
+#                    labels = percent_format(accuracy = 1)) +
+# coord_cartesian(ylim=c(0,1.25)) +
+# xlab("") +
+# ggtitle("") +
+# stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-")  ),
+#                    paired = FALSE, 
+#                    method = "t.test", 
+#                    aes(label = paste0("p = ", after_stat(p.format)))  ) +
+# stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+# theme_classic() +
+# theme(strip.background = element_blank(),  
+#       strip.text = element_text(color = "black", size=12),
+#       legend.position = "none",
+#       axis.title.y = element_text(size=8),
+#       axis.text.y = element_text(size=7),
+#       plot.margin = margin(0, 0, 0, 0),
+#       plot.title = element_text(size = 9, margin = margin(b = -10)), 
+# )
+
 
 ```
 
@@ -691,13 +707,13 @@ ggsave("plots/explore_exploit_choices.png", dpi=300, width = 9, height = 5)
 ## Spatial trajectories
 We next consider participant's spatial search trajectories (distance among consecutive clicks). Distance is measured as Manhattan distance between consecutive clicks, such that repeat clicks have distance 0, clicking directly neighbouring tiles has distance 1, and clicks further away have distances >1.
 
-The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach (Wu et al., 2018). On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
+The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_et_al-generalization2018]. On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
 
 ```{r, echo=F}
 #| label: fig-distances
 #| fig-cap: "Distance among consecutive clicks."
-#| fig-width: 3
-#| fig-height: 5
+#| fig-width: 5
+#| fig-height: 3
 
 #  distance by participant
 df_mean_distance_subject <- dat %>%
@@ -726,7 +742,7 @@ df_mean_distance <- dat %>%
 
 ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
   facet_wrap(~group) +
-  geom_histogram(aes(y=..density.., fill = group), binwidth = 1) +
+  geom_histogram(aes(y = after_stat(density), fill = group), binwidth = 1) +
   annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf) +
   scale_y_continuous("Proportion", limits = c(0,0.7), breaks = seq(0,0.6,0.2), expand = c(0, 0), labels = scales::percent_format(accuracy=1)) +
   scale_fill_manual(values=groupcolors) +
@@ -751,8 +767,8 @@ ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
 ggsave("plots/distance.png", dpi=300,height=3, width=5)
 ```
 
-PNP patients had lower search distances than the PD+ group: `r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)` and lower distances than the PD- group, `r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`
-There was no difference between Parkinson patient with (PD+) and without (PD-) medication, `r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
+PNP patients had lower search distances than the PD+ group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`) and lower distances than the PD- group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`).
+There was no difference between Parkinson patient with (PD+) and without (PD-) medication (`r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`).
 
 ```{r echo=F}
 
@@ -850,11 +866,11 @@ ggplot(df_types_choices_trial_subject, aes(x = trial, y = prop, color = type_cho
   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "point", size = 2, position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
-  scale_fill_manual(values = groupcolors) + 
-  scale_color_manual(values = groupcolors)+ 
+  scale_fill_manual(values = choice3_colors) + 
+  scale_color_manual(values = choice3_colors)+ 
   labs(
     x = "Trial",
-    y = "Mean (±95% CI)",
+    y = "Mean proportion (±95% CI)",
     title = "Types of choices over time",
     color = "Type choice"
   ) +
@@ -964,14 +980,6 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
       fill = NA, 
       size = 2
     )))
-
-guides(color = guide_legend(
-  override.aes = list(
-    fill = NA, 
-    size = 2
-  ), # Change size of square
-  reverse = TRUE
-)) # Reverse order of legend
 
 p_lmer_distance_reward$layers[[2]]$show.legend <- FALSE
 p_lmer_distance_reward
