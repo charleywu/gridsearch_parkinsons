@@ -140,7 +140,8 @@ dataFile <- "data/all_data_gridsearch_parkinson.json"
 myjson    <-fromJSON(dataFile)
 
 # get environments
-smoothEnvironments  <- lapply(fromJSON("data/kernelSmooth.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
+# smoothEnvironments  <- lapply(fromJSON("data/kernelSmooth.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
+roughEnvironments  <- lapply(fromJSON("data/kernelRough.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
 
 
 
@@ -155,12 +156,12 @@ for (i in 1:nrow(myjson)){
   # get subject data
   df_subject <- data.frame(id = as.numeric(rep(subd$participantId, 5)),
                            bonus_env_number = unlist(subd$envOrder)[length(unlist(subd$envOrder))]) %>% 
-    mutate(bonus_environment = "Smooth")
+    mutate(bonus_environment = "Rough")
   
   #get bonus round environment of current subject
   subject_bonus_env_number <- df_subject$bonus_env_number[1]
   
-  bonus_environment <- data.frame(eval(parse(text=paste0("smoothEnvironments$`", subject_bonus_env_number, "`"))))
+  bonus_environment <- data.frame(eval(parse(text=paste0("roughEnvironments$`", subject_bonus_env_number, "`"))))
   
   #bonus_environment <- data.frame(Reduce(rbind, bonus_environment))
   # somehow the column labels get screwed up when extracting the matrix from the list
@@ -201,7 +202,7 @@ write.table(df_bonus_round, file="data/data_gridsearch_Parkinson_bonusround.csv"
 #############################################################################################################################
 # Model Results
 #############################################################################################################################
-# imports and preprocesses model results from adolescent data
+# imports and preprocesses model results 
 importModelResults <- function(dataFolder, kernels, acqFuncs){
   #Participant data
   #data<-dataImport()
