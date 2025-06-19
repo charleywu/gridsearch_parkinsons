@@ -316,7 +316,7 @@ brm_rounds_reduced <- run_model(brm(
   save_pars = save_pars(all = TRUE)),
 modelName='brm_reward_rounds_reduced')
 
-# Compute Bayes Factor: Full vs. Reduced
+# Compute Bayes Factor: Full vs. Reduced (without round term)
 #bf_brm_rounds <- bayes_factor(brm_rounds, brm_rounds_reduced)
 
 
