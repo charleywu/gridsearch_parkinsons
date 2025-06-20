@@ -5,11 +5,11 @@
 #SBATCH --mem 400mb
 #SBATCH --cpus-per-task 1
 ##SBATCH --workdir .
-#SBATCH --array=1-372 ##Update with new data
+#SBATCH --array=1-588 ##Update with new data
 #SBATCH -o /home/mpib/cwu/gridsearch_parkinsons/logs/%A_%a.out
 
 
-module load R
+module load R/4.4.0
 
 Rscript --vanilla crossvalidation.R $SLURM_ARRAY_TASK_ID ## MPIB cluster
 

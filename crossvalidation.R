@@ -28,7 +28,7 @@ nParticipants = length(unique(data$id))
 ##############################################################################################################
 
 #IMPORTANT: update batch name
-batchName = 'batch1' #saves output csv files in 'modelResults/batchName/*.csv'
+batchName = 'batch2' #saves output csv files in 'modelResults/batchName/*.csv'
 
 #create list of all kernel functions
 kernellist<-list(rbf, bayesianMeanTracker)
@@ -38,10 +38,10 @@ kernellist<-list(rbf, bayesianMeanTracker)
 kernelnames<-c("RBF", "BMT")
 
 #list of all acquisition functions
-acqlist<-list(greedyMean, greedyVar, ucb)
+acqlist<-list(greedyMean, ucb, epsilonGreedy)
 
 #names of all acquisition functions
-acqnames<-c("GM", "GV", 'UCB')
+acqnames<-c("GM", 'UCB', 'epsilonGreedy')
 
 #all combinations of kernels and acquisition functions will be needed
 combs<-expand.grid(1:length(kernellist), 1:length(acqlist))
@@ -240,7 +240,6 @@ for (r in roundList){ #loop through rounds in roundList
 name<-paste0("modelResults/", batchName, "/",kernelnames[model[[1]]], acqnames[model[[2]]], uid, ".csv")
 write.csv(output,name)
 
-log(1/64)*25*7
 ##############################################################################################################
 #THE END
 ##############################################################################################################
