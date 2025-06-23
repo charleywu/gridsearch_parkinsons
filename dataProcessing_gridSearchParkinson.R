@@ -206,10 +206,12 @@ write.table(df_bonus_round, file="data/data_gridsearch_Parkinson_bonusround.csv"
 importModelResults <- function(dataFolder, kernels, acqFuncs){
   # ("RBF", "BMT") \times (greedyMean, ucb, epsilonGreedy)
   # dataFolder <- "modelResults/batch2/"
-  # kernels <- c("RBF", "BMT")
-  # acqFuncs <- c("greedyMean", "ucb", "epsilonGreedy")
+  #kernels <- c("RBF", "BMT") # RBF = Radial Basis Function kernel, BMT= Bayesian Mean Tracker
+  #acqFuncs <- c("GM", "UCB", "epsilonGreedy") # UCB = Upper Confidence Bound, GM=greedyMean, EG = epsilonGreedy
   # modelFit <- importModelResults(dataFolder, kernels, acqFuncs)
-  # write_csv("data/modelFit.csv")
+  # write.csv(modelFit[[1]], "modelResults/modelFit.csv", row.names = FALSE)
+  # write.csv(modelFit[[2]], "modelResults/params.csv", row.names = FALSE)
+  
   
   #Participant data
   #data<-dataImport()

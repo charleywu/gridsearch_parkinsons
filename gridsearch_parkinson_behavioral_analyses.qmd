@@ -359,7 +359,10 @@ ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, sha
   scale_y_continuous("Mean reward ± SE") +
   scale_x_continuous("Round", breaks = 2:9) +
   theme_classic() +
-  theme(legend.title = element_blank())
+  theme(legend.title = element_blank(),
+      plot.title = element_text(size=16),
+      axis.text = element_text(size=14),
+      axis.title = element_text(size=14))
 
 ggsave("plots/performance_rounds.png", width = 6, height = 3)
 ```
@@ -417,7 +420,11 @@ ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fi
   theme(
     strip.background = element_blank(),
     strip.text = element_text(color = "black", size = 12),
-    legend.position = 'none'
+    legend.position = 'none',
+    legend.title = element_blank(),
+      plot.title = element_text(size=16),
+      axis.text = element_text(size=14),
+      axis.title = element_text(size=14)
   )
 
 ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
@@ -497,13 +504,14 @@ ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group
     legend.key.height = unit(0.3,"cm"),
     legend.text = element_text(colour="black", size=12),
     strip.background = element_blank(),
-    axis.text = element_text(colour = "black"),
-    axis.text.y = element_text(colour = "black"),
+    axis.text = element_text(colour = "black", size = 14),
+    axis.title = element_text(colour = "black", size = 14),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()
   )
 
-ggsave("plots/learning_curves.png", dpi=300,height=5,width=6)
+
+ggsave("plots/learning_curves.png", dpi=300,height=5,width=8)
 
 ```
 
@@ -710,7 +718,7 @@ ggsave("plots/explore_exploit_choices.png", dpi=300, width = 8, height = 4.5)
 
 We next consider participant's spatial search trajectories (distance among consecutive clicks). Distance is measured as Manhattan distance between consecutive clicks, such that repeat clicks have distance 0, clicking directly neighbouring tiles has distance 1, and clicks further away have distances \>1.
 
-The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_et_al-generalization2018]. On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
+The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_2018grid]. On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
 
 ```{r, echo=F}
 #| label: fig-distances
@@ -980,7 +988,9 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
         legend.justification = c(1, 1),
         legend.title = element_blank(),
         legend.box.background =  element_blank(),
-        legend.key = element_rect(fill = "white")) +
+        legend.key = element_rect(fill = "white"),
+         axis.text = element_text(colour = "black", size = 14),
+    axis.title = element_text(colour = "black", size = 14),) +
   guides(color = guide_legend(
     override.aes = list(
       fill = NA, 
@@ -990,7 +1000,7 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
 # p_lmer_distance_reward$layers[[2]]$show.legend <- FALSE
 # p_lmer_distance_reward
 
-ggsave("plots/regression_distance_reward_lmer.png", p_lmer_distance_reward, dpi=300, height=3, width=4)
+ggsave("plots/regression_distance_reward_lmer.png", p_lmer_distance_reward, dpi=300, height=5, width=7)
 ```
 
 ```{r}
@@ -1057,9 +1067,12 @@ ggplot() +
   theme(legend.position = "inside", 
         legend.position.inside = c(0.85, 0.9),   
         legend.justification = c(1, 1),
-        legend.title = element_blank())          
+        legend.title = element_blank(),
+        axis.text = element_text(colour = "black", size = 14),
+        axis.title = element_text(colour = "black", size = 14)
+        )          
 
-ggsave("plots/regression_distance_reward_brms.png", dpi=300, height=3, width=4)
+ggsave("plots/regression_distance_reward_brms.png", dpi=300, height=5, width=7)
 ```
 
 ## Bonus round judgments
