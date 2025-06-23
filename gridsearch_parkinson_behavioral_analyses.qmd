@@ -710,7 +710,7 @@ ggsave("plots/explore_exploit_choices.png", dpi=300, width = 8, height = 4.5)
 
 We next consider participant's spatial search trajectories (distance among consecutive clicks). Distance is measured as Manhattan distance between consecutive clicks, such that repeat clicks have distance 0, clicking directly neighbouring tiles has distance 1, and clicks further away have distances \>1.
 
-The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_et_al-generalization2018]. On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
+The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_2018grid]. On average, PNP patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than PNP but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
 
 ```{r, echo=F}
 #| label: fig-distances
