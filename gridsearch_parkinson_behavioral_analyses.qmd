@@ -770,7 +770,7 @@ ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
 ggsave("plots/distance.png", dpi=300,height=3, width=5)
 ```
 
-PNP patients had lower search distances than the PD+ group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`) and lower distances than the PD- group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`). There was no difference between Parkinson patient with (PD+) and without (PD-) medication (`r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`).
+PNP patients had lower search distances than the PD+ group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`) and lower distances than the PD- group (`r ttestPretty(subset(df_mean_distance_subject, group == "PNP")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`). There was no difference between Parkinson patient with (PD+) and without (PD-) medication (`r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`).
 
 ```{r echo=F}
 

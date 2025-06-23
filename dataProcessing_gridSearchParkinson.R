@@ -204,6 +204,13 @@ write.table(df_bonus_round, file="data/data_gridsearch_Parkinson_bonusround.csv"
 #############################################################################################################################
 # imports and preprocesses model results 
 importModelResults <- function(dataFolder, kernels, acqFuncs){
+  # ("RBF", "BMT") \times (greedyMean, ucb, epsilonGreedy)
+  # dataFolder <- "modelResults/batch2/"
+  # kernels <- c("RBF", "BMT")
+  # acqFuncs <- c("greedyMean", "ucb", "epsilonGreedy")
+  # modelFit <- importModelResults(dataFolder, kernels, acqFuncs)
+  # write_csv("data/modelFit.csv")
+  
   #Participant data
   #data<-dataImport()
   # import preprocessed data

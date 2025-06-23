@@ -93,7 +93,7 @@ groupcolors <- c("#1b9e77", "#d95f02", "#7570b3")
 
 ```{r}
 # read data
-dat       <- read_delim("data/data_gridsearch_parkinson.csv", 
+dat_gridsearch       <- read_delim("data/data_gridsearch_parkinson.csv", 
                         delim = ",",
                         col_types = cols(
                           #id = readr::col_factor(),
@@ -104,19 +104,35 @@ dat       <- read_delim("data/data_gridsearch_parkinson.csv",
                           hoehn_yahr = col_double()
                         ))
 
+########################################################
+# get subject data
+########################################################
+dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE) %>% 
+  mutate(gender = as.factor(gender),
+         group  = factor(group, levels = c("PNP", "PD+", "PD-"))) %>% 
+  mutate(last_ldopa = if_else(group != "PNP", as_hms(last_ldopa), as_hms(NA)),
+         next_ldopa = if_else(group != "PNP", as_hms(next_ldopa), as_hms(NA)),
+         time_exp = if_else(group != "PNP", as_hms(time_exp), as_hms(NA))) %>% 
+  mutate(time_since_ldopa = as.numeric(time_exp - last_ldopa, unit = "mins"))
+
+# combine behavioral and subject data
+dat <- dat_sample %>% 
+  left_join(dat_gridsearch, by = "id") %>% 
+  arrange(group)
+
 # length(unique(dat$id))
 # clean up
 dat <- dat %>%
-  select(-condition, -comments) %>% 
-  mutate(group = case_match(group,
-                            "PPD-" ~ "PD-",
-                            "PPD+" ~ "PD+",
-                            "PNP" ~ "PNP",
-                            .default = NA)) %>% 
+  #select(-condition, -comments) %>% 
+  # mutate(group = case_match(group,
+  #                           "PPD-" ~ "PD-",
+  #                           "PPD+" ~ "PD+",
+  #                           "PNP" ~ "PNP",
+  #                           .default = NA)) %>% 
   mutate(group = factor(group, levels = c("PNP", "PD+", "PD-")))  %>% 
   mutate(type_choice = factor(type_choice, levels = c("Repeat", "Near", "Far")))  %>% 
   mutate(gender = recode(gender, "w" = "f")) %>% 
-  rename(MMSE = `mini_mental`) %>% 
+  # rename(MMSE = `mini_mental`) %>% 
   mutate(last_ldopa = if_else(group != "PNP", as_hms(last_ldopa), as_hms(NA)),
          next_ldopa = if_else(group != "PNP", as_hms(next_ldopa), as_hms(NA)),
          time_exp = if_else(group != "PNP", as_hms(time_exp), as_hms(NA))) %>% 
@@ -406,7 +422,7 @@ The amount of generalization was positively related with obtained rewards, showi
 
 
 ```{r}
-#| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1. "
+#| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1."
 #| label: fig-params_reward_cor
 #| fig-width: 12
 #| fig-height: 5
