@@ -337,8 +337,7 @@ theme_classic() +
     legend.text =  element_text(colour="black", size=14),
     text = element_text(colour = "black"),
     strip.background =element_blank(),
-    axis.text.x = element_text(colour="black", size = 14),
-    axis.text.y = element_text(colour="black"),
+    axis.text= element_text(colour="black", size = 14),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.spacing = unit(3, "lines"))
@@ -371,19 +370,21 @@ ggboxplot(df_gpucb_params,
   scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
   ylab("Estimate (log scale") +
   xlab("") +
-  # not correct because runs on log-transformed values
-  # stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ), 
-  #                    paired = F, 
-  #                    method = "t.test", 
-  #                    # label = "p.format",
-  #                    aes(label = paste0("p = ", after_stat(p.format)))
-  # ) +
+ # not correct because runs on log-transformed values
+  stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ),
+                     paired = F,
+                     method = "t.test",
+                     # label = "p.format",
+                     aes(label = paste0("p = ", after_stat(p.format)))
+  ) +
   stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
   theme_classic() +
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=12),
         legend.position = "none",
-        plot.title = element_text(size = 18)
+        plot.title = element_text(size = 18),
+        axis.text= element_text(colour="black", size = 14),
+        axis.title= element_text(colour="black", size = 14)
   )
   
   
@@ -421,7 +422,7 @@ The increased exploration bonus $\beta$ aligns with findings from a restless ban
 
 
 
-### Correlation of Model Parameters with Performance
+# Correlation of Model Parameters with Performance
 
 The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better.
 
@@ -480,7 +481,9 @@ main_plot <- ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
   theme_classic() +
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=12),
-        legend.title = element_blank())
+        legend.title = element_blank(),
+        axis.title = element_text(color = "black", size=14),
+        axis.text = element_text(color = "black", size=14))
 
 # Inset-Plot für beta (nur Werte 0-1)
 inset_beta <- 
@@ -491,9 +494,12 @@ inset_beta <-
             conf.int = TRUE 
   ) +
   stat_cor(method = "pearson", label.x = 0.1, label.y = 42, size = 3) +
-  scale_x_continuous(breaks = seq(0,1,0.1)) +
+  scale_x_continuous( breaks = c(0,0.25, 0.5, 0.75), labels = c("0.0", "0.25", "0.5", "0.75")) +# breaks = seq(0,1,0.1),
   theme_classic() +
-  theme(axis.title = element_blank(),strip.background = element_blank(), strip.text = element_blank(), legend.position = "none")
+  theme(axis.title = element_blank(),
+        strip.background = element_blank(), 
+        strip.text = element_blank(), 
+        legend.position = "none")
 
 # Inset-Plot für tau (nur Werte 0-1)
 inset_tau <- 
@@ -503,7 +509,7 @@ inset_tau <-
             add.params = list(color = "darkred", fill = "lightgray"), 
             conf.int = TRUE 
   ) +
-  stat_cor(method = "pearson", label.x = 0.1, label.y = 42, size = 3) +
+  stat_cor(method = "pearson", label.x = 0.05, label.y = 42, size = 3) +
   scale_x_continuous(breaks = seq(0,1,0.1)) +
   theme_classic() +
   theme(axis.title = element_blank(),strip.background = element_blank(), strip.text = element_blank(), legend.position = "none")
@@ -512,8 +518,8 @@ inset_tau <-
 # Hauptplot mit Insets für beta und tau
 p_GP_UCB_params_cor_reward_inset <- 
   ggdraw(main_plot) +
-  draw_plot(inset_beta, x = 0.5, y = 0.5, width = 0.15, height = 0.3) +
-  draw_plot(inset_tau, x = 0.8, y = 0.5, width = 0.15, height = 0.3)
+  draw_plot(inset_beta, x = 0.5, y = 0.45, width = 0.15, height = 0.35) +
+  draw_plot(inset_tau, x = 0.8, y = 0.45, width = 0.15, height = 0.35)
 
 p_GP_UCB_params_cor_reward_inset
 
