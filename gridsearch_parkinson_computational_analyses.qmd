@@ -184,11 +184,12 @@ Associated with each model component is a free parameter that we estimate throug
 
 We tested the GP-UCB model in its ability to model learning and predicting each participants' search and decision-making behavior. To assess the contribution of each component of the model (generalization, uncertainty-directed exploration, and random exploration) we compare the predictive accuracy of the GP-UCB model to model variants where we lesion away each component.
 
-$\lambda$ lesion model
+$\lambda$ lesion model: This model removes the ability to generalize, meaning that all options are learned independently (via Bayesian mean tracker)
 
-$\beta$ lesion model
+$\beta$ lesion model: No uncertainty-directed exploration ($\beta=0$), i.e., options are valued solely based on reward expectations (mean greedy)
 
-$\tau$ lesion model
+$\tau$ lesion model: Exchanges the softmax choice rule with an $\epsilon$-greedy policy as an alternative random exploration mechanism. With probability $\epsilon$, a random option is selected (each with probability 1/64); with probability 1 − $\epsilon$, the option with the highest UCB value is chosen. The parameter $\epsilon$ is estimated for each participant.
+
 
 
 All models were fitted using leave-one-round-out cross-validation based on maximum likelihood estimation. Model fits are evaluated using the sum of negative log-likelihoods across all out-of-sample predictions.
@@ -411,7 +412,7 @@ The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected r
 
 
 ### tau $\beta$
-The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noisy, with \beta \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}). 
+The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, \beta \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}). 
 
 - PNP vs. PD+: `r ttestPretty(subset(df_gpucb_params, group == 'PNP' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate,var.equal = TRUE)`
 - PNP vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'PNP' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate,var.equal = TRUE)`

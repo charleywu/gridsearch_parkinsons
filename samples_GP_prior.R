@@ -35,9 +35,13 @@ df <- as_tibble(samples_t) %>%
 # Plot
 ggplot(df, aes(x = x, y = f, color = sample)) +
   geom_line(linewidth = 1) +
-  theme_bw() +
   labs(
     title = "Samples from GP Prior (RBF Kernel)",
     x = "x", y = "f(x)", color = "Sample"
+  ) +
+  theme_classic() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank()
   )
 
