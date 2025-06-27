@@ -368,7 +368,7 @@ ggboxplot(df_gpucb_params,
           add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
   facet_wrap(~param, nrow = 1) +
   scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
-  ylab("Estimate (log scale") +
+  ylab("Estimate (log scale)") +
   xlab("") +
  # not correct because runs on log-transformed values
   stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ),
