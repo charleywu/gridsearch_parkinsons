@@ -428,25 +428,26 @@ ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fi
   )
 
 ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
-```
 
-```{r}
-
-### Comparison of groups
-#We next conduct pairwise comparisons of the performance across patient groups. Pateintes with polyneuropathy (PNP) performed better than both groups of Parkinson patients. Parkinson patient on medication (PD+) performed better than patients off medication (PD-).
-
-#### PNP vs. PD+
+# PNP vs. PD+
+# ttestBF(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+')$mean_reward, var.equal = TRUE)
 # t.test(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)
-# ttestBF(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+')$mean_reward)
 
-#### PNP vs. PD-
+# PNP vs. PD-
+# ttestBF(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)
 # t.test(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
-# ttestBF(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward)
 
-#### PPD# vs. PD-
+# PPD vs. PD-
+# ttestBF(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)
 # t.test(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
-# ttestBF(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward)
 ```
+
+
+Patients with polyneuropathy (PNP) performed better than both groups of Parkinson patients. Parkinson patient on medication (PD+) performed better than patients off medication (PD-).
+
+- PNP vs. PD+: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+')$mean_reward, var.equal = TRUE)`
+- PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)`
+- PPD vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)`
 
 ## Performance: Learning curves
 
