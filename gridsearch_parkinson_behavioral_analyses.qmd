@@ -408,7 +408,7 @@ df_mean_reward_subject <- dat %>%
 
 # Boxplots of rewards by group
 ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
-  geom_boxplot(alpha = 0.2, outlier.shape = NA) +  
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
   geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
   scale_color_manual(values = groupcolors) +
@@ -440,6 +440,32 @@ ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
 # PPD vs. PD-
 # ttestBF(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)
 # t.test(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
+
+# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
+p_performance_by_group_CPP <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
+  geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  ylab("Mean reward") +
+  xlab("") +
+  ggtitle("Performance") +
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),
+    strip.text = element_text(color = "black", size = 20),
+    legend.position = 'none',
+    legend.title = element_blank(),
+      plot.title = element_text(size=24),
+      axis.text = element_text(size=20),
+      axis.title = element_text(size=20)
+  )
+
+ggsave("plots/performance_by_group_CPP.png", p_performance_by_group_CPP, dpi=300, height = 5, width = 6 )
+ggsave("plots/performance_by_group_CPP.pdf", p_performance_by_group_CPP, height = 5, width = 6 )
+
+
 ```
 
 
@@ -513,6 +539,38 @@ ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group
 
 
 ggsave("plots/learning_curves.png", dpi=300,height=5,width=8)
+
+# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
+p_learning_curves_CPP <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group, shape = group, group = group)) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
+  stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
+  stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
+  scale_y_continuous("Mean reward (±95% CI)", breaks = seq(20,45,5)) + 
+  scale_x_continuous("Trial", limits = c(0.8, 25.2), breaks = c(1,5,10,15,20,25)) +
+  scale_fill_manual(values=groupcolors) +
+  scale_color_manual(values=groupcolors) +
+  ggtitle("Learning curves") +
+  theme_classic() +
+  theme(
+    #aspect.ratio = 1,
+    plot.title = element_text(size = 24),
+    legend.title = element_blank(),
+    legend.position = "inside",  
+    legend.position.inside = c(0.05, 0.95),  
+    legend.location = "plot",  
+    legend.justification.inside = c(0, 1), 
+    legend.background = element_blank(),
+    legend.key = element_blank(),
+    legend.key.height = unit(0.3,"cm"),
+    legend.text = element_text(colour="black", size=20),
+    strip.background = element_blank(),
+    axis.text = element_text(colour = "black", size = 20),
+    axis.title = element_text(colour = "black", size = 20),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+ggsave("plots/p_learning_curves_CPP.png", p_learning_curves_CPP, dpi=300, height = 5, width = 7 )
+ggsave("plots/p_learning_curves_CPP.pdf", p_learning_curves_CPP, height = 5, width = 7 )
 
 ```
 
@@ -712,6 +770,65 @@ ggsave("plots/explore_exploit_choices.png", dpi=300, width = 8, height = 4.5)
 #       plot.title = element_text(size = 9, margin = margin(b = -10)), 
 # )
 
+# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
+# Main plot
+p_main_CPP <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, shape = group, color = group)) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, position=position_dodge(width=0.5)) +  
+  stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
+  stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
+  scale_fill_manual(values = groupcolors) + 
+  scale_color_manual(values = groupcolors)+ 
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  labs(
+    x = "Trial",
+    y = "Exploitation choices (M±95% CI)",
+    title = "Exploration and exploitation over time"
+  ) +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=12),
+        legend.position = c(0.01, 0.4),  
+        legend.justification = c(0, 1),
+        legend.title = element_blank(),
+        axis.title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        plot.margin = margin(0, 0, 0, 0),
+        plot.title = element_text(size = 24),
+        legend.text = element_text(colour="black", size=18)
+  )
+
+# Inset plot
+p_inset_CPP <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
+  geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA, width=0.75) +  
+  geom_jitter(width = 0.15, size = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  scale_y_continuous("", 
+                     breaks = c(0, 0.5, 1), 
+                     labels = percent_format(accuracy = 1)) +
+  coord_cartesian(ylim = c(0, 1.15)) +
+  xlab("") +
+  ggtitle("  Exploitation choices") +
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),  
+    strip.text = element_text(color = "black", size = 12),
+    legend.position = "none",
+    axis.title.y = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    plot.margin = margin(0, 0, 0, 0),
+    plot.title = element_text(size = 14, margin = margin(b = -10))
+  )
+
+
+# Combine plots
+p_explore_exploit_choices_CPP <- ggdraw() +
+  draw_plot(p_main_CPP) +
+  draw_plot(p_inset_CPP, x = 0.14, y = 0.53, width = 0.35, height = 0.35)
+
+ggsave("plots/explore_exploit_choices_CPP.png", dpi=300, width = 7, height = 5)
+ggsave("plots/explore_exploit_choices_CPP.pdf", width = 7, height = 5)
 
 ```
 
@@ -1030,7 +1147,7 @@ brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (1|id)
 #bayes_R2(brm_distance_reward) 
 
 # generate plot manually  predictions (otherwise difficult to plot the mean empirical values per geom_point)
-prevReward <-  seq(0,50) #/ 50 # normalized reward
+prevReward <-  seq(-3,55) #/ 50 # normalized reward
 group  <-  levels(dat$group)
 newdat <-  expand.grid(previous_reward=prevReward, group=group)
 
@@ -1074,6 +1191,45 @@ ggplot() +
         )          
 
 ggsave("plots/regression_distance_reward_brms.png", dpi=300, height=5, width=7)
+
+# mean values vy previosu reward and group
+
+# df_summary <- dat %>%
+#   group_by(previous_reward, group) %>%
+#   summarise(
+#     mean_distance = mean(distance, na.rm = TRUE),
+#     .groups = "drop"
+#   )
+
+# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
+ggplot() +
+  stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm=T)+
+  geom_line(predsDF, mapping=aes(x=previous_reward, y=distance, color=group), linewidth=1) +
+  geom_ribbon(predsDF, mapping=aes(x=previous_reward, y=distance, ymin=lower, ymax=upper, fill=group), alpha=.3) +
+  #geom_hline(yintercept=meanDist, linetype='dashed', color='red') + # mean distance
+  scale_x_continuous('Previous Reward', breaks = seq(0,50,10), labels = c(0,10,20,30,40,50)) +
+  scale_y_continuous('Distance to next choice', breaks = seq(0,7,1), labels = c(0,1,2,3,4,5,6,7))+ 
+  ylab('Distance to next choice')+
+  scale_fill_manual(values=groupcolors) +
+  scale_color_manual(values=groupcolors) +
+  labs(
+  title = "Search Distance ~ Previous Reward",
+  subtitle = "(Bayesian hierarchical regression)") +
+  theme_classic() +
+  theme(legend.position = "inside", 
+        legend.position.inside = c(0.85, 0.9),   
+        legend.justification = c(1, 1),
+        legend.title = element_blank(),
+        legend.text = element_text(colour = "black", size = 20),
+        plot.title = element_text(colour = "black", size = 24),
+        plot.subtitle = element_text(colour = "black", size = 18),
+        axis.text = element_text(colour = "black", size = 20),
+        axis.title = element_text(colour = "black", size = 20)
+        )          
+
+ggsave("plots/regression_distance_reward_brms_CPP.png", dpi=300, height=5, width=6)
+ggsave("plots/regression_distance_reward_brms_CPP.pdf", height=5, width=6)
+
 ```
 
 ## Bonus round judgments
