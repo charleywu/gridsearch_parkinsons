@@ -640,9 +640,10 @@ p_GP_UCB_params_CPP <-
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=14),
         legend.position = "none",
-        plot.title = element_text(size = 24),
-        axis.text= element_text(colour="black", size = 14),
-        axis.title= element_text(colour="black", size = 14)
+        plot.title = element_text(size = 20),
+        axis.text= element_text(colour="black", size = 12),
+        axis.title= element_text(colour="black", size = 12),
+        panel.spacing = unit(3, "lines") 
   )
 
 ggsave("plots/GP-UCB_params_CPP.png", p_GP_UCB_params_CPP, dpi = 300, width = 8, height = 5)

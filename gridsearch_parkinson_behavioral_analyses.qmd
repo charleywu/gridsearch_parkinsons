@@ -400,6 +400,11 @@ df_mean_reward_subject <- dat %>%
 
 @fig-performance shows the overall performance of each group, based on each subject's mean reward across all trials. PNP participants achieved higher rewards than both PD patients on medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`) and off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`). Notably, PD patients on medication achieved substantially higher rewards than patients off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`), indicating as strong beneficial effect of L-Dopa on the ability to balance exploration and exploitation.
 
+- PD+ vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
+- PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
+- PNP vs. PD+:`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
+
+
 ```{r}
 #| label: fig-performance
 #| fig-cap: "Obtained rewards by group. Each dot is one participants' mean reward across all rounds and trials."
@@ -468,12 +473,6 @@ ggsave("plots/performance_by_group_CPP.pdf", p_performance_by_group_CPP, height 
 
 ```
 
-
-Patients with polyneuropathy (PNP) performed better than both groups of Parkinson patients. Parkinson patient on medication (PD+) performed better than patients off medication (PD-).
-
-- PNP vs. PD+: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+')$mean_reward, var.equal = TRUE)`
-- PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)`
-- PPD vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)`
 
 ## Performance: Learning curves
 
@@ -831,6 +830,13 @@ ggsave("plots/explore_exploit_choices_CPP.png", dpi=300, width = 7, height = 5)
 ggsave("plots/explore_exploit_choices_CPP.pdf", width = 7, height = 5)
 
 ```
+
+The mean proportion of repeat choices (=exploitation) differed among all groups, with patients with polyneuropathy (PNP) showing higher levels of exploitation than both PD+ and PD- patients. Parkinson patients on medication (PD+) exploited more than patients off medication (PD-).
+
+- PNP vs. PD+: `r ttestPretty(subset(df_unique_choices_subject, group == 'PNP')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, var.equal = TRUE)`
+- PNP vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PNP')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
+- PPD vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
+
 
 ## Spatial trajectories
 
@@ -1724,3 +1730,61 @@ ggplot(filter(df_mean_reward_subject, group != "PNP"), aes(x = hoehn_yahr, y = m
 
 ggsave("plots/performance_groups_HY.png", dpi=300, height = 3, width = 5)
 ```
+
+### Reading list
+
+- **Frank et al. (2004)**  
+  *Cognitive reinforcement learning in parkinsonism*  
+  Demonstrated that Parkinson's patients off medication learn poorly from positive feedback, implicating dopamine in reward learning and adaptive action selection.  
+  Frank et al. (2004): *Cognitive reinforcement learning in parkinsonism*. [Science, 306, 1940–1943](https://doi.org/10.1126/science.1102941)
+
+- **Daw et al. (2006)**  
+  *Cortical substrates for exploratory decisions in humans*  
+  Showed that exploratory decisions activate frontopolar cortex and are modulated by uncertainty, supporting a neural mechanism for explore–exploit arbitration.  
+  Daw et al. (2006): *Cortical substrates for exploratory decisions in humans*. [Nature, 441, 876–879](https://doi.org/10.1038/nature04766)
+
+- **Cohen et al. (2007)**  
+  *How the brain manages the exploration–exploitation tradeoff*  
+  Proposed a theoretical framework linking locus coeruleus–norepinephrine function to exploration, via regulation of cortical neural gain.  
+  Cohen et al. (2007): *How the brain manages the exploration–exploitation dilemma*. [Phil. Trans. R. Soc. B, 362, 933–942](https://doi.org/10.1098/rstb.2007.2098)
+
+- **Frank et al. (2009)**  
+  *Prefrontal and striatal dopaminergic genes predict individual differences in exploration and exploitation*  
+  Found that genetic variation in dopamine pathways predicts differences in both uncertainty-directed and random exploration.  
+  Frank et al. (2009): *Dopaminergic genes predict individual differences in exploration and exploitation*. [Nat Neurosci, 12, 1062–1068](https://doi.org/10.1038/nn.2342)
+
+- **Kayser et al. (2015)**  
+  *Dopamine, locus of control, and the exploration–exploitation tradeoff*  
+  Showed that dopamine synthesis capacity interacts with locus of control to shape exploration strategies.  
+  Kayser et al. (2015): *Dopamine, locus of control, and the exploration–exploitation tradeoff*. [Neuropsychopharmacology, 40, 454–462](https://doi.org/10.1038/npp.2014.193)
+
+- **Addicott et al. (2017)**  
+  *A primer on the explore/exploit trade-off for psychiatry*  
+  Reviewed relevance of explore/exploit mechanisms to psychiatric disorders and their utility in clinical research.  
+  Addicott et al. (2017): *A primer on the explore/exploit trade-off for psychiatry*. [Neuropsychopharmacology, 42, 1931–1939](https://doi.org/10.1038/npp.2017.108)
+
+- **Gershman & Tzovaras (2018)**  
+  *Dopaminergic genes are associated with both directed and random exploration*  
+  Found that polymorphisms in dopaminergic genes relate selectively to directed exploration, not random variability.  
+  Gershman & Tzovaras (2018): *Dopaminergic genes and exploration*. [Neuropsychologia, 120, 97–104](https://doi.org/10.1016/j.neuropsychologia.2018.10.009)
+
+- **Cinotti et al. (2019)**  
+  *Dopamine blockade impairs the exploration–exploitation trade-off in rats*  
+  Provided causal evidence that dopamine D2 receptor antagonism reduces exploratory choices in a multi-armed bandit task.  
+  Cinotti et al. (2019): *Dopamine blockade impairs the explore–exploit trade-off*. [Sci Rep, 9, 6770](https://doi.org/10.1038/s41598-019-43245-z)
+
+- **Chakroun et al. (2020)**  
+  *Dopaminergic modulation of the exploration/exploitation trade-off in human decision-making*  
+  Showed that L-DOPA boosts uncertainty-directed exploration but not random exploration in humans.  
+  Chakroun et al. (2020): *Dopaminergic modulation of exploration*. [eLife, 9, e51260](https://doi.org/10.7554/eLife.51260)
+
+- **Cremer et al. (2023)**  
+  *Disentangling the roles of dopamine and noradrenaline in the exploration–exploitation trade-off*  
+  Found that dopamine primarily modulates directed exploration, while noradrenaline affects choice variability.  
+  Cremer et al. (2023): *Disentangling roles of dopamine and noradrenaline in explore/exploit*. [Neuropsychopharmacology, 48, 1078–1086](https://doi.org/10.1038/s41386-023-01541-8)
+
+- **Chen et al. (2024)**  
+  *Dopamine and norepinephrine mediate the explore/exploit trade-off in humans*  
+  Combined pupillometry, pharmacology, and fMRI to show distinct roles of dopamine and norepinephrine in exploration and exploitation.  
+  Chen et al. (2024): *Dopamine and norepinephrine mediate explore/exploit tradeoff*. [J Neurosci, 44](https://doi.org/10.1523/JNEUROSCI.1194-23.2024)
+  
