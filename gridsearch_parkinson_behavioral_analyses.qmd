@@ -129,23 +129,24 @@ A central distinction between different forms of exploration behavior is that *d
 
 We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
 
-![Screenshot from experiment and example environments [from @giron2023developmental]](img/task_overview_Giron_et_al_2021.png)
+![Screenshot from experiment, procedure and example environments](img/task_overview.png)
 
 ## Materials and procedure
 
-40 distinct environments were generated using a radial basis function kernel with $\lambda = 4$, creating a bivariate reward function on a grid that maps each tile location to a specific reward value. These smooth reward functions gradually varied across the grid, creating environments with spatially-correlated rewards.
 
-Participants completed 10 rounds of the task, each featuring a new environment drawn without replacement from the set of 40 environments. In each round, participants had 25 choices to maximize rewards. The first round served as a tutorial to familiarize participants with the task and was excluded from the analyses. The final round (round 10) was a bonus round where, after 15 choices, participants were asked to predict rewards for five unrevealed options. Data from this round were also excluded from the main analysis and analyzed separately.
+40 distinct environments were generated using a radial basis function kernel with $\lambda = 1$, creating a bivariate reward function on a grid that maps each tile location to a specific reward value. These  reward functions gradually varied across the grid, creating environments with spatially-correlated rewards. The correlation between neighboring options is about *r*≈0.6, exponentially decreasing with distance.
 
-At the start of each round, one tile was randomly revealed, and participants sequentially sampled 25 tiles. On each trial, they could choose to either click a new tile or re-click a previously selected tile. Selections were made by selecting the tile on the computer screen, upon which the received a reward arbitrarily scaled to the range \[0,50\]. Re-clicked tiles showed small variations in reward due to normally distributed noise.
+Participants completed 10 rounds of the task, each featuring a new environment drawn without replacement from the set of 40 environments. In each round, participants had 25 choices to accumulate rewards. The first round served as a tutorial to familiarize participants with the task and was excluded from the analyses. The final round (round 10) was a bonus round where, after 15 choices, participants were asked to predict rewards for five unrevealed options. Data from this round were also excluded from the main analysis and analyzed separately.
+
+At the start of each round, one tile was randomly revealed, and participants sequentially sampled 25 tiles. On each trial, they could choose to either click a new tile or re-click a previously selected tile. Selections were made by selecting the tile on the computer screen using a mouse, upon which they received a reward arbitrarily scaled to the range \[0,50\]. Re-clicked tiles showed small variations in reward due to normally distributed noise.
 
 ## Sample
 
-We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for treatment [@abbott2010levodopa; @tambasco2018levodopa]. <!-- L-Dopa is a pharmacological agent used to treat the symptoms of Parkinson’s disease, which is associated with a deficiency of dopamine (REF). Since dopamine cannot pass the blood-brain barrier, L-Dopa is used as a precursor, which is absorbed through the gastrointestinal tract and subsequently metabolized to dopamine. --> Participants were recruited via a neurologist’s outpatient practice. Eligible participants were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale assesses disease severity and motor impairments based on a score from 1 to 5, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment
+We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for symptomatic treatment [@abbott2010levodopa; @tambasco2018levodopa]. Participants were recruited via a neurologist’s outpatient practice. Eligible participants were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale assesses disease severity and motor impairments based on a score from 1 to 5, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment.
 
 PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`), patients' scheduled L-Dopa was administered at least 30 minutes before the start of the experiment. In the PD- group (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose.
 
-The comparison group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`) consisted of individuals with polyneuropathies (PNP), which is associated with physical symptoms similar to the motor impairments seen in Parkinson’s disease. However, since polyneuropathy primarily affects peripheral nerves it is typically not associated with cognitive impairments, enabling a comparison in terms of physical symptomatology and the resulting burden of suffering.
+The comparison group (N=`r dat_sample %>% filter(group == "PNP") %>% nrow()`) consisted of individuals of similar age diagnosed with polyneuropathies (PNP), a condition affecting the peripheral nervous system that can lead to physical symptoms such as pain, sensory loss, or motor weakness. However, unlike Parkinson’s disease, PNP does not involve central dopaminergic dysfunction or cognitive impairment.
 
 ## Clinical assessment
 
@@ -659,7 +660,8 @@ dat <- dat %>%
   group_by(id, round) %>%
   arrange(trial, .by_group = TRUE) %>%  # Ensure data is sorted by trial
   mutate(
-    is_new = factor(if_else(!duplicated(chosen), "new", "repeat"))  # Check uniqueness based on 'chosen' column
+    is_new = factor(if_else(!duplicated(chosen), "new", "repeat")),  # Check uniqueness based on 'chosen' column
+    is_new_label = factor(if_else(!duplicated(chosen), "Exploration", "Exploitation"), levels = c("Exploration", "Exploitation"))
   ) %>%
   ungroup()
 
@@ -835,8 +837,68 @@ The mean proportion of repeat choices (=exploitation) differed among all groups,
 
 - PNP vs. PD+: `r ttestPretty(subset(df_unique_choices_subject, group == 'PNP')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, var.equal = TRUE)`
 - PNP vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PNP')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
-- PPD vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
 
+### Rewards obtained from exploration and exploitation
+We also calculated the mean reward obtained from learners' explore and exploit choices, respectively. @fig-reward-explore-exploit shows that both PNP and PD+ patients obtained higher rewards from their exploration choices, indicating higher levels of adaptation to the structure of the environment. Similarly, for exploitative choices, PD+ and PNP patients obtained higher rewards, showing that PD− patients not only exploited less frequently but also did so less efficiently.
+
+```{r}
+#| label: fig-reward-explore-exploit
+#| fig-cap: "Mean rewards for explore versus exploit choices, averaged across all rounds and trials per participant. Each dot represents one participant."
+#| fig-width: 7
+#| fig-height: 5
+#| 
+# mean reward 
+df_reward_explore_exploit <- dat %>%
+  filter(round %in% 2:9 & trial > 0) %>% 
+  # group_by(id,group, round, is_new) %>%  
+  group_by(id,group, is_new_label) %>%  
+  summarize(
+    n = n(),  #  number of trials
+    mean_reward = mean(z)
+  )
+
+ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
+  facet_wrap(~is_new_label) + 
+  geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA, width=0.75) +  
+  geom_jitter(width = 0.15, size = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  scale_y_continuous("Mean reward", 
+                   breaks = c(0, 10, 20, 30, 40, 50), 
+                   labels = c("0","10","20","30","40","50"),
+                   limits = c(0, 55)) +
+  xlab("") +
+  ggtitle("Mean rewards for exploration and exploitation") +
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),  
+    strip.text = element_text(color = "black", size = 14),
+    legend.position = "none",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    # plot.margin = margin(0, 0, 0, 0),
+    plot.title = element_text(size = 16)
+  )
+
+ggsave("plots/explore_exploit_choices_rewards.png", dpi=300, width = 7, height = 5)
+ggsave("plots/explore_exploit_choices_rewards.pdf", width = 7, height = 5)
+
+```
+
+_Explore choices_
+
+- PNP vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PNP' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- PNP vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PNP' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+
+
+_Exploit choices_
+
+- PNP vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PNP' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- PNP vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PNP' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 
 ## Spatial trajectories
 
