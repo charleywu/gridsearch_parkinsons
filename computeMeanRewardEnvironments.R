@@ -22,14 +22,13 @@ getRandomPerformance <- function(){
   ageMonths <- read.csv('data/ageMonths.csv')
   
   # get environments
-  roughEnvironments   <- lapply(fromJSON("data/YKWG kernels/kernelRough.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64), c('y', 'z', 'x'))))
-  smoothEnvironments  <- lapply(fromJSON("data/YKWG kernels/kernelSmooth.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
+  smoothEnvironments  <- lapply(fromJSON("data//kernelSmooth.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
   
+  z_means <- sapply(smoothEnvironments, function(mat) mean(mat[, "z"]))
   
+  mean(z_means)
   # df for bonus round data  
-  # see tester notes
-  exclusionList  <- c('nocode', 4,12,39,49,58,59,60,69,74,75,77,79,102,104,108) 
-  
+ 
   df_env <- data.frame()
   
   #loop through json to create data frame
