@@ -89,7 +89,11 @@ choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 # get behavioral data
 ########################################################
 dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types = FALSE) %>% 
-  mutate(type_choice  = factor(type_choice, levels = c("Repeat", "Near", "Far")))
+  mutate(type_choice  = factor(type_choice, levels = c("Repeat", "Near", "Far"))) 
+
+# normalize reward and previous reward
+dat_gridsearch$z = dat_gridsearch$z / 50
+dat_gridsearch$previous_reward = dat_gridsearch$previous_reward / 50
 
 ########################################################
 # get bonus round data
@@ -102,10 +106,17 @@ dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>
 ########################################################
 dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE) %>% 
   mutate(gender = as.factor(gender),
-         group  = factor(group, levels = c("PNP", "PD+", "PD-"))) %>% 
-  mutate(last_ldopa = if_else(group != "PNP", as_hms(last_ldopa), as_hms(NA)),
-         next_ldopa = if_else(group != "PNP", as_hms(next_ldopa), as_hms(NA)),
-         time_exp = if_else(group != "PNP", as_hms(time_exp), as_hms(NA))) %>% 
+        # group  = factor(group, levels = c("PNP", "PD+", "PD-"))) %>% 
+         #group  = factor(group, levels = c("PNP", "PD+", "PD-"), labels = c("Control", "PD+", "PD-"))) %>% 
+        group = fct_recode(group,
+                       "Control" = "PNP",
+                       "PD+"     = "PD+",
+                       "PD−"     = "PD-"),
+    group = fct_relevel(group, "Control", "PD+", "PD−")
+  ) %>% 
+  mutate(last_ldopa = if_else(group != "Control", as_hms(last_ldopa), as_hms(NA)),
+         next_ldopa = if_else(group != "Control", as_hms(next_ldopa), as_hms(NA)),
+         time_exp = if_else(group != "Control", as_hms(time_exp), as_hms(NA))) %>% 
   mutate(time_since_ldopa = as.numeric(time_exp - last_ldopa, unit = "mins"))
 
 # combine behavioral and subject data
@@ -351,7 +362,8 @@ ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, sha
   # geom_errorbar(aes(ymin = mean_of_means - 1.96 * se_reward, ymax = mean_of_means + 1.96 * se_reward), width = 0.2, position = dodge, color = "black") +  # 
   geom_errorbar(aes(ymin = mean_of_means - se_reward, ymax = mean_of_means + se_reward), width = 0.2, position = position_dodge(width = 0.3), alpha=0.7) +  #
   geom_point(position = position_dodge(width = 0.3), size = 3, stroke = 1, alpha=.9) +  
-  coord_cartesian(ylim = c(20,40)) +
+  #coord_cartesian(ylim = c(20,40)) +
+  coord_cartesian(ylim = c(0.4,0.75)) +
   #scale_shape_manual(values = c(21, 24, 22)) +  # circle, triangle, and square
   scale_fill_manual(values = groupcolors) +  
   scale_color_manual(values = groupcolors) +  
@@ -402,8 +414,8 @@ df_mean_reward_subject <- dat %>%
 @fig-performance shows the overall performance of each group, based on each subject's mean reward across all trials. PNP participants achieved higher rewards than both PD patients on medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`) and off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`). Notably, PD patients on medication achieved substantially higher rewards than patients off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`), indicating as strong beneficial effect of L-Dopa on the ability to balance exploration and exploitation.
 
 - PD+ vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
-- PNP vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
-- PNP vs. PD+:`r ttestPretty(subset(df_mean_reward_subject, group == 'PNP')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
+- Control vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
+- Control vs. PD+:`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
 
 
 ```{r}
@@ -414,23 +426,24 @@ df_mean_reward_subject <- dat %>%
 
 # Boxplots of rewards by group
 ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
+  geom_hline(yintercept=.5, linetype='dashed', color='red') + # random choice model (mean across all 40 environments)
   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
   geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
-  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +  
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
-  ylab("Mean reward") +
+  ylab("Mean normalized reward") +
   xlab("") +
   ggtitle("Performance") +
   theme_classic() +
   theme(
     strip.background = element_blank(),
-    strip.text = element_text(color = "black", size = 12),
+    strip.text = element_text(color = "black", size = 20),
     legend.position = 'none',
     legend.title = element_blank(),
-      plot.title = element_text(size=16),
-      axis.text = element_text(size=14),
-      axis.title = element_text(size=14)
+      plot.title = element_text(size=24),
+      axis.text = element_text(size=20),
+      axis.title = element_text(size=20)
   )
 
 ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
@@ -448,28 +461,29 @@ ggsave("plots/performance_by_group.png", dpi=300, height = 5, width = 6 )
 # t.test(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
 
 # Plot for Computational Psychiatry Conference (Tübingen, July 2025)
-p_performance_by_group_CPP <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
-  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
-  geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
-  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
-  ylab("Mean reward") +
-  xlab("") +
-  ggtitle("Performance") +
-  theme_classic() +
-  theme(
-    strip.background = element_blank(),
-    strip.text = element_text(color = "black", size = 20),
-    legend.position = 'none',
-    legend.title = element_blank(),
-      plot.title = element_text(size=24),
-      axis.text = element_text(size=20),
-      axis.title = element_text(size=20)
-  )
-
-ggsave("plots/performance_by_group_CPP.png", p_performance_by_group_CPP, dpi=300, height = 5, width = 6 )
-ggsave("plots/performance_by_group_CPP.pdf", p_performance_by_group_CPP, height = 5, width = 6 )
+# p_performance_by_group_CPP <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
+#   #geom_hline(yintercept=.5, linetype='dashed', color='red') + # random choice model (mean across all 40 environments)
+#   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
+#   geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
+#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
+#   scale_color_manual(values = groupcolors) +
+#   scale_fill_manual(values = groupcolors) +
+#   ylab("Mean normalized reward") +
+#   xlab("") +
+#   ggtitle("Performance") +
+#   theme_classic() +
+#   theme(
+#     strip.background = element_blank(),
+#     strip.text = element_text(color = "black", size = 20),
+#     legend.position = 'none',
+#     legend.title = element_blank(),
+#       plot.title = element_text(size=24),
+#       axis.text = element_text(size=20),
+#       axis.title = element_text(size=20)
+#   )
+# 
+# ggsave("plots/performance_by_group_CPP.png", p_performance_by_group_CPP, dpi=300, height = 5, width = 6 )
+# ggsave("plots/performance_by_group_CPP.pdf", p_performance_by_group_CPP, height = 5, width = 6 )
 
 
 ```
@@ -508,44 +522,12 @@ ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group
   # geom_errorbar(aes(ymin=lower_ci, ymax = upper_ci), width = 0, linewidth=1, position=position_dodge(width=0.5), alpha =0.5) +
   # geom_point(size = 3, position=position_dodge(width=0.5)) +
   # geom_line(position=position_dodge(width=0.5)) +
+  geom_hline(yintercept=.5, linetype='dashed', color='black') + # random choice model (mean across all 40 environments)
   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
-  scale_y_continuous("Mean reward (±95% CI)", breaks = seq(20,45,5)) + 
+  scale_y_continuous("Mean normalized reward (±95% CI)") + 
   # coord_cartesian(ylim = c(20,45))
-  scale_x_continuous("Trial", limits = c(0.8, 25.2), breaks = c(1,5,10,15,20,25)) +
-  scale_fill_manual(values=groupcolors) +
-  scale_color_manual(values=groupcolors) +
-  ggtitle("Learning curves") +
-  theme_classic() +
-  theme(
-    #aspect.ratio = 1,
-    plot.title = element_text(size = 16),
-    legend.title = element_blank(),
-    legend.position = "inside",  
-    legend.position.inside = c(0.05, 0.95),  
-    legend.location = "plot",  
-    legend.justification.inside = c(0, 1), 
-    legend.background = element_blank(),
-    legend.key = element_blank(),
-    legend.key.height = unit(0.3,"cm"),
-    legend.text = element_text(colour="black", size=12),
-    strip.background = element_blank(),
-    axis.text = element_text(colour = "black", size = 14),
-    axis.title = element_text(colour = "black", size = 14),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank()
-  )
-
-
-ggsave("plots/learning_curves.png", dpi=300,height=5,width=8)
-
-# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
-p_learning_curves_CPP <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group, shape = group, group = group)) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
-  stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
-  stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
-  scale_y_continuous("Mean reward (±95% CI)", breaks = seq(20,45,5)) + 
   scale_x_continuous("Trial", limits = c(0.8, 25.2), breaks = c(1,5,10,15,20,25)) +
   scale_fill_manual(values=groupcolors) +
   scale_color_manual(values=groupcolors) +
@@ -569,8 +551,42 @@ p_learning_curves_CPP <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, c
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()
   )
-ggsave("plots/p_learning_curves_CPP.png", p_learning_curves_CPP, dpi=300, height = 5, width = 7 )
-ggsave("plots/p_learning_curves_CPP.pdf", p_learning_curves_CPP, height = 5, width = 7 )
+
+
+ggsave("plots/learning_curves.png", dpi=300,height=5,width=8)
+
+# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
+# p_learning_curves_CPP <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group, shape = group, group = group)) +
+#   #geom_hline(yintercept=.5, linetype='dashed', color='black') + # random choice model (mean across all 40 environments)
+#   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
+#   stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
+#   stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
+#   scale_y_continuous("Mean reward (±95% CI)", breaks = seq(20,45,5)) + 
+#   scale_x_continuous("Trial", limits = c(0.8, 25.2), breaks = c(1,5,10,15,20,25)) +
+#   scale_fill_manual(values=groupcolors) +
+#   scale_color_manual(values=groupcolors) +
+#   ggtitle("Learning curves") +
+#   theme_classic() +
+#   theme(
+#     #aspect.ratio = 1,
+#     plot.title = element_text(size = 24),
+#     legend.title = element_blank(),
+#     legend.position = "inside",  
+#     legend.position.inside = c(0.05, 0.95),  
+#     legend.location = "plot",  
+#     legend.justification.inside = c(0, 1), 
+#     legend.background = element_blank(),
+#     legend.key = element_blank(),
+#     legend.key.height = unit(0.3,"cm"),
+#     legend.text = element_text(colour="black", size=20),
+#     strip.background = element_blank(),
+#     axis.text = element_text(colour = "black", size = 20),
+#     axis.title = element_text(colour = "black", size = 20),
+#     panel.grid.major = element_blank(),
+#     panel.grid.minor = element_blank()
+#   )
+# ggsave("plots/p_learning_curves_CPP.png", p_learning_curves_CPP, dpi=300, height = 5, width = 7 )
+# ggsave("plots/p_learning_curves_CPP.pdf", p_learning_curves_CPP, height = 5, width = 7 )
 
 ```
 
@@ -610,7 +626,7 @@ Next, we ran a hierarchical regression for Parkinson's patients only, with rewar
 ```{r}
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)   
 lmer_reward_PD_only_BDI_MMSE_HY <- lmer(z ~ group + BDI + MMSE + hoehn_yahr + (1 | id), 
-                                        data = subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"))
+                                        data = subset(dat, trial > 0 & round %in% 2:9 & group != "Control"))
 
 #summary(lmer_reward_PD_only_BDI_MMSE_HY)
 
@@ -619,7 +635,7 @@ tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression resu
 
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)                          
 brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
-                                                     data=subset(dat, trial > 0 & round %in% 2:9 & group != "PNP"),
+                                                     data=subset(dat, trial > 0 & round %in% 2:9 & group != "Control"),
                                                      cores=1,
                                                      seed = 0815,
                                                      iter = 5000,
@@ -1565,6 +1581,8 @@ ggsave("plots/bonusround_chosen_not_chosen_options_predicted_reward.png", dpi=30
 ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, width=7, height = 5)
 
 ```
+
+- relate difference confidence chosen not chosen relate to individual beta
 
 ```{r}
 #| label: fig-bonusround-chosen-confidence
