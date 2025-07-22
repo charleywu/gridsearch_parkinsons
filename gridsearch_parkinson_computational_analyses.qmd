@@ -686,6 +686,11 @@ The increased exploration bonus $\beta$ aligns with findings from a restless ban
 
 The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better.
 
+### TO DO: 
+1) make plots by group 
+2) take ratio of explore/exploit and correlate with model params
+3) make separate plots for params and log for beta and tau
+
 
 
 ```{r}

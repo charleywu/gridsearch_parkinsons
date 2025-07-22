@@ -1566,6 +1566,8 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 
 ```
 
+- relate difference confidence chosen not chosen relate to individual beta
+
 ```{r}
 #| label: fig-bonusround-chosen-confidence
 #| fig-cap: "Confidence in reward prediction  of chosen vs. not chosen options in bonus round."
