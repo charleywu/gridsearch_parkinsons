@@ -1772,7 +1772,7 @@ task <- ggdraw() +
   draw_grob(gimg_task)
 
 # results plots
-bottom_grid <- plot_grid(
+results_grid <- plot_grid(
   p_performance, p_learning_curves,
   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
   p_distance_consecutive, p_regression_distance_reward,
@@ -1785,7 +1785,7 @@ bottom_grid <- plot_grid(
 
 cowplot::plot_grid(
   task,
-  bottom_grid,
+  results_grid,
   ncol = 1,
   rel_heights = c(0.4, 1),  
   labels = c("A", ""),      
