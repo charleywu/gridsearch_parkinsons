@@ -54,7 +54,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix", "magick", "grid")
 
 installed <- packages %in% rownames(installed.packages())
 if (any(!installed)) {
@@ -298,72 +298,77 @@ comparisons_df <- comparisons_df %>%
   mutate(y.position = ref_ypos) %>%
   ungroup()
 
-ggboxplot(modelFits, 
-          x = "shortname", 
-          y = "R2",
-          color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", jitter.size = 1, shape = "group", title = "Model comparison: GP-UCB vs. lesioned models") +
+p_model_comparison <- ggplot(modelFits, aes(x = shortname, y = R2, fill = group, shape = group, color = group)) +
   facet_wrap(~group, nrow = 1) +
-  ylab(bquote(R^2)) +
-  xlab("") +
-  stat_compare_means(
-    comparisons = list( 
-      c("GP\nUCB", "lambda\nlesion"), 
-      c("GP\nUCB", "beta\nlesion"), 
-      c("GP\nUCB", "tau\nlesion")  
-    ), 
-    paired = TRUE, 
-    method = "t.test", 
-    aes(label = paste0("p = ", after_stat(p.format)))  ) +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+  geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
+  geom_jitter(width = 0.15, size = 2) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
+  scale_y_continuous(name = expression("Predictive accuracy " ~ R^2),
+                     breaks = c(0, 0.5, 1))+  
+  scale_x_discrete("",
+                   labels = c(
+      "lambda\nlesion" = "λ\nlesion",
+    "beta\nlesion"   = "β\nlesion",
+    "tau\nlesion"    = "τ\nlesion"
+    # labels = c(
+    # "lambda\nlesion" = expression(atop(lambda, lesion)),
+    # "beta\nlesion"   = expression(atop(beta, lesion)),
+    # "tau\nlesion"    = expression(atop(tau, lesion))
+    )) + 
+  scale_fill_manual(values = groupcolors) + 
+  scale_color_manual(values = groupcolors) + 
+  ggtitle("Model comparison: GP-UCB vs. lesioned models") + 
   theme_classic() +
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=18),
         legend.position = "none",
-        plot.title = element_text(size = 24),
-        axis.text= element_text(colour="black", size = 18),
-        axis.title= element_text(colour="black", size = 18)
+        legend.justification = c(0, 1),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.margin = margin(0, 0, 0, 0),
+        plot.title = element_text(size = 24)
   )
 
-
-ggsave("plots/model_comparison.png", dpi=300, width = 9, height = 5)
+   
+p_model_comparison
+ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, height = 5)
+#ggsave("plots/model_comparison.pdf", p_model_comparison, width = 10, height = 5) # ü
 
 # plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
- p_model_comparison_CPP <- 
-ggboxplot(modelFits, 
-          x = "shortname", 
-          y = "R2",
-          color = "group", palette = groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", jitter.size = 1, shape = "group",
-          title = "Model comparison: GP-UCB vs. lesioned models") +
-  facet_wrap(~group, nrow = 1) +
-  ylab(bquote(R^2)) +
-  xlab("") +
-  stat_pvalue_manual(
-    filter(comparisons_df, group == "PNP"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-  stat_pvalue_manual(
-    filter(comparisons_df, group == "PD+"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-  stat_pvalue_manual(
-    filter(comparisons_df, group == "PD-"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-  theme_classic()+
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=12),
-        legend.position = "none",
-        plot.title = element_text(size = 24),
-        axis.text= element_text(colour="black", size = 14),
-        axis.title= element_text(colour="black", size = 14)
-  ) 
-
-ggsave("plots/model_comparison_CPP.png", p_model_comparison_CPP, dpi=300, width = 9, height = 5)
+# ggboxplot(modelFits, 
+#           x = "shortname", 
+#           y = "R2",
+#           color = "group", palette = groupcolors, fill = "group", alpha = 0.2,
+#           add = "jitter", jitter.size = 1, shape = "group",
+#           title = "Model comparison: GP-UCB vs. lesioned models") +
+#   facet_wrap(~group, nrow = 1) +
+#   ylab(bquote(R^2)) +
+#   xlab("") +
+#   stat_pvalue_manual(
+#     filter(comparisons_df, group == "PNP"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#   stat_pvalue_manual(
+#     filter(comparisons_df, group == "PD+"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#   stat_pvalue_manual(
+#     filter(comparisons_df, group == "PD-"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#   theme_classic()+
+#   theme(strip.background = element_blank(),  
+#         strip.text = element_text(color = "black", size=12),
+#         legend.position = "none",
+#         plot.title = element_text(size = 24),
+#         axis.text= element_text(colour="black", size = 14),
+#         axis.title= element_text(colour="black", size = 14)
+#   ) 
+# 
+# ggsave("plots/model_comparison_CPP.png", p_model_comparison_CPP, dpi=300, width = 9, height = 5)
 
 
 ```
@@ -478,176 +483,179 @@ df_gpucb_params <- modelFits %>% filter(kernel=='GP' & acq == 'UCB') %>%
   mutate(param = factor(param, levels = c('lambda', 'beta', 'tau'))) %>% 
   mutate(estimate_log10 = estimate)
 
-# make boxplot
-ggboxplot(df_gpucb_params, 
-          x = "group", 
-          y = "estimate",
-          color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
-  facet_wrap(~param, nrow = 1) +
-  scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
-  ylab("Estimate (log scale)") +
-  xlab("") +
- # careful: if plotting log scale, t-test based on run on log-transformed values
-  stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ),
-                     paired = F,
-                     method = "t.test",
-                     # label = "p.format",
-                     aes(label = paste0("p = ", after_stat(p.format)))
-                     #aes(label = paste0(" "))
-  ) +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+p_gpucb_params <- ggplot(df_gpucb_params, aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
+  # facet_wrap(~param, nrow = 1) +
+  facet_wrap(
+    ~ param,
+    labeller = labeller(
+      param = c(
+        "lambda" = "'generalization '*lambda",
+        "beta"   = "'directed exploration '*beta",
+        "tau"    = "'random exploration '*tau"
+      ),
+      .default = label_parsed  
+  )) +
+  scale_y_log10(name = "Estimate (log scale)", breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
+  geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
+  geom_jitter(width = 0.15, size = 2) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  scale_x_discrete("") + 
+  ggtitle("GP-UCB parameter estimates") + 
   theme_classic() +
   theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=12),
+        strip.text = element_text(color = "black", size=18),
         legend.position = "none",
-        plot.title = element_text(size = 18),
-        axis.text= element_text(colour="black", size = 14),
-        axis.title= element_text(colour="black", size = 14)
+        legend.justification = c(0, 1),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+       # plot.margin = margin(0, 0, 0, 0),
+        plot.title = element_text(size = 24)
   )
-  
-  
-ggsave("plots/GP-UCB_params.png", dpi=300, width = 9, height = 5)
+
+p_gpucb_params  
+ggsave("plots/GP-UCB_params.png", p_gpucb_params,dpi=300, width = 9, height = 5)
 
 # plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
-
-# Define your comparisons
-comparisons <- list(c("PD+", "PD-"), c("PNP", "PD+"), c("PNP", "PD-"))
-
-# Extract function for p and BF from ttestPretty output
-# TO DO: Cumbersome via 
-extract_p_and_bf <- function(tt_string) {
-  matches <- stringr::str_match_all(tt_string, "\\$p=([^$]+)\\$|\\$BF=([^$]+)\\$")
-  flat <- unlist(matches)
-  
-  raw_vals <- flat[!is.na(flat) & grepl("^\\.?\\d+", flat)]
-  
-  # Convert to numeric and round to 2 decimal places
-  nums <- signif(as.numeric(raw_vals), 2)
-  
-  # Format with 2 decimal digits (or scientific if very small/large)
-  p_fmt <- formatC(nums[1], digits = 2, format = "f")
-  bf_fmt <- formatC(nums[2], digits = 2, format = "f")
-  
-  paste0("p=", p_fmt, ", BF=", bf_fmt)
-}
-
-# Loop over each param and each comparison
-comparisons_df <- df_gpucb_params %>%
-  group_by(param) %>%
-  group_modify(~{
-    comparisons <- list(
-      c("PNP", "PD+"),
-      c("PNP", "PD-"),
-      c("PD+", "PD-")
-    )
-    
-    # For each pairwise group comparison
-    res <- purrr::map_dfr(comparisons, function(groups) {
-      g1 <- groups[1]
-      g2 <- groups[2]
-      
-      x1 <- .x$estimate[.x$group == g1]
-      x2 <- .x$estimate[.x$group == g2]
-      
-      if (length(x1) < 2 || length(x2) < 2) {
-        return(tibble(
-          group1 = g1,
-          group2 = g2,
-          p = NA_real_,
-          BF = NA_real_,
-          y.position = NA_real_
-        ))
-      }
-      
-      # Frequentist test
-      t_res <- t.test(x1, x2, paired = FALSE, var.equal = TRUE)
-      p_val <- t_res$p.value
-      
-      # Bayes Factor
-      bf <- BayesFactor::ttestBF(x = x1, y = x2, paired = FALSE)
-      bf_val <- as.numeric(BayesFactor::extractBF(bf)$bf)
-      
-      # y-position (max value in current param group × offset)
-      y_max <- max(.x$estimate, na.rm = TRUE)
-      y_pos <- y_max * runif(1, 1.05, 1.15)
-      
-      tibble(
-        group1 = g1,
-        group2 = g2,
-        p = p_val,
-        BF = bf_val,
-        y.position = y_pos
-      )
-    })
-    
-    res
-  }) %>%
-  ungroup() %>%
-  mutate(
-    p.format = case_when(
-      p < 0.001 ~ "p<.001",
-      is.na(p) ~ NA_character_,
-      TRUE ~ paste0("p=", signif(p, 2))
-    ),
-    BF.format = case_when(
-      is.na(BF) ~ NA_character_,
-      BF > 100 ~ "BF>100",
-      TRUE ~ paste0("BF=", signif(BF, 2))
-    ),
-    plot_label = paste0(p.format, ", ", BF.format)
-  )
-
-comparisons_df$y.position <- rep(c(1.8, 2.6, 2.2), 3)
-
-p_GP_UCB_params_CPP <-  
-  ggboxplot(df_gpucb_params, 
-          x = "group", 
-          y = "estimate",
-          color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
-  facet_wrap(~param, nrow = 1) +
-  scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100"), expand = expansion(mult = c(0.1, 0.15))  ) +
-  # scale_y_log10( expand = expansion(mult = c(0, 0.1))  ) +
-  # coord_cartesian(ylim = c(0.01,260)) +
-  ylab("Estimate (log scale)") +
-  xlab("") +
-    # ignore p values because of log; only done to position brackets correctly
- # stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ),
- #                     paired = F,
- #                     method = "t.test",
- #                     # label = "p.format",
- #                     aes(label = paste0("p = ", after_stat(p.format)))
- #                     #aes(label = paste0(" "))
- #  ) +
-    stat_pvalue_manual(
-    filter(comparisons_df, param == "lambda"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-    stat_pvalue_manual(
-    filter(comparisons_df, param == "beta"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-    stat_pvalue_manual(
-    filter(comparisons_df, param == "tau"),
-    label = "plot_label",
-    tip.length = 0.01, bracket.size = 0.3, size = 3
-  ) +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
-  theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=14),
-        legend.position = "none",
-        plot.title = element_text(size = 20),
-        axis.text= element_text(colour="black", size = 12),
-        axis.title= element_text(colour="black", size = 12),
-        panel.spacing = unit(3, "lines") 
-  )
-
-ggsave("plots/GP-UCB_params_CPP.png", p_GP_UCB_params_CPP, dpi = 300, width = 8, height = 5)
-ggsave("plots/GP-UCB_params_CPP.pdf", p_GP_UCB_params_CPP, width = 8, height = 5)
+# 
+# # Define your comparisons
+# comparisons <- list(c("PD+", "PD-"), c("PNP", "PD+"), c("PNP", "PD-"))
+# 
+# # Extract function for p and BF from ttestPretty output
+# # TO DO: Cumbersome via 
+# extract_p_and_bf <- function(tt_string) {
+#   matches <- stringr::str_match_all(tt_string, "\\$p=([^$]+)\\$|\\$BF=([^$]+)\\$")
+#   flat <- unlist(matches)
+#   
+#   raw_vals <- flat[!is.na(flat) & grepl("^\\.?\\d+", flat)]
+#   
+#   # Convert to numeric and round to 2 decimal places
+#   nums <- signif(as.numeric(raw_vals), 2)
+#   
+#   # Format with 2 decimal digits (or scientific if very small/large)
+#   p_fmt <- formatC(nums[1], digits = 2, format = "f")
+#   bf_fmt <- formatC(nums[2], digits = 2, format = "f")
+#   
+#   paste0("p=", p_fmt, ", BF=", bf_fmt)
+# }
+# 
+# # Loop over each param and each comparison
+# comparisons_df <- df_gpucb_params %>%
+#   group_by(param) %>%
+#   group_modify(~{
+#     comparisons <- list(
+#       c("PNP", "PD+"),
+#       c("PNP", "PD-"),
+#       c("PD+", "PD-")
+#     )
+#     
+#     # For each pairwise group comparison
+#     res <- purrr::map_dfr(comparisons, function(groups) {
+#       g1 <- groups[1]
+#       g2 <- groups[2]
+#       
+#       x1 <- .x$estimate[.x$group == g1]
+#       x2 <- .x$estimate[.x$group == g2]
+#       
+#       if (length(x1) < 2 || length(x2) < 2) {
+#         return(tibble(
+#           group1 = g1,
+#           group2 = g2,
+#           p = NA_real_,
+#           BF = NA_real_,
+#           y.position = NA_real_
+#         ))
+#       }
+#       
+#       # Frequentist test
+#       t_res <- t.test(x1, x2, paired = FALSE, var.equal = TRUE)
+#       p_val <- t_res$p.value
+#       
+#       # Bayes Factor
+#       bf <- BayesFactor::ttestBF(x = x1, y = x2, paired = FALSE)
+#       bf_val <- as.numeric(BayesFactor::extractBF(bf)$bf)
+#       
+#       # y-position (max value in current param group × offset)
+#       y_max <- max(.x$estimate, na.rm = TRUE)
+#       y_pos <- y_max * runif(1, 1.05, 1.15)
+#       
+#       tibble(
+#         group1 = g1,
+#         group2 = g2,
+#         p = p_val,
+#         BF = bf_val,
+#         y.position = y_pos
+#       )
+#     })
+#     
+#     res
+#   }) %>%
+#   ungroup() %>%
+#   mutate(
+#     p.format = case_when(
+#       p < 0.001 ~ "p<.001",
+#       is.na(p) ~ NA_character_,
+#       TRUE ~ paste0("p=", signif(p, 2))
+#     ),
+#     BF.format = case_when(
+#       is.na(BF) ~ NA_character_,
+#       BF > 100 ~ "BF>100",
+#       TRUE ~ paste0("BF=", signif(BF, 2))
+#     ),
+#     plot_label = paste0(p.format, ", ", BF.format)
+#   )
+# 
+# comparisons_df$y.position <- rep(c(1.8, 2.6, 2.2), 3)
+# 
+# p_GP_UCB_params_CPP <-  
+#   ggboxplot(df_gpucb_params, 
+#           x = "group", 
+#           y = "estimate",
+#           color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
+#           add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
+#   facet_wrap(~param, nrow = 1) +
+#   scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100"), expand = expansion(mult = c(0.1, 0.15))  ) +
+#   # scale_y_log10( expand = expansion(mult = c(0, 0.1))  ) +
+#   # coord_cartesian(ylim = c(0.01,260)) +
+#   ylab("Estimate (log scale)") +
+#   xlab("") +
+#     # ignore p values because of log; only done to position brackets correctly
+#  # stat_compare_means(comparisons = list( c("PNP", "PD+"), c("PD+", "PD-"), c("PNP", "PD-")  ),
+#  #                     paired = F,
+#  #                     method = "t.test",
+#  #                     # label = "p.format",
+#  #                     aes(label = paste0("p = ", after_stat(p.format)))
+#  #                     #aes(label = paste0(" "))
+#  #  ) +
+#     stat_pvalue_manual(
+#     filter(comparisons_df, param == "lambda"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#     stat_pvalue_manual(
+#     filter(comparisons_df, param == "beta"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#     stat_pvalue_manual(
+#     filter(comparisons_df, param == "tau"),
+#     label = "plot_label",
+#     tip.length = 0.01, bracket.size = 0.3, size = 3
+#   ) +
+#   stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
+#   theme_classic() +
+#   theme(strip.background = element_blank(),  
+#         strip.text = element_text(color = "black", size=14),
+#         legend.position = "none",
+#         plot.title = element_text(size = 20),
+#         axis.text= element_text(colour="black", size = 12),
+#         axis.title= element_text(colour="black", size = 12),
+#         panel.spacing = unit(3, "lines") 
+#   )
+# 
+# ggsave("plots/GP-UCB_params_CPP.png", p_GP_UCB_params_CPP, dpi = 300, width = 8, height = 5)
+# ggsave("plots/GP-UCB_params_CPP.pdf", p_GP_UCB_params_CPP, width = 8, height = 5)
 
 
 ```
@@ -795,6 +803,44 @@ ggsave("plots/GP-UCB_params_cor_reward.png", p_GP_UCB_params_cor_reward_inset, w
 
 
 # Appendix
+
+## Overview figure computational results
+
+```{r}
+#| label: fig-computational-results
+#| fig-cap: "Computational results."
+#| fig-width: 16
+#| fig-height: 15
+#| 
+# get GP-UCB model illustration (Giron et al., 2023, NHB)
+img <- image_read("img/GP-UCB model.png")  
+gimg <- rasterGrob(as.raster(img), interpolate = TRUE)
+
+# add title
+gp_ucp_model <- ggdraw() +
+  draw_label("Gaussian Process Upper Confidence Bound (GP-UCB) Model", size = 24, x = 0.05, y = 1, hjust = 0, vjust = 1.5) +
+  # draw_grob(gimg, x = 0.5, y = 0.5, width = 1, height = 1)
+  draw_grob(gimg)
+
+# Combine
+cowplot::plot_grid(
+  gp_ucp_model,
+  p_model_comparison,
+  p_gpucb_params,             
+  ncol = 1,
+  # rel_heights = c(1.2, 1, 1),
+  labels = c("AUTO"),
+  label_size = 22
+)
+
+ggsave("plots/computational_results.png", dpi=300, height=16, width=15)
+```
+
+
+
+
+# Model params of participants best explained by GP-UCB model
+
 ```{r}
 #| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant.Only participants are included who were best described by the GP-UCB model."
 #| label: fig-GP-CUB_params_subset
@@ -824,7 +870,6 @@ ggboxplot(df_gpucb_params_subset,
         legend.position = "none",
         plot.title = element_text(size = 18)
   )
-  
   
 ggsave("plots/GP-UCB_params_subset.png", width = 9, height = 5)
 
