@@ -140,10 +140,7 @@ dataFile <- "data/all_data_gridsearch_parkinson.json"
 myjson    <-fromJSON(dataFile)
 
 # get environments
-# smoothEnvironments  <- lapply(fromJSON("data/kernelSmooth.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
 roughEnvironments  <- lapply(fromJSON("data/kernelRough.json"), FUN=function(x) matrix(as.numeric(unlist(x)), ncol=3, byrow=TRUE, dimnames=list(seq(1,64),  c('y', 'z', 'x'))))
-
-
 
 # df for bonus round data  
 df_bonus_round <- data.frame()
@@ -172,7 +169,6 @@ for (i in 1:nrow(myjson)){
   # compute true (observed) values on grid
   scale_factor        <- unlist(subd$scale)[length(unlist(subd$scale))]
   bonus_environment$z <- bonus_environment$z * scale_factor + 5
-  #bonus_environment$z <- (bonus_environment$z + 0.5) * 50
   
   # get bonus round data
   # reward estimates for five unseen tiles and subjective confidence of reward
@@ -193,7 +189,6 @@ for (i in 1:nrow(myjson)){
   
   # put together
   df_bonus_round <- rbind(df_bonus_round, df_current)
-  
   
 }
 

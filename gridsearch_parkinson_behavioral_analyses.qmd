@@ -1024,8 +1024,8 @@ The most frequent choice was to select a neighboring tile (distance = 1), reflec
 ```{r, echo=F}
 #| label: fig-distances
 #| fig-cap: "Distance among consecutive clicks."
-#| fig-width: 5
-#| fig-height: 3
+#| fig-width: 9
+#| fig-height: 4
 
 #  distance by participant
 df_mean_distance_subject <- dat %>%
@@ -1082,8 +1082,10 @@ p_distance_consecutive <- ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x 
                              b = 0,  
                              l = 0))
 
-ggsave("plots/distance.png", p_distance_consecutive, dpi=300,height=3, width=5)
-ggsave("plots/distance.pdf", p_distance_consecutive, height=3, width=5)
+p_distance_consecutive
+
+ggsave("plots/distance_consecutive.png", p_distance_consecutive, dpi=300,height=4, width=9)
+ggsave("plots/distance_consecutive.pdf", p_distance_consecutive, height=4, width=9)
 ```
 
 Control patients had lower search distances than the PD+ group (`r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)`) and lower distances than the PD- group (`r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`). There was no difference between Parkinson patient with (PD+) and without (PD-) medication (`r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`).
@@ -1448,6 +1450,7 @@ ggsave("plots/regression_distance_reward_brms.pdf", p_regression_distance_reward
 
 In the bonus round, participants made 15 search decisions and then predicted the rewards for 5 randomly chosen, previously unobserved tiles. Subsequently, they chose one of the five tiles and continued the round until the search horizon of 25 clicks was met.
 
+### Data structure
 Data frame *dat_bonus* contains the following variables:
 
 -   *id*: participant id
@@ -1461,16 +1464,14 @@ Data frame *dat_bonus* contains the following variables:
 -   *error* is the absolute deviation between participants reward estimates (*givenValue*) and ground truth (*true_z*)
 -   *chosen* is whether the option was chosen or not (participants chose one of the five options after estimating their value and confidence in their reward prediction)
 
-::: callout-note
-Charley: is this scaling still correct (taken from YKWG code)? `bonus_environment$z <- bonus_environment$z * scale_factor + 5`
-:::
-
 ```{r, echo=FALSE}
 #| label: tbl-bonusround
 #| tbl-cap: "Bonus round data."
 
 dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>% 
-  mutate(bonus_environment = as.factor(bonus_environment))
+  mutate(bonus_environment = as.factor(bonus_environment)) %>% 
+  mutate(givenValue = givenValue / 50, # normalize
+         true_z = true_z / 50,)
 
 dat_bonus <- dat_bonus %>% 
   mutate(chosen = if_else(x == chosen_x & y == chosen_y, "chosen", "not chosen")) %>% 
@@ -1484,7 +1485,7 @@ head(dat_bonus) %>%
   kable_styling("striped", full_width = FALSE)
 
 # Error (MAE) of random performance
-randomGuesses     <- runif(10000,0,50)
+randomGuesses     <- runif(10000,0,1)
 trueValues        <- sample(dat_bonus$true_z, 10000,replace = T) #sample with replacement
 error             <- sapply(1:10000, FUN=function(i) randomGuesses[i] - trueValues)
 randomPerformance <- mean(abs(error))
@@ -1511,7 +1512,7 @@ dat_bonus_error <- dat_bonus %>%
 -   PD+: `r ttestPretty(subset(dat_bonus_error, group=='PD+')$mean_error, mu =randomPerformance)`
 -   PD-: `r ttestPretty(subset(dat_bonus_error, group=='PD-')$mean_error, mu =randomPerformance)`
 
-There were no difference between groups:
+Controls had lower prediction error than PD- patients; no other group differences were observed.
 
 -   Control vs. PD+: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error, var.equal = T)`
 -   Control vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
@@ -1525,27 +1526,27 @@ There were no difference between groups:
 
 
 # plot mean absolute error (MAE) per subject 
-ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
+p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
   geom_hline(yintercept=randomPerformance, linewidth = 0.5, color = "darkred", linetype = "dotted") +
-  geom_boxplot(alpha = 0.2, outlier.shape = NA) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.2) +
   geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
-  # stat_compare_means(
-  #   comparisons = list(c("Control", "PD+"), c("PD+", "PD-"), c("Control", "PD-")),
-  #   paired = FALSE,
-  #   method = "t.test",
-  #   aes(label = paste0("p = ", after_stat(p.format)))
-  # ) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
   labs(title = "Prediction error", y = "Mean Absolute Error", x = "") +
   theme_classic() +
   theme(
-    strip.background = element_blank(),
-    strip.text = element_text(color = "black", size = 12),
-    legend.position = "none"
+    legend.position = 'none',
+    legend.title = element_blank(),
+      plot.title = element_text(size=24),
+      axis.text = element_text(size=18),
+      axis.title = element_text(size=18)
   )
-ggsave("plots/bonusround_prediction_error.png", dpi=300, height = 5, width = 6 )
+
+p_bonusround_prediction_error
+
+ggsave("plots/bonusround_prediction_error.png", p_bonusround_prediction_error, dpi=300, height = 5, width = 6 )
+ggsave("plots/bonusround_prediction_error.pdf", p_bonusround_prediction_error, height = 5, width = 6 )
 
 ```
 
@@ -1583,15 +1584,22 @@ ggsave("plots/bonusround_prediction_error.png", dpi=300, height = 5, width = 6 )
 ```
 
 ### Prediction error and confidence
+Aggregated across all judgments, there was no relationship between prediction error and confidence, with varying and inconsistent patterns in the different groups. The Control group showed a weak negative relation (i.e., lower confidence was associated with higher prediction error), the PD+ group a weak positive trend (i.e., lower confidence was associated with better lower prediction error), and the PD− group showed no association. None of these patterns were strong or reliable, no relationship between prediction error and confidence.
+
+-   Overall: `r corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "pearson")`
+-   Control: `r corTestPretty(subset(dat_bonus, group == "Control")$error, subset(dat_bonus, group == "Control")$howSecure, method = "pearson")`
+-   PD+: `r corTestPretty(subset(dat_bonus, group == "PD+")$error, subset(dat_bonus, group == "PD+")$howSecure, method = "pearson")`
+-   PD-: `r corTestPretty(subset(dat_bonus, group == "PD-")$error, subset(dat_bonus, group == "PD-")$howSecure, method = "pearson")`
 
 ```{r}
 # Across all judgments and participants, there was no systematic relation between confidence and prediction error:
-# corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "kendall") 
-# cor.test(dat_bonus$error, dat_bonus$howSecure, method = "kendall") 
-# correlationBF(dat_bonus$error, dat_bonus$howSecure, method = "kendall") 
+# corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "pearson") 
+# cor.test(dat_bonus$error, dat_bonus$howSecure, method = "pearson") 
+# correlationBF(dat_bonus$error, dat_bonus$howSecure, method = "pearson")
+
 ```
 
-A Bayesian regression with with prediction error as dependent variable, and confidence and group and their interaction as population-level (“fixed”) effects, and a random intercept for participants showed that for Control patients confidence and predictione error were negatively correlated (i.e., lower confidence was associated with a higher error), whereas for the two Parkinson groups there was no relation.
+A Bayesian regression with  prediction error as dependent variable, and confidence and group and their interaction as population-level (“fixed”) effects, and a random intercept for participants yielded the same conclusions: in control patients, confidence and prediction error were weakly negatively related (i.e., lower confidence was associated with a higher error), whereas for the two Parkinson groups confidence ratings and prediction error were not related.
 
 ```{r}
 brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group + (1|id), 
@@ -1624,9 +1632,9 @@ ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
   geom_point(shape = 21, size = 2, colour = "black", position = position_dodge(width = 0.2))  +
   scale_fill_manual(values = groupcolors) +
   scale_colour_manual(values = groupcolors) +
-  scale_y_continuous("Prediction Error", breaks = seq(0,30,10)) +
+  scale_y_continuous("Prediction Error") + #, breaks = seq(0,30,10)) +
   scale_x_continuous("Confidence", breaks = seq(0,10,1)) +
-  coord_cartesian(ylim = c(0,30), xlim = c(0,10)) +
+  coord_cartesian( xlim = c(0,10)) +
   ggtitle("Confidence and prediction error") +
   theme_classic() +
   theme(#aspect.ratio = 1,
@@ -1655,8 +1663,8 @@ To analyze selected and not-selected options, we first averaged the predicted re
 ```{r}
 #| label: fig-bonusround-chosen-reward
 #| fig-cap: "Predicted reward of chosen vs. not chosen options in bonus round."
-#| fig-width: 7
-#| fig-height: 5
+#| fig-width: 9
+#| fig-height: 4
 #| 
 # average not-chosen tiles within subjects first
 df_chosen_overall <- dat_bonus %>% 
@@ -1665,52 +1673,78 @@ df_chosen_overall <- dat_bonus %>%
             m_howSecure = mean(howSecure),
             m_true_z = mean(true_z))
 
-# df_chosen_overall %>% 
-#   group_by(chosen) %>% 
-#   summarise(predicted_reward = mean(m_givenValue),
-#             confidence = mean(m_howSecure),
-#             true_reward = mean(m_true_z)) %>% 
-#   kable(format = "html", escape = F, digits = 2) %>%
-#   kable_styling("striped", full_width = F)
-
 df_chosen_group <- dat_bonus %>% 
   group_by(id, group, chosen) %>% 
   summarise(m_givenValue = mean(givenValue),
             m_howSecure = mean(howSecure),
             m_true_z = mean(true_z))
 
-# df_chosen_group %>% 
-#   group_by(group,chosen) %>% 
+# wide format for paired t-tests of chosen vs. not chosen tiles
+df_chosen_group_wide <- df_chosen_group  %>% 
+  mutate(chosen = recode(chosen,
+                         "not chosen" = "not_chosen")) %>% 
+  select(id, chosen, m_givenValue)  %>% 
+  pivot_wider(names_from = chosen, values_from = m_givenValue) 
+  
+
+# df_chosen_group %>%
+#   group_by(group,chosen) %>%
 #   summarise(predicted_reward = mean(m_givenValue),
 #             confidence = mean(m_howSecure),
-#             true_reward = mean(m_true_z)) %>% 
+#             true_reward = mean(m_true_z)) %>%
 #   kable(format = "html", escape = F, digits = 2) %>%
 #   kable_styling("striped", full_width = F)
 
-# chosen vs not chosen: predicted reward
-
-ggboxplot(df_chosen_group, x = "chosen", y = "m_givenValue",
-          color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-          add = "jitter", shape = "group", title = "Predicted reward of chosen vs. not chosen options",
-          facet.by = "group") +
-  ylab("Predicted reward") +
-  xlab("") +
-  stat_compare_means(comparisons = list( c("chosen", "not chosen") ), paired = T, method = "t.test", label = "p.format") +
-  stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=3) +
+# plot reward predictions: chosen vs not-chosen options
+p_bonusround_prediction_chosen <-
+  ggplot(df_chosen_group, aes(x = chosen, y = m_givenValue, color = group, fill = group, shape = group)) +
+  facet_wrap(~group) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.2) +
+  geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
+  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = groupcolors) +
+  labs(title = "Predicted Reward: chosen vs. not chosen", y = "Predicted reward", x = "") +
   theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=12),
-        legend.title = element_blank()
+  theme(
+    legend.position = 'none',
+    legend.title = element_blank(),
+      plot.title = element_text(size=24),
+      axis.text = element_text(size=18),
+      axis.title = element_text(size=18),
+      strip.background = element_blank(),  
+      strip.text = element_text(color = "black", size=18)
   )
 
-ggsave("plots/bonusround_chosen_not_chosen_options_predicted_reward.png", dpi=300, width=7, height = 5)
+p_bonusround_prediction_chosen
 
+ggsave("plots/bonusround_chosen_not_chosen_options_predicted_reward.png", p_bonusround_prediction_chosen, dpi=300, width=9, height = 4)
 
-ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, width=7, height = 5)
 
 ```
 
-- relate difference confidence chosen not chosen relate to individual beta
+
+@tab-bonusround-chosen-reward shows the predicted rewards for chosen vs. not chosen options. In the Control group, selected tiles were associated with higher predicted rewards than those not selected. In both Parkinson’s groups, no such difference was observed.
+
+-   Control: `r ttestPretty(subset(df_chosen_group_wide, group == 'Control')$chosen, subset(df_chosen_group_wide, group == 'Control' )$not_chosen, paired = T)`
+-   PD+: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD+')$chosen, subset(df_chosen_group_wide, group == 'PD+' )$not_chosen, paired = T)`
+-   PD-: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD-')$chosen, subset(df_chosen_group_wide, group == 'PD-' )$not_chosen, paired = T)`
+
+```{r}
+#| label: tab-bonusround-chosen-reward
+#| tab-cap: "Predicted rewards of chosen vs. not chosen options in bonus round."
+
+df_chosen_group %>%
+  group_by(group,chosen) %>%
+  summarise(predicted_reward = mean(m_givenValue),
+            confidence = mean(m_howSecure),
+            true_reward = mean(m_true_z)) %>%
+  kable(format = "html", escape = F, digits = 2) %>%
+  kable_styling("striped", full_width = F)
+
+
+```
+
 
 ```{r}
 #| label: fig-bonusround-chosen-confidence
@@ -1752,7 +1786,7 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 #   p_performance, p_learning_curves,
 #   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
 #   p_distance_consecutive, p_regression_distance_reward,
-#   labels = c("AUTO"),
+#   labels = c("auto"),
 #   label_size = 22,
 #   nrow = 3,
 #   rel_widths = c(0.45, 0.55),
@@ -1768,7 +1802,7 @@ gimg_task <- rasterGrob(as.raster(img_task), interpolate = TRUE)
 
 # add title
 task <- ggdraw() +
-  draw_label("Task and procedure", size = 24, x = 0.05, y = 1, hjust = 0, vjust = 1.5) +
+  draw_label("Experiment and design", size = 24, x = 0.05, y = 1, hjust = 0, vjust = 1.5) +
   draw_grob(gimg_task)
 
 # results plots
@@ -1776,7 +1810,7 @@ results_grid <- plot_grid(
   p_performance, p_learning_curves,
   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
   p_distance_consecutive, p_regression_distance_reward,
-  labels = c("B", "C", "D", "E", "F", "G"),  
+  labels = c("b", "c", "d", "e", "f", "g"),  
   label_size = 22,
   ncol = 2,
   rel_widths = c(0.45, 0.55)
@@ -1788,7 +1822,7 @@ cowplot::plot_grid(
   results_grid,
   ncol = 1,
   rel_heights = c(0.4, 1),  
-  labels = c("A", ""),      
+  labels = c("a", ""),      
   label_size = 22
 )
 
@@ -1796,6 +1830,31 @@ ggsave("plots/behavioral_results.png", dpi=300, height=20, width=15)
 ggsave("plots/behavioral_results.pdf", height=20, width=15)
 
 ```
+
+### Bonus round
+
+```{r}
+#| label: fig-prediction-round-results
+#| fig-cap: "Rewward predictions in bonus round."
+#| fig-width: 4
+#| fig-height: 15
+#| 
+cowplot::plot_grid(
+  p_bonusround_prediction_error,
+  p_bonusround_prediction_chosen,
+  nrow = 1,
+  rel_widths = c(0.45, 0.55),
+  labels = c("auto"),      
+  label_size = 22
+)
+
+ggsave("plots/bonus_round.png", dpi=300, height=4, width=15)
+ggsave("plots/bonus_round.pdf", height=4, width=15)
+
+```
+
+
+
 
 
 
@@ -1876,8 +1935,8 @@ The plots show performance as function of depression score (BDI-II), separately 
 ```{r}
 #| label: fig-performance-BDI
 #| fig-cap: "Performance as function of depression score (BDI-II)."
-#| fig-width: 7
-#| fig-height: 3
+#| fig-width: 8
+#| fig-height: 4
 
 df_correlation_groups_BDI <- df_mean_reward_subject %>%
   group_by(group) %>%
@@ -1892,11 +1951,11 @@ ggplot(df_mean_reward_subject, aes(x = BDI, y = mean_reward)) +
   #geom_jitter(aes(fill = BDI), shape = 21, alpha = jit_alpha, colour = "black") +
   geom_point(aes(fill = BDI), shape = 21, alpha = jit_alpha, colour = "black") +
   scale_fill_gradient(low="blue",high="red") +
-  scale_y_continuous("Mean reward") + 
-  scale_x_continuous("BDI score", breaks = c(0,5,10,15)) +
-  coord_cartesian(xlim = c(0,15), ylim = c(20,40)) +
+  scale_y_continuous("Mean normalized reward") + 
+  scale_x_continuous("BDI score") +
+  coord_cartesian(xlim = c(0,15), ylim = c(.2,.9)) +
   ggtitle("Performance as function of depression score") +
-  geom_text(data = df_correlation_groups_BDI, aes(x = 2, y = 20, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE, size = 4) +
+  geom_text(data = df_correlation_groups_BDI, aes(x = 3.5, y = 0.25, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE, size = 5) +
   theme_classic() +
   theme(aspect.ratio = 1,
         plot.title = element_text(size =16),
@@ -1905,8 +1964,8 @@ ggplot(df_mean_reward_subject, aes(x = BDI, y = mean_reward)) +
         legend.text =  element_text(colour="black"),
         strip.background = element_blank(),
         strip.text = element_text(size=14),
-        axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(size=12),
+        axis.title = element_text(colour = "black", size = 14),
+        axis.text = element_text(colour = "black", size = 14),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
@@ -1920,8 +1979,8 @@ Higher values indicate better cognitive functioning.
 ```{r}
 #| label: fig-performance-MMSE
 #| fig-cap: "Performance as function of Mini-Mental State Examination (MMSE)."
-#| fig-width: 10
-#| fig-height: 5
+#| fig-width: 8
+#| fig-height: 4
 
 df_correlation_groups_MMSE <- df_mean_reward_subject %>%
   group_by(group) %>%
@@ -1932,21 +1991,21 @@ ggplot(df_mean_reward_subject, aes(x = MMSE, y = mean_reward)) +
   geom_smooth(colour = "black", linetype = "dashed", linewidth = 0.5, method="lm", se=T, alpha = 0.2) +
   geom_point(aes(fill = MMSE), shape = 21, alpha = jit_alpha, colour = "black") +
   scale_fill_gradient(low="blue",high="red") +
-  scale_y_continuous("Mean reward") + 
+  scale_y_continuous("Mean normalized reward") + 
   scale_x_continuous("MMSE score", breaks = c(27,28,29,30)) +
-  coord_cartesian(xlim = c(27,30), ylim = c(23,40)) +
+  coord_cartesian(xlim = c(27,30), ylim = c(0.2,0.9)) +
   ggtitle("Performance as function of mental status (MMSE)") +
-  geom_text(data = df_correlation_groups_MMSE, aes(x = 27.5, y = 23, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE, size = 3) +
+  geom_text(data = df_correlation_groups_MMSE, aes(x = 28, y = 0.25, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE, size = 5) +
   theme_classic() +
-  theme(aspect.ratio = 1,
-        plot.title = element_text(size=16),
+ theme(aspect.ratio = 1,
+        plot.title = element_text(size =16),
         legend.title = element_blank(),
         legend.position = 'none',
         legend.text =  element_text(colour="black"),
         strip.background = element_blank(),
         strip.text = element_text(size=14),
-        axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(size=12),
+        axis.title = element_text(colour = "black", size = 14),
+        axis.text = element_text(colour = "black", size = 14),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
@@ -1976,24 +2035,23 @@ ggplot(filter(df_mean_reward_subject, group != "Control"), aes(x = hoehn_yahr, y
   geom_jitter(aes(fill = MMSE), shape = 21, alpha = jit_alpha, jit_width=0.0001, colour = "black") +
   #geom_point(aes(fill = hoehn_yahr), shape = 21, alpha = jit_alpha, colour = "black") +
   scale_fill_gradient(low="blue",high="red") +
-  scale_y_continuous("Mean reward") + 
+  scale_y_continuous("Mean normalized reward") + 
   scale_x_continuous("Hoehn-Yahr score", breaks = c(1,2,3)) +
-  coord_cartesian(xlim = c(1,3), ylim = c(23,40)) +
+  coord_cartesian(xlim = c(1,3), ylim = c(0.2,0.9)) +
   ggtitle("Performance as function of Hoehn-Yahr score") +
-  geom_text(data = df_correlation_groups_hoehn_yahr, aes(x = 1.2, y = 23, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE) +
+  geom_text(data = df_correlation_groups_hoehn_yahr, aes(x = 1.3, y = 0.25, label = paste0("italic(r) == ", round(correlation, 2))), parse = TRUE, inherit.aes = FALSE, size = 5) +
   theme_classic() +
   theme(aspect.ratio = 1,
-        plot.title = element_text(size=16),
+        plot.title = element_text(size =16),
         legend.title = element_blank(),
         legend.position = 'none',
         legend.text =  element_text(colour="black"),
         strip.background = element_blank(),
         strip.text = element_text(size=14),
-        axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(size=12),
+        axis.title = element_text(colour = "black", size = 14),
+        axis.text = element_text(colour = "black", size = 14),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-
 
 ggsave("plots/performance_groups_HY.png", dpi=300, height = 3, width = 5)
 ```
