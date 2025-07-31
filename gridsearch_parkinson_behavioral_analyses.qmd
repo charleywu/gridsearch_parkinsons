@@ -502,8 +502,6 @@ ggsave("plots/performance.png", p_performance, dpi=300, height = 5, width = 6 )
 
 Participants’ learning curves (@fig-learning-curves) show the average reward obtained in each trial across rounds. For both polyneuropathy patients (Control) and PD patients on medication (PD+), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, PD patients off medication (PD-) showed no improvement across trials.
 
-TO DO: Add random reward as baseline
-
 ```{r echo=FALSE}
 #| label: fig-learning-curves
 #| fig-cap: "Learning curves, showing obtained mean reward for each trial, aggregated across rounds."
@@ -1506,7 +1504,7 @@ dat_bonus_error <- dat_bonus %>%
 
 ### Prediction error
 
-@fig-bonusround-error shows the mean absolute error between participants' estimates and the true underlying expected reward, for each age group and environment. Compared to a random baseline, all groups performed better than chance level:
+@fig-bonusround-error shows the mean absolute error between participants' estimates and the true underlying expected reward. Compared to a random baseline, all groups performed better than chance level:
 
 -   Control: `r ttestPretty(subset(dat_bonus_error, group=='Control')$mean_error, mu =randomPerformance)`
 -   PD+: `r ttestPretty(subset(dat_bonus_error, group=='PD+')$mean_error, mu =randomPerformance)`
@@ -1528,7 +1526,7 @@ Controls had lower prediction error than PD- patients; no other group difference
 # plot mean absolute error (MAE) per subject 
 p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
   geom_hline(yintercept=randomPerformance, linewidth = 0.5, color = "darkred", linetype = "dotted") +
-  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.2) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.4) +
   geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
@@ -1699,7 +1697,7 @@ df_chosen_group_wide <- df_chosen_group  %>%
 p_bonusround_prediction_chosen <-
   ggplot(df_chosen_group, aes(x = chosen, y = m_givenValue, color = group, fill = group, shape = group)) +
   facet_wrap(~group) +
-  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.2) +
+  geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.4) +
   geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
@@ -1773,7 +1771,51 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 ```
 
 # Appendix
-## Overview figure behavioral results
+
+## Figures
+### Task and computational model
+
+```{r}
+#| label: fig-task-model
+#| fig-cap: "Task and computational model"
+#| fig-width: 16
+#| fig-height: 15
+#| 
+
+# get task illustration
+img_task <- image_read("img/task.png")  
+gimg_task <- rasterGrob(as.raster(img_task), interpolate = TRUE)
+
+# add title
+task <- ggdraw() +
+  draw_label("Experiment and design", size = 24, x = 0.03, y = 1, hjust = 0, vjust = 1.5) +
+  draw_grob(gimg_task, y = -0.02)
+
+# get GP-UCB model illustration
+img_model <- image_read("img/GP-UCB model.png")  
+gimg_model <- rasterGrob(as.raster(img_model), interpolate = TRUE)
+
+# add title
+model <- ggdraw() +
+  draw_label("Computational GP-UCB model", size = 24, x = 0.03, y = 1, hjust = 0, vjust = 1.5) +
+  draw_grob(gimg_model, y = 0.05)
+
+cowplot::plot_grid(
+  task,
+  model,
+  ncol = 1,
+  labels = c("auto"),      
+  label_size = 22,
+  label_y = c(1, 1),  # vertikale Position der cowplot-Labels (A, B)
+  label_x = c(0, 0)   # horizontale Position (links)
+)
+
+ggsave("plots/task_model.png", dpi=300, height=10, width=15)
+ggsave("plots/task_model.pdf", height=10, width=15, limitsize = FALSE )
+
+```
+
+### Behavioral results
 
 ```{r}
 #| label: fig-behavioral-results
@@ -1782,56 +1824,60 @@ ggsave("plots/bonusround_chosen_not_chosen_options_confidence.png", dpi=300, wid
 #| fig-height: 15
 #| 
 
-# cowplot::plot_grid(
+
+cowplot::plot_grid(
+   p_performance, p_learning_curves,
+   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
+   p_distance_consecutive, p_regression_distance_reward,
+   p_bonusround_prediction_error, p_bonusround_prediction_chosen,
+   labels = c("auto"),
+   label_size = 22,
+   label_y = 1.02, 
+   nrow = 4,
+   rel_widths = c(0.45, 0.55)
+)
+
+ggsave("plots/behavioral_results.png", dpi=300, height=20, width=17)
+ggsave("plots/behavioral_results.pdf", height=20, width=17)
+
+
+# VERSION WITH TASK IN TOP ROW
+# get task illustration
+# img_task <- image_read("img/task.png")  
+# gimg_task <- rasterGrob(as.raster(img_task), interpolate = TRUE)
+# 
+# # add title
+# task <- ggdraw() +
+#   draw_label("Experiment and design", size = 24, x = 0.05, y = 1, hjust = 0, vjust = 1.5) +
+#   draw_grob(gimg_task)
+# 
+# # results plots
+# results_grid <- plot_grid(
 #   p_performance, p_learning_curves,
 #   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
 #   p_distance_consecutive, p_regression_distance_reward,
-#   labels = c("auto"),
+#   labels = c("b", "c", "d", "e", "f", "g"),  
 #   label_size = 22,
-#   nrow = 3,
-#   rel_widths = c(0.45, 0.55),
-#   align = "hv"
+#   ncol = 2,
+#   rel_widths = c(0.45, 0.55)
+#   #align = "hv"
 # )
-
-# ggsave("plots/behavioral_results.png", dpi=300, height=16, width=15)
-# ggsave("plots/behavioral_results.pdf", height=16, width=15)
-
-# get task illustration
-img_task <- image_read("img/task.png")  
-gimg_task <- rasterGrob(as.raster(img_task), interpolate = TRUE)
-
-# add title
-task <- ggdraw() +
-  draw_label("Experiment and design", size = 24, x = 0.05, y = 1, hjust = 0, vjust = 1.5) +
-  draw_grob(gimg_task)
-
-# results plots
-results_grid <- plot_grid(
-  p_performance, p_learning_curves,
-  p_explore_exploit_choices, p_explore_exploit_choices_over_time,
-  p_distance_consecutive, p_regression_distance_reward,
-  labels = c("b", "c", "d", "e", "f", "g"),  
-  label_size = 22,
-  ncol = 2,
-  rel_widths = c(0.45, 0.55)
-  #align = "hv"
-)
-
-cowplot::plot_grid(
-  task,
-  results_grid,
-  ncol = 1,
-  rel_heights = c(0.4, 1),  
-  labels = c("a", ""),      
-  label_size = 22
-)
-
-ggsave("plots/behavioral_results.png", dpi=300, height=20, width=15)
-ggsave("plots/behavioral_results.pdf", height=20, width=15)
+# 
+# cowplot::plot_grid(
+#   task,
+#   results_grid,
+#   ncol = 1,
+#   rel_heights = c(0.4, 1),  
+#   labels = c("a", ""),      
+#   label_size = 22
+# )
+# 
+# ggsave("plots/behavioral_results.png", dpi=300, height=20, width=15)
+# ggsave("plots/behavioral_results.pdf", height=20, width=15)
 
 ```
 
-### Bonus round
+
 
 ```{r}
 #| label: fig-prediction-round-results
@@ -1839,17 +1885,19 @@ ggsave("plots/behavioral_results.pdf", height=20, width=15)
 #| fig-width: 4
 #| fig-height: 15
 #| 
-cowplot::plot_grid(
-  p_bonusround_prediction_error,
-  p_bonusround_prediction_chosen,
-  nrow = 1,
-  rel_widths = c(0.45, 0.55),
-  labels = c("auto"),      
-  label_size = 22
-)
 
-ggsave("plots/bonus_round.png", dpi=300, height=4, width=15)
-ggsave("plots/bonus_round.pdf", height=4, width=15)
+### Bonus round
+# cowplot::plot_grid(
+#   p_bonusround_prediction_error,
+#   p_bonusround_prediction_chosen,
+#   nrow = 1,
+#   rel_widths = c(0.45, 0.55),
+#   labels = c("auto"),      
+#   label_size = 22
+# )
+# 
+# ggsave("plots/bonus_round.png", dpi=300, height=4, width=15)
+# ggsave("plots/bonus_round.pdf", height=4, width=15)
 
 ```
 
@@ -2113,3 +2161,7 @@ ggsave("plots/performance_groups_HY.png", dpi=300, height = 3, width = 5)
   Combined pupillometry, pharmacology, and fMRI to show distinct roles of dopamine and norepinephrine in exploration and exploitation.  
   Chen et al. (2024): *Dopamine and norepinephrine mediate explore/exploit tradeoff*. [J Neurosci, 44](https://doi.org/10.1523/JNEUROSCI.1194-23.2024)
   
+- **Sharp et al (2019)**  
+  *Dopamine selectively remediates ‘model-based’reward learning: a computational approach*  
+   Sharp, M. E., Foerde, K., Daw, N. D., & Shohamy, D. (2016). Dopamine selectively remediates ‘model-based’ reward learning: a computational approach. Brain, 139(2), 355-364
+   https://academic.oup.com/brain/article/139/2/355/1753805
