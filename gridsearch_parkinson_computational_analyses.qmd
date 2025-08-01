@@ -195,7 +195,6 @@ $$
 #| label: fig-model_comparison
 #| fig-width: 14
 
-
 # get subject information
 groupDF <-dat_sample %>%
   select(id, age, gender,group,BDI,MMSE,hoehn_yahr,last_ldopa,next_ldopa,time_exp,time_since_ldopa) %>%
@@ -359,6 +358,7 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 
 
 ```
+
 ## Model comparison: Control
 - GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 - GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
@@ -375,7 +375,7 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 - GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD-' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD-' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 
 
-# Model-based classification of participants
+## Model-based classification of participants
 
 ```{r}
 # classify participants according to model R^2
@@ -406,7 +406,7 @@ modelFits <- modelFits %>%
 
 ```
 
-We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$; @fig-participant_classification). In each patient group, the GP-UCB model was the most rpedictive model for the majority of participants (Control: `r df_percent %>% filter(group == "Control", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD+: `r df_percent %>% filter(group == "PD+", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD-: `r df_percent %>% filter(group == "PD-", best_shortname == "GP\nUCB") %>% pull(percent)`%).
+We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$; @fig-participant_classification). In each patient group, the GP-UCB model was the most predictive model for the majority of participants (Control: `r df_percent %>% filter(group == "Control", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD+: `r df_percent %>% filter(group == "PD+", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD-: `r df_percent %>% filter(group == "PD-", best_shortname == "GP\nUCB") %>% pull(percent)`%).
 
 In total, out of `r sum(df_counts$n)` participants, `r sum(df_counts$n[df_counts$best_shortname == "GP\nUCB"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "GP\nUCB"]) / sum(df_counts$n),3)*100`%) were best described by the GP-UCB model, `r sum(df_counts$n[df_counts$best_shortname == "lambda\nlesion"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "lambda\nlesion"]) / sum(df_counts$n),3)*100`%) by the lambda lesion model, `r sum(df_counts$n[df_counts$best_shortname == "beta\nlesion"])`  (`r round(sum(df_counts$n[df_counts$best_shortname == "beta\nlesion"]) / sum(df_counts$n),3)*100`%) by the beta lesion model, and `r sum(df_counts$n[df_counts$best_shortname == "tau\nlesion"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "tau\nlesion"]) / sum(df_counts$n),3)*100`%) by the tau lesion model. The results suggest that all three components of the GP-UCB model are relevant for predicting participants' behavior.
 
@@ -449,8 +449,8 @@ theme_classic() +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.spacing = unit(3, "lines"),
-    legend.key.spacing.y = unit(0.6, "cm"),
-    plot.margin = margin(-70, 0, -20, 0) # negativ bottom margin, otherwise artfecat when putting later together with cowplot
+    legend.key.spacing.y = unit(0.4, "cm"),
+    plot.margin = margin(-70, 0, -30, 0) # negativ bottom margin, otherwise artfecat when putting later together with cowplot
     )
 
 ggsave("plots/participant_classification.png", p_classification_participants, width = 12, height = 5, dpi=300)
@@ -497,47 +497,46 @@ df_gpucb_params %>%
 #| fig-width: 12
 
 
-# facetted plot
-p_gpucb_params <- ggplot(df_gpucb_params, aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
-  # facet_wrap(~param, nrow = 1) +
-  facet_wrap(
-    ~ param,
-    labeller = labeller(
-      param = c(
-        "lambda" = "'Generalization '*lambda",
-        "beta"   = "'Exploration bonus '*beta",
-        "tau"    = "'Random exploration '*tau"
-      ),
-      .default = label_parsed  
-  )) +
-  scale_y_log10(name = "Estimate (log scale)", breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
-  geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
-  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
-  scale_x_discrete("") + 
-  ggtitle("GP-UCB parameter estimates: Group differences") + 
-  theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=18),
-        legend.position = "none",
-        legend.justification = c(0, 1),
-        axis.title = element_text(size = 18),
-        axis.text = element_text(size = 18),
-       # plot.margin = margin(0, 0, 0, 0),
-        plot.title = element_text(size = 24),
-       plot.margin = margin(0, 0, 20, 0) 
-  )
-
-p_gpucb_params  
-ggsave("plots/GP-UCB_params.png", p_gpucb_params,dpi=300, width = 9, height = 5)
+# facetted plot (all log scaled values)
+# p_gpucb_params <- ggplot(df_gpucb_params, aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
+#   facet_wrap(
+#     ~ param,
+#     labeller = labeller(
+#       param = c(
+#         "lambda" = "'Generalization '*lambda",
+#         "beta"   = "'Exploration bonus '*beta",
+#         "tau"    = "'Random exploration '*tau"
+#       ),
+#       .default = label_parsed  
+#   )) +
+#   scale_y_log10(name = "Estimate (log scale)", breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
+#   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
+#   geom_jitter(width = 0.15, size = 2) +  
+#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
+#   scale_color_manual(values = groupcolors) +
+#   scale_fill_manual(values = groupcolors) +
+#   scale_x_discrete("") + 
+#   ggtitle("GP-UCB parameter estimates: Group differences") + 
+#   theme_classic() +
+#   theme(strip.background = element_blank(),  
+#         strip.text = element_text(color = "black", size=18),
+#         legend.position = "none",
+#         legend.justification = c(0, 1),
+#         axis.title = element_text(size = 18),
+#         axis.text = element_text(size = 18),
+#        # plot.margin = margin(0, 0, 0, 0),
+#         plot.title = element_text(size = 24),
+#        plot.margin = margin(0, 0, 20, 0) 
+#   )
+# 
+# p_gpucb_params  
+# ggsave("plots/GP-UCB_params.png", p_gpucb_params,dpi=300, width = 9, height = 5)
 
 # separate plots
 # generalization lambda
 p_gpucb_params_lambda <- 
   ggplot(subset(df_gpucb_params, param == "lambda"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
-  # scale_y_log10(name = "Estimate (log scale)", breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "darkred") + # true lambda
   scale_y_continuous(name = "Estimate", breaks = c(0, 0.5, 1, 2), labels = c("0", "0.5", "1", "2"), limits = c(0, 1.45)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
   geom_jitter(width = 0.15, size = 2) +  
@@ -553,11 +552,11 @@ p_gpucb_params_lambda <-
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
-        plot.margin = margin(10, 0, 0, 0) 
+        plot.margin = margin(10, 0, 10, 0) 
   )
 
-p_gpucb_params_lambda  
-ggsave("plots/GP-p_gpucb_params_lambda.png", p_gpucb_params_lambda, dpi=300, width = 4, height = 4)
+# p_gpucb_params_lambda  
+# ggsave("plots/GP-p_gpucb_params_lambda.png", p_gpucb_params_lambda, dpi=300, width = 4, height = 4)
 
 # exploration bonus beta
 p_gpucb_params_beta <- 
@@ -577,11 +576,11 @@ p_gpucb_params_beta <-
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
-        plot.margin = margin(10, 0, 0, 0) 
+        plot.margin = margin(10, 0, 10, 0) 
   )
 
-p_gpucb_params_beta  
-ggsave("plots/GP-p_gpucb_params_beta.png", p_gpucb_params_beta, dpi=300, width = 4, height = 4)
+# p_gpucb_params_beta  
+# ggsave("plots/GP-p_gpucb_params_beta.png", p_gpucb_params_beta, dpi=300, width = 4, height = 4)
 
 # random exploration temperature tau 
 p_gpucb_params_tau <- 
@@ -601,11 +600,11 @@ p_gpucb_params_tau <-
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
-        plot.margin = margin(10, 0, 0, 0) 
+        plot.margin = margin(10, 0, 10, 0) 
   )
 
-p_gpucb_params_tau  
-ggsave("plots/GP-p_gpucb_params_tau.png", p_gpucb_params_tau, dpi=300, width = 4, height = 4)
+# p_gpucb_params_tau  
+# ggsave("plots/GP-p_gpucb_params_tau.png", p_gpucb_params_tau, dpi=300, width = 4, height = 4)
 
 # out together and add title
 p_gpucb_params <- grid.arrange(
@@ -789,14 +788,16 @@ The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected r
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate, paired = F)`
 
 ### Random exploration $\tau$
-The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in terms of the amount of random exploration.
+The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in rge temperature paramter $\tau$, indicating comparable amounts of random exploration regardless of group.
 
 - Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, paired = F)`
 - Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 
-# Correlation of model parameters with performance
-To analyze relationships between parameter estimates and performance, we computed the Kendall correlation $\tau$ between each parameter and the obtained mean reward.
+
+# Relations of model parameters to performance
+
+We assessed the correlation (Kendall's tau, because it's invariant against log transformation) of GP-UCB parameter estimates with performance (mean reward).
 
 ```{r}
 
@@ -819,13 +820,14 @@ df_params_performance_wide <- df_gpucb_params %>%
 ```
 
 
-The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better. By contrast, both the uncertainty bonus $\beta$ and the amount of random temperature $\tau$ were negatively related to obtained rewards, showing how to much exploration can impair succesull navigation of the explore-exploit trade-off.
+The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards performed better. The uncertainty bonus $\beta$ was negatively correlated with performance, demonstrating that an overreliance on exploration impairs efficient reward accumulation. The amount of random temperature $\tau$ was not related to obtained rewards.
 
 ```{r}
 #| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1."
 #| label: fig-params_reward_cor
 #| fig-width: 12
 #| fig-height: 5
+
 
 # plot correlation lambda and reward 
 p_lambda_reward <- 
@@ -855,8 +857,9 @@ p_lambda_reward <-
     legend.key.size = unit(0.8, "lines"),
     legend.margin = margin(0, 0, 0, 0),       
   legend.box.margin = margin(0, 0, 0, 0),
-  legend.key = element_rect(fill = NA, colour = NA),
-  plot.margin = margin(10, 0, 0, 0) 
+  plot.margin = margin(10, 0, 0, 0), 
+  legend.key = element_rect(fill = NA, colour = NA)
+
   )
 
 ggsave("plots/cor_lambda_reward.png", p_lambda_reward, dpi = 300, width = 8, height = 5)
@@ -884,7 +887,7 @@ p_beta_reward <-
     axis.title = element_text(color = "black", size = 14),
     axis.text = element_text(color = "black", size = 14),
     legend.position = "none",
-    plot.margin = margin(10, 0, 0, 0) 
+    plot.margin = margin(10, 0, 0, 0)
   )
 
 ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height = 5)
@@ -913,19 +916,12 @@ ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height 
     axis.title = element_text(color = "black", size = 14),
     axis.text = element_text(color = "black", size = 14),
     legend.position = "none",
-    plot.margin = margin(10, 0, 0, 0) 
+    plot.margin = margin(10, 0, 0, 0)
   )
 
 ggsave("plots/cor_tau_reward.png", p_tau_reward, dpi = 300, width = 8, height = 5)
 
-# put plots together
-# p_parameters_reward <- plot_grid(
-#   p_lambda_reward, p_beta_reward, p_tau_reward,
-#   nrow = 1,
-#   labels = NULL
-# )
-
-# add title
+# put plots together and add title
 p_parameters_reward <- grid.arrange(
   grobs = list(p_lambda_reward, p_beta_reward, p_tau_reward),
   nrow = 1,
@@ -1001,9 +997,10 @@ ggsave("plots/p_parameters_reward.png", p_parameters_reward, dpi = 300, width = 
 
 ```
 
-Correlation (Kendall's tau $r_{\tau}$, because it's invariant against log transformation) of parameter estimates with performance (mean reward):
+
 
 ## Generalization $\lambda$
+
 Overall, the extent of generalization was positively related to performance, suggesting that participants who stronger generalized obtained more rewards:
 
 -   Overall: `r corTestPretty(subset(df_params_performance, param == "lambda")$estimate_log10, subset(df_params_performance, param == "lambda")$mean_reward, method = "kendall")`
@@ -1102,6 +1099,30 @@ ggsave("plots/computational_results.png", dpi=300, height=16, width=14)
 
 
 # Model params of participants best explained by GP-UCB model
+
+For this analysis we only consider participants who were best explained by the GP-UCB model. The results are consistent with the same analyses performed with the full sample above: no substantial differences in amount of generalization $\lambda$, marked differences in terms of the exploration bonus $\beta$, and no differences in terms of random exploration $\tau$. The only difference is that we found a difference between the control and off-medication group in the extent of generalization when using the full sample, whereas we found no difference when only considering the subset of participants best accounted for by the GP-UCB model.
+
+### Generalization $\lambda$
+The parameter $\lambda$ represents the length-scale in the RBF kernel, which governs the amount of generalization, i.e., to what extent participants assume a spatial correlation between options (higher $\lambda$ = stronger generalization). Overall, the amount of generalization was very similar between groups. 
+
+- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+
+### Exploration bonus $\beta$
+The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = more uncertainty-directed exploration). Controls and PD+ patients on medication did not differ, and both groups had lower beta estimates than the dopamine-depleted patients in the PD− group. These differences suggest that levodopa medication modulated the amount of uncertainty-directed exploration by restoring beta to levels comparable to those observed in controls without PD. This aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of random exploration remained unaffected [@chakroun2020dopaminergic].
+
+- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+
+### Random exploration $\tau$
+The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in rge temperature paramter $\tau$, indicating comparable amounts of random exploration regardless of group.
+
+- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+
 
 ```{r}
 #| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant.Only participants are included who were best described by the GP-UCB model."
