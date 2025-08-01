@@ -56,3 +56,5 @@ rsconnect/
 
 # raw data files (JSON)
 data/raw_data/
+
+.DS_Store
