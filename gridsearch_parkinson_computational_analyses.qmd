@@ -195,7 +195,6 @@ $$
 #| label: fig-model_comparison
 #| fig-width: 14
 
-
 # get subject information
 groupDF <-dat_sample %>%
   select(id, age, gender,group,BDI,MMSE,hoehn_yahr,last_ldopa,next_ldopa,time_exp,time_since_ldopa) %>%
@@ -359,7 +358,11 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 
 
 ```
+<<<<<<< HEAD
 ## Model comparison: Control
+=======
+#### Model comparison: Control
+>>>>>>> bb83a9e88150147c8fd2f9d3d1edb8f119a0042a
 - GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 - GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 - GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
@@ -375,7 +378,11 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 - GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD-' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD-' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 
 
+<<<<<<< HEAD
 # Model-based classification of participants
+=======
+### Model-based classification of participants
+>>>>>>> bb83a9e88150147c8fd2f9d3d1edb8f119a0042a
 
 ```{r}
 # classify participants according to model R^2
@@ -497,7 +504,7 @@ df_gpucb_params %>%
 #| fig-width: 12
 
 
-# facetted plot
+
 p_gpucb_params <- ggplot(df_gpucb_params, aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
   # facet_wrap(~param, nrow = 1) +
   facet_wrap(
@@ -774,6 +781,7 @@ ggsave("plots/p_gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height
 
 To better understand the mechanisms underlying the observed behavioral differences, we analyzed the parameters of the Gaussian Process Upper Confidence Bound (GP-UCB) model (@fig-GP-CUB_params). 
 
+<<<<<<< HEAD
 ### Generalization $\lambda$
 The parameter $\lambda$ represents the length-scale in the RBF kernel, which governs the amount of generalization, i.e., to what extent participants assume a spatial correlation between options (higher $\lambda$ = stronger generalization). Overall, the amount of generalization was very similar between groups. 
 
@@ -788,6 +796,21 @@ The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected r
 - Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate, paired = F)`
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate, paired = F)`
 
+
+### Generalization Lambda $\lambda$
+The parameter $\lambda$ represents the length-scale in the RBF kernel, which governs the amount of generalization, i.e., to what extent participants assume a spatial correlation between options (higher $\lambda$ = stronger generalization). Overall, the amount of generalization was very similar between groups. 
+
+- Control vs. PD+: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="lambda")$estimate,var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda")$estimate,var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'PD+' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda")$estimate,var.equal = TRUE)`
+
+### Uncertainty-directed exploration Beta $\beta$
+The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = stronger generalization). 
+
+- Control vs. PD+: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate,var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate,var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate,var.equal = TRUE)`
+
 ### Random exploration $\tau$
 The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in terms of the amount of random exploration.
 
@@ -795,8 +818,25 @@ The parameter $\tau$ represents the amount of decision noise, i.e. stochastic va
 - Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 
+
 # Correlation of model parameters with performance
 To analyze relationships between parameter estimates and performance, we computed the Kendall correlation $\tau$ between each parameter and the obtained mean reward.
+
+### Random exploration tau $\tau$
+The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, \beta \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}). 
+
+- Control vs. PD+: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate,var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate,var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate,var.equal = TRUE)`
+
+
+The increased exploration bonus $\beta$ aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of undirected exploration was unaffected [@Chakroun2020restless_ldopa].
+
+
+# Correlation of Model Parameters with Performance
+
+The amount of generalization was positively related with obtained rewards, showing that participants who successfully learned about the spatially correlation of rewards were performing better.
+
 
 ```{r}
 
@@ -827,6 +867,7 @@ The amount of generalization was positively related with obtained rewards, showi
 #| fig-width: 12
 #| fig-height: 5
 
+
 # plot correlation lambda and reward 
 p_lambda_reward <- 
   ggplot(subset(df_params_performance, param == "lambda"), aes(x = estimate, y = mean_reward)) +
@@ -855,8 +896,9 @@ p_lambda_reward <-
     legend.key.size = unit(0.8, "lines"),
     legend.margin = margin(0, 0, 0, 0),       
   legend.box.margin = margin(0, 0, 0, 0),
-  legend.key = element_rect(fill = NA, colour = NA),
-  plot.margin = margin(10, 0, 0, 0) 
+  plot.margin = margin(10, 0, 0, 0), 
+  legend.key = element_rect(fill = NA, colour = NA)
+
   )
 
 ggsave("plots/cor_lambda_reward.png", p_lambda_reward, dpi = 300, width = 8, height = 5)
@@ -884,7 +926,7 @@ p_beta_reward <-
     axis.title = element_text(color = "black", size = 14),
     axis.text = element_text(color = "black", size = 14),
     legend.position = "none",
-    plot.margin = margin(10, 0, 0, 0) 
+    plot.margin = margin(10, 0, 0, 0)
   )
 
 ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height = 5)
@@ -913,19 +955,12 @@ ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height 
     axis.title = element_text(color = "black", size = 14),
     axis.text = element_text(color = "black", size = 14),
     legend.position = "none",
-    plot.margin = margin(10, 0, 0, 0) 
+    plot.margin = margin(10, 0, 0, 0)
   )
 
 ggsave("plots/cor_tau_reward.png", p_tau_reward, dpi = 300, width = 8, height = 5)
 
-# put plots together
-# p_parameters_reward <- plot_grid(
-#   p_lambda_reward, p_beta_reward, p_tau_reward,
-#   nrow = 1,
-#   labels = NULL
-# )
-
-# add title
+# put plots together and add title
 p_parameters_reward <- grid.arrange(
   grobs = list(p_lambda_reward, p_beta_reward, p_tau_reward),
   nrow = 1,
@@ -1001,12 +1036,19 @@ ggsave("plots/p_parameters_reward.png", p_parameters_reward, dpi = 300, width = 
 
 ```
 
+
 Correlation (Kendall's tau $r_{\tau}$, because it's invariant against log transformation) of parameter estimates with performance (mean reward):
 
 ## Generalization $\lambda$
+
+Correlation (Kendall's tau, because it's invariant against log transformation) of parameter estimates with performance (mean reward):
+
+## Generalization Lambda
+
 Overall, the extent of generalization was positively related to performance, suggesting that participants who stronger generalized obtained more rewards:
 
 -   Overall: `r corTestPretty(subset(df_params_performance, param == "lambda")$estimate_log10, subset(df_params_performance, param == "lambda")$mean_reward, method = "kendall")`
+
 
 Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD+ patients, who showed a strong relation, whereas there was no relation in controls or PD- patients: 
 
