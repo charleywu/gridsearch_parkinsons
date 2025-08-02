@@ -118,9 +118,9 @@ dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FA
   mutate(gender = as.factor(gender),
         group = fct_recode(group,
                        "Control" = "PNP",
-                       "PD+"     = "PD+",
-                       "PD-"     = "PD-"),
-    group = fct_relevel(group, "Control", "PD+", "PD-")
+                       "PD on"     = "PD+",
+                       "PD off"     = "PD-"),
+    group = fct_relevel(group, "Control", "PD on", "PD off")
   ) %>% 
   mutate(last_ldopa = if_else(group != "Control", as_hms(last_ldopa), as_hms(NA)),
          next_ldopa = if_else(group != "Control", as_hms(next_ldopa), as_hms(NA)),
@@ -336,12 +336,12 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 #     tip.length = 0.01, bracket.size = 0.3, size = 3
 #   ) +
 #   stat_pvalue_manual(
-#     filter(comparisons_df, group == "PD+"),
+#     filter(comparisons_df, group == "PD on"),
 #     label = "plot_label",
 #     tip.length = 0.01, bracket.size = 0.3, size = 3
 #   ) +
 #   stat_pvalue_manual(
-#     filter(comparisons_df, group == "PD-"),
+#     filter(comparisons_df, group == "PD off"),
 #     label = "plot_label",
 #     tip.length = 0.01, bracket.size = 0.3, size = 3
 #   ) +
@@ -364,15 +364,15 @@ ggsave("plots/model_comparison.png", p_model_comparison, dpi=300, width = 10, he
 - GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 - GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'Control' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'Control' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 
-## Model comparison: PD+
-- GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'PD+' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD+' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
-- GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'PD+' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD+' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
-- GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD+' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD+' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+## Model comparison: PD on
+- GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'PD on' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD on' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+- GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'PD on' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD on' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+- GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD on' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD on' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 
-## Model comparison: PD-
-- GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'PD-' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD-' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
-- GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'PD-' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD-' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
-- GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD-' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD-' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+## Model comparison: PD off
+- GP-UCB vs. lambda lesion: `r ttestPretty(subset(modelFits, group == 'PD off' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD off' & shortname == "lambda\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+- GP-UCB vs. beta lesion: `r ttestPretty(subset(modelFits, group == 'PD off' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD off' & shortname == "beta\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
+- GP-UCB vs. tau lesion: `r ttestPretty(subset(modelFits, group == 'PD off' & shortname == "GP\nUCB" )$R2, subset(modelFits, group == 'PD off' & shortname == "tau\nlesion" )$R2,var.equal = TRUE, paired = TRUE)`
 
 
 ## Model-based classification of participants
@@ -406,7 +406,7 @@ modelFits <- modelFits %>%
 
 ```
 
-We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$; @fig-participant_classification). In each patient group, the GP-UCB model was the most predictive model for the majority of participants (Control: `r df_percent %>% filter(group == "Control", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD+: `r df_percent %>% filter(group == "PD+", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD-: `r df_percent %>% filter(group == "PD-", best_shortname == "GP\nUCB") %>% pull(percent)`%).
+We classified participants based on which model achieved the highest cross-validated predictive accuracy (highest $R^2$; @fig-participant_classification). In each patient group, the GP-UCB model was the most predictive model for the majority of participants (Control: `r df_percent %>% filter(group == "Control", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD on: `r df_percent %>% filter(group == "PD on", best_shortname == "GP\nUCB") %>% pull(percent)`%, PD off: `r df_percent %>% filter(group == "PD off", best_shortname == "GP\nUCB") %>% pull(percent)`%).
 
 In total, out of `r sum(df_counts$n)` participants, `r sum(df_counts$n[df_counts$best_shortname == "GP\nUCB"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "GP\nUCB"]) / sum(df_counts$n),3)*100`%) were best described by the GP-UCB model, `r sum(df_counts$n[df_counts$best_shortname == "lambda\nlesion"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "lambda\nlesion"]) / sum(df_counts$n),3)*100`%) by the lambda lesion model, `r sum(df_counts$n[df_counts$best_shortname == "beta\nlesion"])`  (`r round(sum(df_counts$n[df_counts$best_shortname == "beta\nlesion"]) / sum(df_counts$n),3)*100`%) by the beta lesion model, and `r sum(df_counts$n[df_counts$best_shortname == "tau\nlesion"])` (`r round(sum(df_counts$n[df_counts$best_shortname == "tau\nlesion"]) / sum(df_counts$n),3)*100`%) by the tau lesion model. The results suggest that all three components of the GP-UCB model are relevant for predicting participants' behavior.
 
@@ -619,7 +619,7 @@ p_gpucb_params <- grid.arrange(
   padding = unit(0.5, "lines") 
 )
 
-ggsave("plots/p_gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height = 4)
+ggsave("plots/gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height = 4)
  
 
 
@@ -630,7 +630,7 @@ ggsave("plots/p_gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height
 # plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
 # 
 # # Define your comparisons
-# comparisons <- list(c("PD+", "PD-"), c("Control", "PD+"), c("Control", "PD-"))
+# comparisons <- list(c("PD on", "PD off"), c("Control", "PD on"), c("Control", "PD off"))
 # 
 # # Extract function for p and BF from ttestPretty output
 # # TO DO: Cumbersome via 
@@ -655,9 +655,9 @@ ggsave("plots/p_gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height
 #   group_by(param) %>%
 #   group_modify(~{
 #     comparisons <- list(
-#       c("Control", "PD+"),
-#       c("Control", "PD-"),
-#       c("PD+", "PD-")
+#       c("Control", "PD on"),
+#       c("Control", "PD off"),
+#       c("PD on", "PD off")
 #     )
 #     
 #     # For each pairwise group comparison
@@ -731,7 +731,7 @@ ggsave("plots/p_gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height
 #   ylab("Estimate (log scale)") +
 #   xlab("") +
 #     # ignore p values because of log; only done to position brackets correctly
-#  # stat_compare_means(comparisons = list( c("Control", "PD+"), c("PD+", "PD-"), c("Control", "PD-")  ),
+#  # stat_compare_means(comparisons = list( c("Control", "PD on"), c("PD on", "PD off"), c("Control", "PD off")  ),
 #  #                     paired = F,
 #  #                     method = "t.test",
 #  #                     # label = "p.format",
@@ -776,23 +776,23 @@ To better understand the mechanisms underlying the observed behavioral differenc
 ### Generalization $\lambda$
 The parameter $\lambda$ represents the length-scale in the RBF kernel, which governs the amount of generalization, i.e., to what extent participants assume a spatial correlation between options (higher $\lambda$ = stronger generalization). Overall, the amount of generalization was very similar between groups. 
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="lambda")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="lambda")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="lambda")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="lambda")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="lambda")$estimate, paired = F)`
 
 ### Exploration bonus $\beta$
-The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = more uncertainty-directed exploration). Controls and PD+ patients on medication did not differ, and both groups had lower beta estimates than the dopamine-depleted patients in the PD− group. These differences suggest that levodopa medication modulated the amount of uncertainty-directed exploration by restoring beta to levels comparable to those observed in controls without PD. This aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of random exploration remained unaffected [@chakroun2020dopaminergic].
+The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = more uncertainty-directed exploration). Controls and PD on patients on medication did not differ, and both groups had lower beta estimates than the dopamine-depleted patients in the PD− group. These differences suggest that levodopa medication modulated the amount of uncertainty-directed exploration by restoring beta to levels comparable to those observed in controls without PD. This aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of random exploration remained unaffected [@chakroun2020dopaminergic].
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="beta")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="beta")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="beta")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="beta")$estimate, paired = F)`
 
 ### Random exploration $\tau$
 The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in rge temperature paramter $\tau$, indicating comparable amounts of random exploration regardless of group.
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="tau")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="tau")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="tau")$estimate, paired = F)`
 
 
 # Relations of model parameters to performance
@@ -862,7 +862,7 @@ p_lambda_reward <-
 
   )
 
-ggsave("plots/cor_lambda_reward.png", p_lambda_reward, dpi = 300, width = 8, height = 5)
+# ggsave("plots/cor_lambda_reward.png", p_lambda_reward, dpi = 300, width = 8, height = 5)
 
 # plot correlation between exploration bonus beta (log10) and reward  
 p_beta_reward <-
@@ -890,7 +890,7 @@ p_beta_reward <-
     plot.margin = margin(10, 0, 0, 0)
   )
 
-ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height = 5)
+# ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height = 5)
 
 
 # plot correlation between amount of random exploration (temperature tau of softmax choice rule) and reward  
@@ -919,7 +919,7 @@ ggsave("plots/cor_beta_reward.png", p_beta_reward, dpi = 300, width = 8, height 
     plot.margin = margin(10, 0, 0, 0)
   )
 
-ggsave("plots/cor_tau_reward.png", p_tau_reward, dpi = 300, width = 8, height = 5)
+# ggsave("plots/cor_tau_reward.png", p_tau_reward, dpi = 300, width = 8, height = 5)
 
 # put plots together and add title
 p_parameters_reward <- grid.arrange(
@@ -934,7 +934,7 @@ p_parameters_reward <- grid.arrange(
   padding = unit(0.5, "lines") 
 )
 
-ggsave("plots/p_parameters_reward.png", p_parameters_reward, dpi = 300, width = 12, height = 4)
+ggsave("plots/parameters_reward.png", p_parameters_reward, dpi = 300, width = 12, height = 4)
  
 # # plot correlation between parameter estimates and mean reward, with inset for smaller estimate range 
 # main_plot <- ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
@@ -1005,11 +1005,11 @@ Overall, the extent of generalization was positively related to performance, sug
 
 -   Overall: `r corTestPretty(subset(df_params_performance, param == "lambda")$estimate_log10, subset(df_params_performance, param == "lambda")$mean_reward, method = "kendall")`
 
-Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD+ patients, who showed a strong relation, whereas there was no relation in controls or PD- patients: 
+Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD on patients, who showed a strong relation, whereas there was no relation in controls or PD off patients: 
 
 -   Control: `r corTestPretty(subset(df_params_performance, param == "lambda" & group == "Control")$estimate, subset(df_params_performance, param == "lambda" & group == "Control")$mean_reward, method = "kendall")`
--   PD+: `r corTestPretty(subset(df_params_performance, param == "lambda" & group == "PD+")$estimate, subset(df_params_performance, param == "lambda" & group == "PD+")$mean_reward, method = "kendall")`
--   PD-: `r corTestPretty(subset(df_params_performance, param == "lambda" & group == "PD-")$estimate, subset(df_params_performance, param == "lambda" & group == "PD-")$mean_reward, method = "kendall")`
+-   PD on: `r corTestPretty(subset(df_params_performance, param == "lambda" & group == "PD on")$estimate, subset(df_params_performance, param == "lambda" & group == "PD on")$mean_reward, method = "kendall")`
+-   PD off: `r corTestPretty(subset(df_params_performance, param == "lambda" & group == "PD off")$estimate, subset(df_params_performance, param == "lambda" & group == "PD off")$mean_reward, method = "kendall")`
 
 
 ## Exploration bonus $\beta$
@@ -1017,11 +1017,11 @@ The exploration bonus $\beta$ driving uncertainty-directed correlation was negat
 
 -   Overall: `r corTestPretty(subset(df_params_performance, param == "beta")$estimate_log10, subset(df_params_performance, param == "beta")$mean_reward, method = "kendall")`
 
-Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD+ patients, who showed a strong relation, whereas there was no relation in controls or PD- patients: 
+Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD on patients, who showed a strong relation, whereas there was no relation in controls or PD off patients: 
 
 -   Control: `r corTestPretty(subset(df_params_performance, param == "beta" & group == "Control")$estimate, subset(df_params_performance, param == "beta" & group == "Control")$mean_reward, method = "kendall")`
--   PD+: `r corTestPretty(subset(df_params_performance, param == "beta" & group == "PD+")$estimate, subset(df_params_performance, param == "beta" & group == "PD+")$mean_reward, method = "kendall")`
--   PD-: `r corTestPretty(subset(df_params_performance, param == "beta" & group == "PD-")$estimate, subset(df_params_performance, param == "beta" & group == "PD-")$mean_reward, method = "kendall")`
+-   PD on: `r corTestPretty(subset(df_params_performance, param == "beta" & group == "PD on")$estimate, subset(df_params_performance, param == "beta" & group == "PD on")$mean_reward, method = "kendall")`
+-   PD off: `r corTestPretty(subset(df_params_performance, param == "beta" & group == "PD off")$estimate, subset(df_params_performance, param == "beta" & group == "PD off")$mean_reward, method = "kendall")`
 
 
 ## Random exploration $\tau$
@@ -1029,11 +1029,11 @@ The temperature parameter of the softmax choice rule $\tau$, representig random 
 
 -   Overall: `r corTestPretty(subset(df_params_performance, param == "tau")$estimate_log10, subset(df_params_performance, param == "tau")$mean_reward, method = "kendall")`
 
-Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD+ patients, who showed a strong relation, whereas there was no relation in controls or PD- patients: 
+Analysis of parameter estimates on the group level showed that this overall relation was primarily driven by PD on patients, who showed a strong relation, whereas there was no relation in controls or PD off patients: 
 
 -   Control: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "Control")$estimate, subset(df_params_performance, param == "tau" & group == "Control")$mean_reward, method = "kendall")`
--   PD+: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD+")$estimate, subset(df_params_performance, param == "tau" & group == "PD+")$mean_reward, method = "kendall")`
--   PD-: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD-")$estimate, subset(df_params_performance, param == "tau" & group == "PD-")$mean_reward, method = "kendall")`
+-   PD on: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD on")$estimate, subset(df_params_performance, param == "tau" & group == "PD on")$mean_reward, method = "kendall")`
+-   PD off: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD off")$estimate, subset(df_params_performance, param == "tau" & group == "PD off")$mean_reward, method = "kendall")`
 
 ### Further analyses
 2) take ratio of explore/exploit and correlate with model params
@@ -1105,23 +1105,23 @@ For this analysis we only consider participants who were best explained by the G
 ### Generalization $\lambda$
 The parameter $\lambda$ represents the length-scale in the RBF kernel, which governs the amount of generalization, i.e., to what extent participants assume a spatial correlation between options (higher $\lambda$ = stronger generalization). Overall, the amount of generalization was very similar between groups. 
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="lambda" & best_ModelName == "GP-UCB")$estimate, paired = F)`
 
 ### Exploration bonus $\beta$
-The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = more uncertainty-directed exploration). Controls and PD+ patients on medication did not differ, and both groups had lower beta estimates than the dopamine-depleted patients in the PD− group. These differences suggest that levodopa medication modulated the amount of uncertainty-directed exploration by restoring beta to levels comparable to those observed in controls without PD. This aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of random exploration remained unaffected [@chakroun2020dopaminergic].
+The parameter $\beta$ represents the uncertainty bonus, i.e. how much expected rewards are positively inflated by their uncertainty (higher $\beta$ = more uncertainty-directed exploration). Controls and PD on patients on medication did not differ, and both groups had lower beta estimates than the dopamine-depleted patients in the PD− group. These differences suggest that levodopa medication modulated the amount of uncertainty-directed exploration by restoring beta to levels comparable to those observed in controls without PD. This aligns with findings from a restless bandit paradigm, where L-Dopa reduced the amount of directed exploration in healthy volunteers, while the level of random exploration remained unaffected [@chakroun2020dopaminergic].
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="beta" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="beta" & best_ModelName == "GP-UCB")$estimate, paired = F)`
 
 ### Random exploration $\tau$
 The parameter $\tau$ represents the amount of decision noise, i.e. stochastic variability in the softmax decision rule (lower $\tau$ = more decision noise, i.e. more uniform distribution; conversely, $\tau \rightarrow \infty \quad \Rightarrow \quad \text{argmax (greedy)}$). There were no group differences in rge temperature paramter $\tau$, indicating comparable amounts of random exploration regardless of group.
 
-- Control vs. PD+: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD+' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- Control vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
-- PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD on: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD on' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- Control vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'Control' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
+- PD on vs. PD off: `r ranktestPretty(subset(df_gpucb_params, group == 'PD on' & param=="tau" & best_ModelName == "GP-UCB")$estimate, subset(df_gpucb_params, group == 'PD off' & param=="tau" & best_ModelName == "GP-UCB")$estimate, paired = F)`
 
 
 ```{r}
@@ -1154,7 +1154,7 @@ ggboxplot(df_gpucb_params_subset,
         plot.title = element_text(size = 18)
   )
   
-ggsave("plots/GP-UCB_params_subset.png", width = 9, height = 5)
+# ggsave("plots/GP-UCB_params_subset.png", width = 9, height = 5)
 
 ```
 
