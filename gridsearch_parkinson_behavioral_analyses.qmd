@@ -187,7 +187,7 @@ The Hoehn-Yahr scale assesses disease severity and motor impairments in Parkinso
 ## Sample characteristics
 
 ::: callout-note
-exclude participant with pump
+check participant with pump
 :::
 
 @tbl-demographics shows the demographics of our sample, along with their Hoehn-Yahr, MMSE , and BDI scores. In the PD on group, the mean time since their last L-Dopa dose was `r dat_sample %>% filter(group == "PD on") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa) %>% round(0)` min; in the PD off group it was `r dat_sample %>% filter(group == "PD off") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa)%>% round(0)`min.
@@ -196,19 +196,70 @@ exclude participant with pump
 #| label: tbl-demographics
 #| fig-cap: "Demographics and clinical assessment."
 
-dat_sample %>% 
-  group_by(group) %>% 
-  summarise(n = n(),
-            female = sum(gender == "f"),
-            mean_age = mean(age),
-            sd_age = sd(age),
-            mean_BDI = mean(BDI, na.rm= T), 
-            mean_MMSE = mean(MMSE, na.rm= T),
-            mean_HY = mean(hoehn_yahr, na.rm= T),
-            mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% 
-  
-  kable(., format = "html", escape = FALSE, digits = 1) %>%
-  kable_styling("striped", full_width = FALSE)
+# dat_sample %>% 
+#   group_by(group) %>% 
+#   summarise(n = n(),
+#             female = sum(gender == "f"),
+#             mean_age = mean(age),
+#             sd_age = sd(age),
+#             mean_BDI = mean(BDI, na.rm= T), 
+#             mean_MMSE = mean(MMSE, na.rm= T),
+#             mean_HY = mean(hoehn_yahr, na.rm= T),
+#             mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% 
+#   
+#   kable(., format = "html", escape = FALSE, digits = 1) %>%
+#   kable_styling("striped", full_width = FALSE)
+
+tbl_demographics <- 
+dat_sample %>%
+  mutate(
+    gender = factor(gender, levels = c("m","f"),
+                    labels = c("Male","Female"))
+  ) %>%
+  select(group, gender, age, BDI, MMSE, hoehn_yahr, time_since_ldopa) %>%
+  tbl_summary(
+    by = group,
+    type = list(
+      gender                                          ~ "categorical",
+      c(age, BDI, MMSE, hoehn_yahr, time_since_ldopa)  ~ "continuous"
+    ),
+    label = list(
+      age        ~ "Age",
+      hoehn_yahr ~ "PD severity (Hoehn-Yahr)",
+      BDI        ~ "Depression (BDI)",
+      time_since_ldopa        ~ "Time since medication (min)"
+    ),
+    statistic = list(
+      all_categorical() ~ "{n} ({p}%)",
+      all_continuous()  ~ "{mean} ({sd})"
+    ),
+    digits  = all_continuous() ~ 1,
+    missing = "no"
+  ) %>%
+  add_p(
+    # global ANOVA for continuous, chi-square for categorical
+    test = list(
+      all_continuous()   ~ "oneway.test",
+      all_categorical()  ~ "chisq.test"
+    )
+  ) %>%
+  modify_header(
+    label   ~ "**Variable**",
+    p.value ~ "**p-value**"
+  ) %>%
+  bold_labels()  %>%
+  modify_fmt_fun( # replace  "NA (NA)" or "NA" with a dash
+    all_stat_cols() ~ function(x) {
+      x[x %in% c("NA (NA)", "NA")] <- " "
+      x
+    }
+  ) %>% 
+  modify_header(label ~ "") 
+
+# GENERATE LATEX CODE
+# as_gt(tbl_demographics) %>% gt::as_latex()
+# as_kable_extra(tbl_demographics, format = "latex")
+# as_kable(tbl, format = "latex")
 
 ```
 
@@ -599,7 +650,7 @@ ggsave("plots/learning_curves.png", p_learning_curves, dpi=300,height=5,width=8)
 
 ### Performance: Role of physiological and cognitive assessments (BDI, MMSE, Hoehn-Yahr)
 
-We also assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only). We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance.
+We assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only). We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance.
 
 TO DO: Keep eye on MMSE scores, approaching significance
 
@@ -607,6 +658,12 @@ TO DO: Keep eye on MMSE scores, approaching significance
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
 lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id), 
                                   data = subset(dat, trial > 0 & round %in% 2:9))
+
+
+# addtionally including demographics
+# lmer_performance <- lmer(z ~ gender + age + round +group + BDI + MMSE + (1 | id), 
+#                                   data = subset(dat, trial > 0 & round %in% 2:9))
+# summary(lmer_performance)
 
 #summary(lmer_reward_BDI_MMSE)
 tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
@@ -702,15 +759,23 @@ dat_repeat_prop <- dat %>%
   )
 ```
 
-@fig-exploration-exploitation-choices shows that both Control and PD on patients increased the amount of exploitation over time, indicating a goal-directed shift from exploring novel options to exploiting known high-value options. The Control group began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to the PD on group, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD off patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. This pattern is also reflected in the overall proportion of exploitation decisions (@fig-exploration-exploitation-choices, inset). Control patients made more exploitation decisions than PD on patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, var.equal = TRUE)`), who exploited more than PD off patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD off")$m_prop_repeat, var.equal = TRUE)`). Notably, PD off patients almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns show how suboptimal balance of exploration and exploitation affects obtained rewards.
+We next examined choice behavior, focusing on the trade-off between exploration and exploitation. @fig-exploration-exploitation-choices shows that differences in reward accumulation are driven by learners’ ability to adequately balance exploration (selecting novel options) and exploitation (re-clicking tiles with known high rewards). PD patients tested on medication exploited more than patients off medication (`r ttestPretty(subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD off")$m_prop_repeat, var.equal = TRUE)`), whose exploitation levels were notably low.
 
 ```{=html}
 <!--
+OLD TEXT
 As a global measure we calculated the total proportion of exploitation choices (unique tiles, out of 25) across all rounds. Lower proportions indicate a greater tendency to explore novel options, while higher proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD on patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options, compared to Control patients. This effect was particularly pronounced for PD off patients, who almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns underlie the differences in performance, showing how suboptimal balance of exploration and exploitation affects obtained rewards. 
+
+@fig-exploration-exploitation-choices shows that both controls and PD on patients increased the amount of exploitation over time, indicating a goal-directed shift from exploring novel options to exploiting known high-value options. The Control group began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to the PD on group, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD off patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. This pattern is also reflected in the overall proportion of exploitation decisions (@fig-exploration-exploitation-choices, inset). 
+
+Control patients made more exploitation decisions than PD on patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, var.equal = TRUE)`), who exploited more than PD off patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD off")$m_prop_repeat, var.equal = TRUE)`). Notably, PD off patients almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns show how suboptimal balance of exploration and exploitation affects obtained rewards.
 -->
 ```
 
 ## Exploitation choices
+
+Controls exploited more than PD patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, var.equal = TRUE)`), but the difference was less pronounced than the comparison of the PD groups, aligning with their slightly higher levels of reward accumulation.
+
 ```{r}
 #| label: fig-exploration-exploitation-choices
 #| fig-cap: "Balancing exploration and exploitation. Shown are the mean proportions of exploitation decisions, aggregated over trials and rounds. Each dot is one participant."
@@ -744,6 +809,10 @@ p_explore_exploit_choices
 ggsave("plots/explore_exploit_choices.png", p_explore_exploit_choices, dpi=300, width = 6, height = 5)
 
 ```
+
+
+Analysis of the temporal dynamics of exploration and exploitation shows that both controls and PD patients on medication increased the amount of exploitation over time, indicating a goal-directed shift from exploring novel options to exploiting known high-value options (@fig-exploration-exploitation-choices-over-time). Controls began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to patients on medication, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD patients off medication patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. 
+
 
 ```{r}
 #| label: fig-exploration-exploitation-choices-over-time
@@ -949,7 +1018,7 @@ The mean proportion of repeat choices (=exploitation) differed among all groups,
 - PD on vs. PD off: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD on')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD off')$m_prop_repeat, var.equal = TRUE)`
 
 ### Rewards obtained from exploration and exploitation
-We also calculated the mean reward obtained from learners' explore and exploit choices, respectively. @fig-reward-explore-exploit shows that both Control and PD on patients obtained higher rewards from their exploration choices, indicating higher levels of adaptation to the structure of the environment. Similarly, for exploitative choices, PD on and Control patients obtained higher rewards, showing that PD off patients not only exploited less frequently but also did so less efficiently.
+We also calculated the mean reward obtained from learners' explore and exploit choices, respectively. @fig-reward-explore-exploit shows that both controls and PD on patients obtained higher rewards from their exploration choices, indicating higher levels of adaptation to the structure of the environment. Similarly, for exploitative choices, PD on and Control patients obtained higher rewards, showing that PD off patients not only exploited less frequently but also did so less efficiently.
 
 ```{r}
 #| label: fig-reward-explore-exploit
@@ -1030,37 +1099,72 @@ df_mean_distance_subject <- dat %>%
             mean_distance = mean(distance, na.rm = TRUE),
             median_distance = median(distance),
             SD_distance = sd(distance),            
-            SE_distance = SD_distance / sqrt(decisions)) 
+            SE_distance = SD_distance / sqrt(decisions)) %>% 
+  ungroup()
 
 
 #  distance by  group
-df_mean_distance <- dat %>%
-  filter(trial > 0 & round %in% 2:9) %>%
+# df_mean_distance <- 
+  df_mean_distance_subject %>%
   group_by(group) %>%
-  summarise(decisions=n(),
-            mean_distance = mean(distance, na.rm = TRUE),
-            median_distance = median(distance),
-            SD_distance = sd(distance),            
-            SE_distance = SD_distance / sqrt(decisions)) 
+ summarise(
+    n                     = n(),
+    m         = mean(mean_distance, na.rm = TRUE),
+    md       = median(mean_distance, na.rm = TRUE),
+    sd           = sd(mean_distance,   na.rm = TRUE),
+    se           = sd / sqrt(n),
+    .groups = "drop"
+  )
 
 # df_mean_distance %>% 
 #   kable(format = "html", escape = F, digits=2) %>%
 #   kable_styling("striped", full_width = F)
 
-p_distance_consecutive <- ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
+df_props <- 
+  dat %>%
+  filter(trial > 0, round %in% 2:9) %>%
+  group_by(group, distance) %>%
+  summarise(count = n(), .groups = "drop_last") %>%
+  mutate(type_choice = if_else(distance == 0, "Repeat", "Exploration")) %>%
+  mutate(prop = count / sum(count))
+highlight_colours <- c(
+  "Control" = "#7570b3", 
+  "PD on"   = "#1b9e77", 
+  "PD off"  = "#d95f02"
+)
+
+p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = group)) +
   facet_wrap(~group) +
-  geom_histogram(aes(y = after_stat(density), fill = group), binwidth = 1) +
-  annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf) +
-  scale_y_continuous("Proportion", limits = c(0,0.7), breaks = seq(0,0.6,0.2), expand = c(0, 0), labels = scales::percent_format(accuracy=1)) +
-  scale_fill_manual(values=groupcolors) +
-  scale_color_manual(values=groupcolors) +
+  geom_col(
+    aes(fill = group),
+    width    = 1,
+    # color    = "black",
+    alpha = 0.7
+  ) +
+  geom_col(
+    data     = df_props %>% filter(distance == 0),
+    aes(x     = distance, y = prop),
+    # fill     = "firebrick",
+    fill   = highlight_colours[ df_props$group[df_props$distance == 0] ],
+    color    = "black",
+    width    = 1
+  ) +
+  scale_fill_manual(values = groupcolors) +
+  scale_color_manual(values = groupcolors) +
+  scale_y_continuous(
+    "Average proportion",
+    limits = c(0, 0.7),
+    breaks = seq(0, 0.6, 0.2),
+    expand = c(0, 0),
+    labels = percent_format(accuracy = 1)
+  ) +
   scale_x_continuous("Distance") +
-  geom_vline(xintercept = 0.5, linetype = "dashed") +
+  # geom_vline(xintercept = 0.5, linetype = "dashed") +
+  # geom_text(data = df_mean_distance, aes(x = Inf, y = Inf, label = paste0("Mean: ", round(mean_distance, 1))), # add mean distanecs
+  #           hjust = 1.4, vjust = 1.5, size = 6, inherit.aes = FALSE) +
   ggtitle("Distance consecutive choices") +
-  geom_text(data = df_mean_distance, aes(x = Inf, y = Inf, label = paste0("Mean: ", round(mean_distance, 1))), 
-            hjust = 1.4, vjust = 1.5, size = 6, inherit.aes = FALSE) +
   theme_classic() +
-  theme(plot.title = element_text(size = 24),
+theme(plot.title = element_text(size = 24),
         legend.title = element_blank(),
         legend.position = 'none',
         legend.text =  element_text(colour="black"),
@@ -1072,10 +1176,40 @@ p_distance_consecutive <- ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.spacing = unit(0.5, "cm"),
-        plot.margin = margin(t = 0,  
-                             r = 20,  
-                             b = 0,  
-                             l = 0))
+        plot.margin     = margin(r = 20))
+
+p_distance_consecutive
+
+# p_distance_consecutive <- 
+  # ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
+  # facet_wrap(~group) +
+  # geom_histogram(aes(y = after_stat(density), fill = group), binwidth = 1) +
+  # annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf) +
+  # scale_y_continuous("Proportion", limits = c(0,0.7), breaks = seq(0,0.6,0.2), expand = c(0, 0), labels = scales::percent_format(accuracy=1)) +
+  # scale_fill_manual(values=groupcolors) +
+  # scale_color_manual(values=groupcolors) +
+  # scale_x_continuous("Distance") +
+  # geom_vline(xintercept = 0.5, linetype = "dashed") +
+  # ggtitle("Distance consecutive choices") +
+  # geom_text(data = df_mean_distance, aes(x = Inf, y = Inf, label = paste0("Mean: ", round(mean_distance, 1))), 
+  #           hjust = 1.4, vjust = 1.5, size = 6, inherit.aes = FALSE) +
+  # theme_classic() +
+  # theme(plot.title = element_text(size = 24),
+  #       legend.title = element_blank(),
+  #       legend.position = 'none',
+  #       legend.text =  element_text(colour="black"),
+  #       text = element_text(colour = "black"),
+  #       strip.background =element_blank(),
+  #       strip.text = element_text(colour="black", size=18),
+  #       axis.text = element_text(colour="black", size=18),
+  #       axis.title = element_text(colour="black", size=18),
+  #       panel.grid.major = element_blank(),
+  #       panel.grid.minor = element_blank(),
+  #       panel.spacing = unit(0.5, "cm"),
+  #       plot.margin = margin(t = 0,  
+  #                            r = 20,  
+  #                            b = 0,  
+  #                            l = 0))
 
 p_distance_consecutive
 
@@ -1083,7 +1217,52 @@ ggsave("plots/distance_consecutive.png", p_distance_consecutive, dpi=300,height=
 # ggsave("plots/distance_consecutive.pdf", p_distance_consecutive, height=4, width=9)
 ```
 
-Control patients had lower search distances than the PD on group (`r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)`) and lower distances than the PD off group (`r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`). There was no difference between Parkinson patient with (PD on) and without (PD off) medication (`r ttestPretty(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`).
+### Search distances: All choices
+ - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)` 
+ - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`
+ - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`
+
+```{r}
+#  non-repeat decisions only: distance by  group
+df_mean_distance_subject_exploration <- 
+  dat %>%
+  filter(trial > 0 & round %in% 2:9) %>%
+  filter(distance > 0) %>% # exclude repeat (iimediate exploitation)
+  group_by(id, group) %>%
+  summarise(decisions=n(),
+            mean_distance = mean(distance, na.rm = TRUE),
+            median_distance = median(distance),
+            SD_distance = sd(distance),            
+            SE_distance = SD_distance / sqrt(decisions)) 
+
+df_mean_distance_subject_exploration %>%
+  group_by(group) %>%
+  summarise(n=n(),
+            mean_distance = mean(mean_distance, na.rm = TRUE),
+            SD_mean_distance = sd(mean_distance, na.rm = TRUE)) %>% 
+    kable()
+
+df_mean_distance_subject_exploration %>%
+  group_by(group) %>%
+  summarise(
+    n                = n(),
+    m    = mean(mean_distance, na.rm = TRUE),
+    md = median(mean_distance, na.rm = TRUE),
+    sd = sd(mean_distance, na.rm = TRUE),
+    se = sd / sqrt(n),
+    .groups = "drop"
+  ) %>% 
+    kable(digits=2)
+
+```
+
+### Search distances: Only exploration choices 
+For this analysis, _exploratory choices_ are defined as consecutive selections in which the previously chosen tile is not clicked again (distance = 0), but a different tile farther away is selected (distance > 0).
+
+ - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD on")$mean_distance, var.equal = TRUE)`
+ - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD off")$mean_distance, var.equal = TRUE)`
+ - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "PD on")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD off")$mean_distance, var.equal = TRUE)`
+
 
 ```{r echo=F}
 
@@ -1133,30 +1312,32 @@ df_types_choices_overall <- df_types_choices_subject %>%
             lower_ci_prop = mean_prop - qt(1 - (0.05 / 2), n - 1) * se_prop,
             upper_ci_prop = mean_prop + qt(1 - (0.05 / 2), n - 1) * se_prop)
 
-ggplot(df_types_choices_overall) +
+ p_types_choices_overall <- 
+  ggplot(df_types_choices_overall) +
   facet_grid(~group) +
-  geom_bar(aes(x = type_choice, y = mean_prop, fill = group, alpha = type_choice), stat = "identity", colour = 'black') +
+  geom_bar(aes(x = type_choice, y = mean_prop, fill = group, alpha = type_choice), stat = "identity", colour = 'black', width = .9, position=position_dodge2(padding=0.1)) +
   scale_y_continuous("Average proportion", limits = c(0,0.7), breaks = seq(0,1,.2), expand = c(0, 0), labels =   scales::percent_format(accuracy=1)) +
   scale_alpha_discrete(range = c(0.2,1)) +
-  scale_x_discrete("Search decision") +
+  scale_x_discrete("Type of search decision") +
   scale_fill_manual(values=groupcolors) +
   scale_color_manual(values=groupcolors) +
-  ggtitle("Types of consecutive search decisions") +
-  geom_text(aes(x = type_choice, y = mean_prop, label = scales::percent(mean_prop, accuracy = 1)), vjust = -0.5, size = 3) + 
+  ggtitle("Consecutive search decisions") +
+  geom_text(aes(x = type_choice, y = mean_prop, label = scales::percent(mean_prop, accuracy = 1)), vjust = -0.5, size = 6) + 
   theme_classic() +
-  theme(aspect.ratio = 1,
-        plot.title = element_text(hjust = 0.5, size=24),
+  theme(#aspect.ratio = 1,
+        plot.title = element_text(size=24),
         legend.title = element_blank(),
         legend.position = 'none',
         legend.text =  element_text(colour="black"),
         text = element_text(colour = "black"),
         strip.background = element_blank(),
-        axis.text = element_text(colour="black", size=16),
-        axis.title = element_text(colour="black", size=16),
+        strip.text = element_text(size = 18),
+        axis.text = element_text(colour="black", size=18),
+        axis.title = element_text(colour="black", size=18),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())  
 
-# ggsave("plots/distance_types.png", dpi=300,height=3, width=5)
+# ggsave("plots/distance_types.png", p_types_choices_overall, dpi=300,height=3, width=5)
 
 ```
 
@@ -1287,7 +1468,7 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
   ylab('Distance to Next Option')+
   scale_fill_manual(values=groupcolors) +
   scale_color_manual(values=groupcolors) +
-  ggtitle('Search Distance ~ Previous Reward (lmer)') +
+  ggtitle('Search distance ~ previous reward (lmer)') +
   theme_classic() +
   theme(legend.position = "inside", 
         legend.position.inside = c(0.85, 0.9),   # Use legend.position.inside
@@ -1363,7 +1544,7 @@ for(i in 1:dim(grid)[1]){
 meanDist  <-  mean(grid$distance)
 
 # plot predictions
-p_regression_distance_reward <- 
+# p_regression_distance_reward <- 
   ggplot() +
   stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm=T)+
   geom_line(predsDF, mapping=aes(x=previous_reward, y=distance, color=group), linewidth=1) +
@@ -1375,11 +1556,11 @@ p_regression_distance_reward <-
     name = "Previous normalized reward",
     breaks = seq(0, 1, 0.1),
     labels = sprintf("%.1f", seq(0, 1, 0.1))) +
-  ylab('Distance to next chosen option')+
+  scale_y_continuous(name = 'Distance to next chosen option', breaks = seq(0,5,1), labels = c(" 0"," 1"," 2"," 3"," 4"," 5"))+
   scale_fill_manual(values=groupcolors) +
   scale_color_manual(values=groupcolors) +
   labs(
-  title = "Search Distance ~ Previous Reward",
+  title = "Search distance as function of previous reward",
   #subtitle = "(Bayesian hierarchical regression)"
   ) +
   theme_classic() +
@@ -1513,12 +1694,15 @@ Controls had lower prediction error than PD off patients; no other group differe
 -   Control vs. PD off: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD off' )$mean_error, var.equal = T)`
 -   PD on vs. PD off: `r ttestPretty(subset(dat_bonus_error, group == 'PD on')$mean_error, subset(dat_bonus_error, group == 'PD off' )$mean_error, var.equal = T)`
 
+
+
 ```{r, echo=FALSE}
 #| label: fig-bonusround-error
 #| fig-cap: "Prediction error of bonus round judgments. The red dotted line indicates a random baseline."
 #| fig-width: 6
 #| fig-height: 5
 
+# ranktestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD on' )$mean_error)
 
 # plot mean absolute error (MAE) per subject 
 p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
@@ -1528,7 +1712,7 @@ p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
-  labs(title = "Prediction error", y = "Mean Absolute Error", x = "") +
+  labs(title = "Reward prediction error", y = "Mean absolute error", x = "") +
   theme_classic() +
   theme(
     legend.position = 'none',
@@ -1699,7 +1883,7 @@ p_bonusround_prediction_chosen <-
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
-  labs(title = "Predicted Reward: chosen vs. not chosen", y = "Predicted reward", x = "") +
+  labs(title = "Predicted reward of chosen vs. not chosen options", y = "Predicted reward", x = "") +
   theme_classic() +
   theme(
     legend.position = 'none',
@@ -1766,7 +1950,7 @@ ggboxplot(df_chosen_group, x = "chosen", y = "m_howSecure",
 
 # Appendix
 
-## Figures
+## Big overview figures
 ### Task and computational model
 
 ```{r}
@@ -1822,7 +2006,7 @@ ggsave("plots/task_model.pdf", height=10, width=15, limitsize = FALSE )
 cowplot::plot_grid(
    p_performance, p_learning_curves,
    p_explore_exploit_choices, p_explore_exploit_choices_over_time,
-   p_distance_consecutive, p_regression_distance_reward,
+   p_distance_consecutive, p_regression_distance_reward, #p_distance_consecutive p_types_choices_overall
    p_bonusround_prediction_error, p_bonusround_prediction_chosen,
    labels = c("auto"),
    label_size = 22,
@@ -1831,8 +2015,8 @@ cowplot::plot_grid(
    rel_widths = c(0.45, 0.55)
 )
 
-ggsave("plots/behavioral_results.png", dpi=300, height=20, width=17)
-ggsave("plots/behavioral_results.pdf", height=20, width=17)
+ggsave("plots/behavioral_results.png", dpi=300, height=19, width=18)
+ggsave("plots/behavioral_results.pdf", height=20, width=18)
 
 
 # VERSION WITH TASK IN TOP ROW
