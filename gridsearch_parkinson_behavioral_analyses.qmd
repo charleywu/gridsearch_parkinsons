@@ -107,13 +107,14 @@ dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>
 ########################################################
 dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FALSE, trim_ws = TRUE, show_col_types = FALSE) %>% 
   mutate(gender = as.factor(gender),
-        # group  = factor(group, levels = c("Control", "PD on", "PD off"))) %>% 
-         #group  = factor(group, levels = c("Control", "PD on", "PD off"), labels = c("Control", "PD on", "PD off"))) %>% 
+        # group  = factor(group, levels = c("Control", "PD+", "PD-"))) %>% 
+         #group  = factor(group, levels = c("Control", "PD+", "PD-"), labels = c("Control", "PD+", "PD-"))) %>% 
         group = fct_recode(group,
-                       "Control" = "PNP",
-                       "PD on"  = "PD+",
-                       "PD off" = "PD-"),
-    group = fct_relevel(group, "Control", "PD on", "PD off")
+                       "Control" = "PNP"
+                       #"PD+"  = "PD+",
+                       #"PD-" = "PD-"
+                       ),
+    group = fct_relevel(group, "PD-", "PD+", "Control")
   ) %>% 
   mutate(last_ldopa = if_else(group != "Control", as_hms(last_ldopa), as_hms(NA)),
          next_ldopa = if_else(group != "Control", as_hms(next_ldopa), as_hms(NA)),
@@ -129,7 +130,7 @@ dat <- dat_sample %>%
 
 # Abstract
 
-We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=`r dat_sample %>% filter(group == "PD on") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group == "PD off") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "Control") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning. Behavioral and computational analyses revealed distinct patterns of exploration and exploitation. PD patients on L-Dopa balanced exploration and exploitation, though not as efficiently as polyneuropathy patients. In stark contrast, patients off L-Dopa rarely exploited known high-value options and primarily explored novel ones. This overreliance on exploration impaired their ability to navigate the explore-exploit trade-off and maximize rewards. To better understand the mechanisms underlying these behavioral differences, we employed a computational approach using the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: directed exploration, which seeks to reduce uncertainty about rewards, and random exploration, which introduces stochastic variability in choice behavior. The model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. Both PD groups showed reduced generalization compared to controls, contributing to poorer overall performance. Our findings indicate that L-Dopa selectively modulates uncertainty-directed exploration, providing a more nuanced understanding of the central role of dopamine in the regulation of exploratory behavior.
+We investigated how patients with Parkinson’s disease (PD) balance the explore-exploit trade-off using a spatially correlated bandit task, where the spatial structure of rewards facilitated value generalization (i.e., nearby options yield similar rewards). Participants were tested either shortly after taking their regular Levodopa (L-Dopa) dose (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`) or just before their next scheduled dose (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`). Patients with polyneuropathy served as a control group (N=`r dat_sample %>% filter(group == "Control") %>% nrow()`), comparable in age, depressive symptoms, and basic cognitive functioning. Behavioral and computational analyses revealed distinct patterns of exploration and exploitation. PD patients on L-Dopa balanced exploration and exploitation, though not as efficiently as polyneuropathy patients. In stark contrast, patients off L-Dopa rarely exploited known high-value options and primarily explored novel ones. This overreliance on exploration impaired their ability to navigate the explore-exploit trade-off and maximize rewards. To better understand the mechanisms underlying these behavioral differences, we employed a computational approach using the Gaussian Process Upper Confidence Bound (GP-UCB) model. This model integrates similarity-based generalization with two distinct exploration mechanisms: directed exploration, which seeks to reduce uncertainty about rewards, and random exploration, which introduces stochastic variability in choice behavior. The model parameters showed that behavioral differences between the on- and off-medication conditions were primarily driven by differences in uncertainty-directed exploration, while the level of random exploration remained unchanged. Both PD groups showed reduced generalization compared to controls, contributing to poorer overall performance. Our findings indicate that L-Dopa selectively modulates uncertainty-directed exploration, providing a more nuanced understanding of the central role of dopamine in the regulation of exploratory behavior.
 
 # Intro
 
@@ -156,7 +157,7 @@ At the start of each round, one tile was randomly revealed, and participants seq
 
 We collected data from adult participants with Parkinson's disease (PD) who regularly receive Levodopa (L-Dopa) for symptomatic treatment [@abbott2010levodopa; @tambasco2018levodopa]. Participants were recruited via a neurologist’s outpatient practice. Eligible participants were evaluated based on Hoehn-Yahr scores recorded in their patient files. The scale assesses disease severity and motor impairments based on a score from 1 to 5, with higher scores indicating greater severity [@goetz2004movement; @hoehn1967parkinsonism]. We limited recruitment to individuals with scores between 1 and 3, as scores of 4 and 5 reflect severe impairment.
 
-PD patients were randomly assigned to two conditions: on medication (PD on) and off medication (PD off). In the PD on group (N=`r dat_sample %>% filter(group == "PD on") %>% nrow()`), patients' scheduled L-Dopa was administered at least 30 minutes before the start of the experiment. In the PD off group (N=`r dat_sample %>% filter(group == "PD off") %>% nrow()`), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD on group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose.
+PD patients were randomly assigned to two conditions: on medication (PD+) and off medication (PD-). In the PD+ group (N=`r dat_sample %>% filter(group == "PD+") %>% nrow()`), patients' scheduled L-Dopa was administered at least 30 minutes before the start of the experiment. In the PD- group (N=`r dat_sample %>% filter(group == "PD-") %>% nrow()`), the next scheduled dose for participants was timed such that they were in a low dopamine state during the experiment, offering a clear contrast to the PD+ group. Thus, we refer to the ‘on medication’ condition as the state after taking L-Dopa and the ‘off medication’ condition as the state before their next scheduled dose.
 
 The comparison group (N=`r dat_sample %>% filter(group == "Control") %>% nrow()`) consisted of individuals of similar age diagnosed with polyneuropathies (Control), a condition affecting the peripheral nervous system that can lead to physical symptoms such as pain, sensory loss, or motor weakness. However, unlike Parkinson’s disease, Control does not involve central dopaminergic dysfunction or cognitive impairment.
 
@@ -190,7 +191,7 @@ The Hoehn-Yahr scale assesses disease severity and motor impairments in Parkinso
 check participant with pump
 :::
 
-@tbl-demographics shows the demographics of our sample, along with their Hoehn-Yahr, MMSE , and BDI scores. In the PD on group, the mean time since their last L-Dopa dose was `r dat_sample %>% filter(group == "PD on") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa) %>% round(0)` min; in the PD off group it was `r dat_sample %>% filter(group == "PD off") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa)%>% round(0)`min.
+@tbl-demographics shows the demographics of our sample, along with their Hoehn-Yahr, MMSE , and BDI scores. In the PD+ group, the mean time since their last L-Dopa dose was `r dat_sample %>% filter(group == "PD+") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa) %>% round(0)` min; in the PD- group it was `r dat_sample %>% filter(group == "PD-") %>% group_by(group) %>% summarise(mean_time_since_ldopa = mean(time_since_ldopa,  na.rm= T)) %>% pull(mean_time_since_ldopa)%>% round(0)`min.
 
 ```{r}
 #| label: tbl-demographics
@@ -396,8 +397,8 @@ modelName='brm_reward_rounds_reduced')
 # format_parameters(brm_rounds)
 # 
 # params <- model_parameters(brm_rounds) |> print_md()
-# params$Parameter <- gsub("groupPDP", "PD on", params$Parameter)
-# params$Parameter <- gsub("groupPDP", "PD on", params$Parameter)
+# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
+# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
 # params$Term <- gsub("round", "Round", params$Term)
 # 
 # 
@@ -408,7 +409,7 @@ modelName='brm_reward_rounds_reduced')
 
 ```
 
-@fig-performance-rounds shows the obtained rewards by round, for each group. An ANOVA with *round* as within- and *group* as between-subjects factor showed a difference between groups, with Control patients achieving the greatest rewards, followed by PD on and PD off patients, but no change across rounds (and no interaction). A Bayesian regression analysis yielded comparable results, with the estimated effect of round on mean reward being very small (Estimate = `r round(fixef(brm_rounds)["round", "Estimate"], 2)`, 95% CI \[`r round(fixef(brm_rounds)["round", "Q2.5"], 2)`, `r round(fixef(brm_rounds)["round", "Q97.5"], 2)`\]) and the credible interval including zero. In the subsequent analyses, we therefore aggregate across rounds.
+@fig-performance-rounds shows the obtained rewards by round, for each group. An ANOVA with *round* as within- and *group* as between-subjects factor showed a difference between groups, with Control patients achieving the greatest rewards, followed by PD+ and PD- patients, but no change across rounds (and no interaction). A Bayesian regression analysis yielded comparable results, with the estimated effect of round on mean reward being very small (Estimate = `r round(fixef(brm_rounds)["round", "Estimate"], 2)`, 95% CI \[`r round(fixef(brm_rounds)["round", "Q2.5"], 2)`, `r round(fixef(brm_rounds)["round", "Q97.5"], 2)`\]) and the credible interval including zero. In the subsequent analyses, we therefore aggregate across rounds.
 
 ```{r}
 #| label: fig-performance-rounds
@@ -472,11 +473,11 @@ df_mean_reward_subject <- dat %>%
 #   kable_styling("striped", full_width = FALSE)
 ```
 
-@fig-performance shows the overall performance of each group, based on each subject's mean reward across all trials. Control participants achieved higher rewards than both PD patients on medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD on' )$mean_reward, var.equal = T)`) and off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)`). Notably, PD patients on medication achieved substantially higher rewards than patients off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PD on')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)`), indicating as strong beneficial effect of L-Dopa on the ability to balance exploration and exploitation.
+@fig-performance shows the overall performance of each group, based on each subject's mean reward across all trials. Control participants achieved higher rewards than both PD patients on medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`) and off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`). Notably, PD patients on medication achieved substantially higher rewards than patients off medication (`r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`), indicating as strong beneficial effect of L-Dopa on the ability to balance exploration and exploitation.
 
-- PD on vs. PD off: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD on')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)`
-- Control vs. PD off: `r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)`
-- Control vs. PD on:`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD on' )$mean_reward, var.equal = T)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
+- Control vs. PD-: `r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)`
+- Control vs. PD+:`r ttestPretty(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)`
 
 
 ```{r}
@@ -508,17 +509,17 @@ p_performance <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, 
 p_performance
 ggsave("plots/performance.png", p_performance, dpi=300, height = 5, width = 6 )
 
-# Control vs. PD on
-# ttestBF(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD on')$mean_reward, var.equal = TRUE)
-# t.test(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD on' )$mean_reward, var.equal = T)
+# Control vs. PD+
+# ttestBF(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD+')$mean_reward, var.equal = TRUE)
+# t.test(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD+' )$mean_reward, var.equal = T)
 
-# Control vs. PD off
-# ttestBF(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD off')$mean_reward, var.equal = TRUE)
-# t.test(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)
+# Control vs. PD-
+# ttestBF(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)
+# t.test(subset(df_mean_reward_subject, group == 'Control')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
 
-# PPD vs. PD off
-# ttestBF(subset(df_mean_reward_subject, group == 'PD on')$mean_reward, subset(df_mean_reward_subject, group == 'PD off')$mean_reward, var.equal = TRUE)
-# t.test(subset(df_mean_reward_subject, group == 'PD on')$mean_reward, subset(df_mean_reward_subject, group == 'PD off' )$mean_reward, var.equal = T)
+# PPD vs. PD-
+# ttestBF(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-')$mean_reward, var.equal = TRUE)
+# t.test(subset(df_mean_reward_subject, group == 'PD+')$mean_reward, subset(df_mean_reward_subject, group == 'PD-' )$mean_reward, var.equal = T)
 
 # Plot for Computational Psychiatry Conference (Tübingen, July 2025)
 # p_performance_by_group_CPP <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
@@ -551,7 +552,7 @@ ggsave("plots/performance.png", p_performance, dpi=300, height = 5, width = 6 )
 
 ## Performance: Learning curves
 
-Participants’ learning curves (@fig-learning-curves) show the average reward obtained in each trial across rounds. For both polyneuropathy patients (Control) and PD patients on medication (PD on), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, PD patients off medication (PD off) showed no improvement across trials.
+Participants’ learning curves (@fig-learning-curves) show the average reward obtained in each trial across rounds. For both polyneuropathy patients (Control) and PD patients on medication (PD+), the mean rewards increased as the round progresses, suggesting they effectively balanced exploration and exploitation to maximize rewards. In stark contrast, PD patients off medication (PD-) showed no improvement across trials.
 
 ```{r echo=FALSE}
 #| label: fig-learning-curves
@@ -759,22 +760,22 @@ dat_repeat_prop <- dat %>%
   )
 ```
 
-We next examined choice behavior, focusing on the trade-off between exploration and exploitation. @fig-exploration-exploitation-choices shows that differences in reward accumulation are driven by learners’ ability to adequately balance exploration (selecting novel options) and exploitation (re-clicking tiles with known high rewards). PD patients tested on medication exploited more than patients off medication (`r ttestPretty(subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD off")$m_prop_repeat, var.equal = TRUE)`), whose exploitation levels were notably low.
+We next examined choice behavior, focusing on the trade-off between exploration and exploitation. @fig-exploration-exploitation-choices shows that differences in reward accumulation are driven by learners’ ability to adequately balance exploration (selecting novel options) and exploitation (re-clicking tiles with known high rewards). PD patients tested on medication exploited more than patients off medication (`r ttestPretty(subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD-")$m_prop_repeat, var.equal = TRUE)`), whose exploitation levels were notably low.
 
 ```{=html}
 <!--
 OLD TEXT
-As a global measure we calculated the total proportion of exploitation choices (unique tiles, out of 25) across all rounds. Lower proportions indicate a greater tendency to explore novel options, while higher proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD on patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options, compared to Control patients. This effect was particularly pronounced for PD off patients, who almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns underlie the differences in performance, showing how suboptimal balance of exploration and exploitation affects obtained rewards. 
+As a global measure we calculated the total proportion of exploitation choices (unique tiles, out of 25) across all rounds. Lower proportions indicate a greater tendency to explore novel options, while higher proportions suggest a preference for exploiting known options There were substantial differences between groups, with PD+ patients showing higher levels of exploratory behavior and, conversely, a reduced tendency to exploit known options, compared to Control patients. This effect was particularly pronounced for PD- patients, who almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns underlie the differences in performance, showing how suboptimal balance of exploration and exploitation affects obtained rewards. 
 
-@fig-exploration-exploitation-choices shows that both controls and PD on patients increased the amount of exploitation over time, indicating a goal-directed shift from exploring novel options to exploiting known high-value options. The Control group began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to the PD on group, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD off patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. This pattern is also reflected in the overall proportion of exploitation decisions (@fig-exploration-exploitation-choices, inset). 
+@fig-exploration-exploitation-choices shows that both controls and PD+ patients increased the amount of exploitation over time, indicating a goal-directed shift from exploring novel options to exploiting known high-value options. The Control group began exploiting earlier in the round and exhibited a stronger overall tendency toward exploitation compared to the PD+ group, indicating that this earlier focus on exploitation underlies their better performance. In stark contrast, PD- patients predominantly engaged in exploration and showed only a weak tendency towards exploitation as the search horizon approached its end. This pattern is also reflected in the overall proportion of exploitation decisions (@fig-exploration-exploitation-choices, inset). 
 
-Control patients made more exploitation decisions than PD on patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, var.equal = TRUE)`), who exploited more than PD off patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD off")$m_prop_repeat, var.equal = TRUE)`). Notably, PD off patients almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns show how suboptimal balance of exploration and exploitation affects obtained rewards.
+Control patients made more exploitation decisions than PD+ patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, var.equal = TRUE)`), who exploited more than PD- patients (`r ttestPretty(subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD-")$m_prop_repeat, var.equal = TRUE)`). Notably, PD- patients almost exclusively selected novels options during the task and only rarely exploited known options. These distinct behavioral patterns show how suboptimal balance of exploration and exploitation affects obtained rewards.
 -->
 ```
 
 ## Exploitation choices
 
-Controls exploited more than PD patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD on")$m_prop_repeat, var.equal = TRUE)`), but the difference was less pronounced than the comparison of the PD groups, aligning with their slightly higher levels of reward accumulation.
+Controls exploited more than PD patients (`r ttestPretty(subset(df_unique_choices_subject, group == "Control")$m_prop_repeat, subset(df_unique_choices_subject, group == "PD+")$m_prop_repeat, var.equal = TRUE)`), but the difference was less pronounced than the comparison of the PD groups, aligning with their slightly higher levels of reward accumulation.
 
 ```{r}
 #| label: fig-exploration-exploitation-choices
@@ -934,7 +935,7 @@ p_explore_exploit_choices_inset <- ggdraw() +
 # coord_cartesian(ylim=c(0,1.25)) +
 # xlab("") +
 # ggtitle("") +
-# stat_compare_means(comparisons = list( c("Control", "PD on"), c("PD on", "PD off")  ),
+# stat_compare_means(comparisons = list( c("Control", "PD+"), c("PD+", "PD-")  ),
 #                    paired = FALSE, 
 #                    method = "t.test", 
 #                    aes(label = paste0("p = ", after_stat(p.format)))  ) +
@@ -1011,14 +1012,14 @@ p_explore_exploit_choices_inset <- ggdraw() +
 
 ```
 
-The mean proportion of repeat choices (=exploitation) differed among all groups, with patients with polyneuropathy (Control) showing higher levels of exploitation than both PD on and PD off patients. Parkinson patients on medication (PD on) exploited more than patients off medication (PD off).
+The mean proportion of repeat choices (=exploitation) differed among all groups, with patients with polyneuropathy (Control) showing higher levels of exploitation than both PD+ and PD- patients. Parkinson patients on medication (PD+) exploited more than patients off medication (PD-).
 
-- Control vs. PD on: `r ttestPretty(subset(df_unique_choices_subject, group == 'Control')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD on')$m_prop_repeat, var.equal = TRUE)`
-- Control vs. PD off: `r ttestPretty(subset(df_unique_choices_subject, group == 'Control')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD off')$m_prop_repeat, var.equal = TRUE)`
-- PD on vs. PD off: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD on')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD off')$m_prop_repeat, var.equal = TRUE)`
+- Control vs. PD+: `r ttestPretty(subset(df_unique_choices_subject, group == 'Control')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'Control')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_unique_choices_subject, group == 'PD+')$m_prop_repeat, subset(df_unique_choices_subject, group == 'PD-')$m_prop_repeat, var.equal = TRUE)`
 
 ### Rewards obtained from exploration and exploitation
-We also calculated the mean reward obtained from learners' explore and exploit choices, respectively. @fig-reward-explore-exploit shows that both controls and PD on patients obtained higher rewards from their exploration choices, indicating higher levels of adaptation to the structure of the environment. Similarly, for exploitative choices, PD on and Control patients obtained higher rewards, showing that PD off patients not only exploited less frequently but also did so less efficiently.
+We also calculated the mean reward obtained from learners' explore and exploit choices, respectively. @fig-reward-explore-exploit shows that both controls and PD+ patients obtained higher rewards from their exploration choices, indicating higher levels of adaptation to the structure of the environment. Similarly, for exploitative choices, PD+ and Control patients obtained higher rewards, showing that PD- patients not only exploited less frequently but also did so less efficiently.
 
 ```{r}
 #| label: fig-reward-explore-exploit
@@ -1067,23 +1068,23 @@ ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group,
 
 _Explore choices_
 
-- Control vs. PD on: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD on' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-- Control vs. PD off: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD off' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-- PD on vs. PD off: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD on' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD off' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
 
 
 _Exploit choices_
 
-- Control vs. PD on: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD on' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-- Control vs. PD off: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD off' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-- PD on vs. PD off: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD on' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD off' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 
 ## Spatial trajectories
 
 ### Distance consecutive choices
 We next consider participant's spatial search trajectories (distance among consecutive clicks). Distance is measured as Manhattan distance between consecutive clicks, such that repeat clicks have distance 0, clicking directly neighbouring tiles has distance 1, and clicks further away have distances \>1.
 
-The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_2018grid]. On average, Control patients had the shortest distances, indicating more local searches and repeated clicks. PD on patients had greater distances than Control but shorter than PD off patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
+The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_2018grid]. On average, Control patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than Control but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
 
 ```{r, echo=F}
 #| label: fig-distances
@@ -1129,8 +1130,8 @@ df_props <-
   mutate(prop = count / sum(count))
 highlight_colours <- c(
   "Control" = "#7570b3", 
-  "PD on"   = "#1b9e77", 
-  "PD off"  = "#d95f02"
+  "PD+"   = "#1b9e77", 
+  "PD-"  = "#d95f02"
 )
 
 p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = group)) +
@@ -1218,9 +1219,9 @@ ggsave("plots/distance_consecutive.png", p_distance_consecutive, dpi=300,height=
 ```
 
 ### Search distances: All choices
- - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)` 
- - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`
- - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)`
+ - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)` 
+ - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
+ - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
 
 ```{r}
 #  non-repeat decisions only: distance by  group
@@ -1259,35 +1260,35 @@ df_mean_distance_subject_exploration %>%
 ### Search distances: Only exploration choices 
 For this analysis, _exploratory choices_ are defined as consecutive selections in which the previously chosen tile is not clicked again (distance = 0), but a different tile farther away is selected (distance > 0).
 
- - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD on")$mean_distance, var.equal = TRUE)`
- - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD off")$mean_distance, var.equal = TRUE)`
- - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "PD on")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD off")$mean_distance, var.equal = TRUE)`
+ - Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD+")$mean_distance, var.equal = TRUE)`
+ - Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "Control")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD-")$mean_distance, var.equal = TRUE)`
+ - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject_exploration, group == "PD+")$mean_distance, subset(df_mean_distance_subject_exploration, group == "PD-")$mean_distance, var.equal = TRUE)`
 
 
 ```{r echo=F}
 
-### Mean search distance: Control vs. PD on
-# ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)
-# t.test(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)
-# ttestBF(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD on")$mean_distance, var.equal = TRUE)
+### Mean search distance: Control vs. PD+
+# ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)
+# t.test(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)
+# ttestBF(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)
 
-### Mean search distance: Control vs. PD off
-# ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
-# t.test(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
-# ttestBF(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
+### Mean search distance: Control vs. PD-
+# ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
+# t.test(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
+# ttestBF(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
 
 
-### Mean search distance: PD on vs. PD off
-# ttestPretty(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
-# t.test(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
-# ttestBF(subset(df_mean_distance_subject, group == "PD on")$mean_distance, subset(df_mean_distance_subject, group == "PD off")$mean_distance, var.equal = TRUE)
+### Mean search distance: PD+ vs. PD-
+# ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
+# t.test(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
+# ttestBF(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)
 ```
 
 ### Types of choices
 
 We can also categorize each consecutive click as "repeat" (clicking the same tile as in the previous round), "near" (clicking a directly neighboring tile, i.e. distance=1), or "far" (clicking a tile with distance \> 1). We first computed for each participant the proportion of type of choices across all 8 rounds x 25 clicks = 200 search decisions and then plot the mean proportion for each group.
 
-The analyses reveal distinct search patterns across patient groups. Control participants had the highest proportion of repeat (exploit) decisions, followed by the PD on group. The proportion of repeat decisions in the PD off group was minimal. These behaviors help explain the differences in learning curves, where Control patients showed the most significant improvement, followed by PD on patients. In contrast, PD off patients exhibited no improvement across trials, due to their lower tendency to exploit high-reward options.
+The analyses reveal distinct search patterns across patient groups. Control participants had the highest proportion of repeat (exploit) decisions, followed by the PD+ group. The proportion of repeat decisions in the PD- group was minimal. These behaviors help explain the differences in learning curves, where Control patients showed the most significant improvement, followed by PD+ patients. In contrast, PD- patients exhibited no improvement across trials, due to their lower tendency to exploit high-reward options.
 
 ```{r}
 #| label: fig-distances-choices
@@ -1341,7 +1342,7 @@ df_types_choices_overall <- df_types_choices_subject %>%
 
 ```
 
-An analysis of consecutive choice types over time reveals clear differences in search behavior between the groups. Both Control and PD on patients adapt their strategies as the round progresses by decreasing the number of local (distance = 1) and far (distance \> 1) choices, while increasing the number of exploit decisions, indicating a shift from exploration to exploitation. Notably, the data indicate a faster shift to exploitation for Control patients compared to PD on patients, with an earlier and stronger preference for re-selecting known high-reward options. In contrast, PD off patients show limited adaptation, with the proportions of each decision type remaining relatively stable throughout the round, aside from a slight increase in exploit decisions.
+An analysis of consecutive choice types over time reveals clear differences in search behavior between the groups. Both Control and PD+ patients adapt their strategies as the round progresses by decreasing the number of local (distance = 1) and far (distance \> 1) choices, while increasing the number of exploit decisions, indicating a shift from exploration to exploitation. Notably, the data indicate a faster shift to exploitation for Control patients compared to PD+ patients, with an earlier and stronger preference for re-selecting known high-reward options. In contrast, PD- patients show limited adaptation, with the proportions of each decision type remaining relatively stable throughout the round, aside from a slight increase in exploit decisions.
 
 ```{r}
 #| fig-cap: "Types of search decisions over time."
@@ -1390,13 +1391,13 @@ ggplot(df_types_choices_trial_subject, aes(x = trial, y = prop, color = type_cho
 
 Finally, we analysed the relation between the value of a reward obtained at time $t$ and the search distance on the subsequent trial $t+1$. If a large reward was obtained, searchers should search more locally, while conversely, if a low reward was obtained, searchers should be more likely to search farther away.
 
-Across all trials and rounds, search distance and previous reward were negatively correlated, indicating that participants tended to search further away following lower rewards compared to higher rewards. This relationship was stronger in Control patients (`r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`) and PD on patients (`r corTestPretty(subset(dat, group == "PD on" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD on" & trial != 0 & round %in% 2:9)$distance)`) compared to PD off patients (`r corTestPretty(subset(dat, group == "PD off" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD off" & trial != 0 & round %in% 2:9)$distance)`). These findings suggest that PD patients off medication exhibited less adaptive search behavior than those on medication and individuals with polyneuropathies.
+Across all trials and rounds, search distance and previous reward were negatively correlated, indicating that participants tended to search further away following lower rewards compared to higher rewards. This relationship was stronger in Control patients (`r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`) and PD+ patients (`r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`) compared to PD- patients (`r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`). These findings suggest that PD patients off medication exhibited less adaptive search behavior than those on medication and individuals with polyneuropathies.
 
 ```{=html}
 <!--
 * Control: `r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`
-* PD on: `r corTestPretty(subset(dat, group == "PD on" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD on" & trial != 0 & round %in% 2:9)$distance)`
-* PD off: `r corTestPretty(subset(dat, group == "PD off" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD off" & trial != 0 & round %in% 2:9)$distance)`
+* PD+: `r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`
+* PD-: `r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`
 -->
 ```
 
@@ -1444,7 +1445,7 @@ Across all trials and rounds, search distance and previous reward were negativel
 
 ```
 
-Given the nested structure of the data, we next employed a Bayesian hierarchical regression analysis to predict search distance based on the reward obtained in the previous step, with group and their interaction as population-level (fixed) effects and subject-wise random intercepts. These analyses show that both the magnitude of reward obtained on the last step and group influence search distance. Notably, PD patients off medication (PD off) adapted their search behavior less in response to reward magnitude, while patients on medication (PD on) exhibited adaptation levels close to to the Control group.
+Given the nested structure of the data, we next employed a Bayesian hierarchical regression analysis to predict search distance based on the reward obtained in the previous step, with group and their interaction as population-level (fixed) effects and subject-wise random intercepts. These analyses show that both the magnitude of reward obtained on the last step and group influence search distance. Notably, PD patients off medication (PD-) adapted their search behavior less in response to reward magnitude, while patients on medication (PD+) exhibited adaptation levels close to to the Control group.
 
 ```{r}
 #| fig-cap: "Hierarchical regression with search distance as a function of previous reward."
@@ -1544,7 +1545,7 @@ for(i in 1:dim(grid)[1]){
 meanDist  <-  mean(grid$distance)
 
 # plot predictions
-# p_regression_distance_reward <- 
+p_regression_distance_reward <- 
   ggplot() +
   stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm=T)+
   geom_line(predsDF, mapping=aes(x=previous_reward, y=distance, color=group), linewidth=1) +
@@ -1685,14 +1686,14 @@ dat_bonus_error <- dat_bonus %>%
 @fig-bonusround-error shows the mean absolute error between participants' estimates and the true underlying expected reward. Compared to a random baseline, all groups performed better than chance level:
 
 -   Control: `r ttestPretty(subset(dat_bonus_error, group=='Control')$mean_error, mu =randomPerformance)`
--   PD on: `r ttestPretty(subset(dat_bonus_error, group=='PD on')$mean_error, mu =randomPerformance)`
--   PD off: `r ttestPretty(subset(dat_bonus_error, group=='PD off')$mean_error, mu =randomPerformance)`
+-   PD+: `r ttestPretty(subset(dat_bonus_error, group=='PD+')$mean_error, mu =randomPerformance)`
+-   PD-: `r ttestPretty(subset(dat_bonus_error, group=='PD-')$mean_error, mu =randomPerformance)`
 
-Controls had lower prediction error than PD off patients; no other group differences were observed.
+Controls had lower prediction error than PD- patients; no other group differences were observed.
 
--   Control vs. PD on: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD on' )$mean_error, var.equal = T)`
--   Control vs. PD off: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD off' )$mean_error, var.equal = T)`
--   PD on vs. PD off: `r ttestPretty(subset(dat_bonus_error, group == 'PD on')$mean_error, subset(dat_bonus_error, group == 'PD off' )$mean_error, var.equal = T)`
+-   Control vs. PD+: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error, var.equal = T)`
+-   Control vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
+-   PD+ vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'PD+')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
 
 
 
@@ -1702,7 +1703,7 @@ Controls had lower prediction error than PD off patients; no other group differe
 #| fig-width: 6
 #| fig-height: 5
 
-# ranktestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD on' )$mean_error)
+# ranktestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error)
 
 # plot mean absolute error (MAE) per subject 
 p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
@@ -1730,14 +1731,14 @@ ggsave("plots/bonusround_prediction_error.png", p_bonusround_prediction_error, d
 ```
 
 ```{r echo = F}
-# t.test(subset(dat_bonus_error, group == "PD on")$mean_error, subset(dat_bonus_error, group == "PD off")$mean_error, var.equal = T)
-# ttestBF(subset(dat_bonus_error, group == "PD on")$mean_error, subset(dat_bonus_error, group == "PD off")$mean_error)
+# t.test(subset(dat_bonus_error, group == "PD+")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error, var.equal = T)
+# ttestBF(subset(dat_bonus_error, group == "PD+")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error)
 
-# t.test(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD on")$mean_error, var.equal = T)
-# ttestBF(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD on")$mean_error)
+# t.test(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD+")$mean_error, var.equal = T)
+# ttestBF(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD+")$mean_error)
 
-# t.test(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD off")$mean_error, var.equal = T)
-# ttestBF(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD off")$mean_error)
+# t.test(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error, var.equal = T)
+# ttestBF(subset(dat_bonus_error, group == "Control")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error)
 ```
 
 ```{r echo = F}
@@ -1763,12 +1764,12 @@ ggsave("plots/bonusround_prediction_error.png", p_bonusround_prediction_error, d
 ```
 
 ### Prediction error and confidence
-Aggregated across all judgments, there was no relationship between prediction error and confidence, with varying and inconsistent patterns in the different groups. The Control group showed a weak negative relation (i.e., lower confidence was associated with higher prediction error), the PD on group a weak positive trend (i.e., lower confidence was associated with better lower prediction error), and the PD− group showed no association. None of these patterns were strong or reliable, no relationship between prediction error and confidence.
+Aggregated across all judgments, there was no relationship between prediction error and confidence, with varying and inconsistent patterns in the different groups. The Control group showed a weak negative relation (i.e., lower confidence was associated with higher prediction error), the PD+ group a weak positive trend (i.e., lower confidence was associated with better lower prediction error), and the PD− group showed no association. None of these patterns were strong or reliable, no relationship between prediction error and confidence.
 
 -   Overall: `r corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "pearson")`
 -   Control: `r corTestPretty(subset(dat_bonus, group == "Control")$error, subset(dat_bonus, group == "Control")$howSecure, method = "pearson")`
--   PD on: `r corTestPretty(subset(dat_bonus, group == "PD on")$error, subset(dat_bonus, group == "PD on")$howSecure, method = "pearson")`
--   PD off: `r corTestPretty(subset(dat_bonus, group == "PD off")$error, subset(dat_bonus, group == "PD off")$howSecure, method = "pearson")`
+-   PD+: `r corTestPretty(subset(dat_bonus, group == "PD+")$error, subset(dat_bonus, group == "PD+")$howSecure, method = "pearson")`
+-   PD-: `r corTestPretty(subset(dat_bonus, group == "PD-")$error, subset(dat_bonus, group == "PD-")$howSecure, method = "pearson")`
 
 ```{r}
 # Across all judgments and participants, there was no systematic relation between confidence and prediction error:
@@ -1798,10 +1799,10 @@ brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group +
 ```{r, echo = F, fig.width=7, fig.height=5}
 # check posterior predictive distribution of judgment error
 xseq   <- seq(0,10, 1)
-newdat <- data.frame(group = rep(c("Control","PD on", "PD off"), each=length(xseq)), howSecure = rep(xseq,3))
+newdat <- data.frame(group = rep(c("Control","PD+", "PD-"), each=length(xseq)), howSecure = rep(xseq,3))
 preds  <- fitted(brm_bonus_confidence_error_by_group, re_formula = NA, newdata = newdat, probs = c(0.025, 0.975))
 
-fixedDF_conf_error <- data.frame(group = rep(c("Control","PD on", "PD off"), each=length(xseq)), howSecure = rep(xseq,3), error = preds[,1], lower = preds[,3], upper = preds[,4] )
+fixedDF_conf_error <- data.frame(group = rep(c("Control","PD+", "PD-"), each=length(xseq)), howSecure = rep(xseq,3), error = preds[,1], lower = preds[,3], upper = preds[,4] )
 
 
 ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
@@ -1904,8 +1905,8 @@ ggsave("plots/bonusround_chosen_not_chosen_options_predicted_reward.png", p_bonu
 @tab-bonusround-chosen-reward shows the predicted rewards for chosen vs. not chosen options. In the Control group, selected tiles were associated with higher predicted rewards than those not selected. In both Parkinson’s groups, no such difference was observed.
 
 -   Control: `r ttestPretty(subset(df_chosen_group_wide, group == 'Control')$chosen, subset(df_chosen_group_wide, group == 'Control' )$not_chosen, paired = T)`
--   PD on: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD on')$chosen, subset(df_chosen_group_wide, group == 'PD on' )$not_chosen, paired = T)`
--   PD off: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD off')$chosen, subset(df_chosen_group_wide, group == 'PD off' )$not_chosen, paired = T)`
+-   PD+: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD+')$chosen, subset(df_chosen_group_wide, group == 'PD+' )$not_chosen, paired = T)`
+-   PD-: `r ttestPretty(subset(df_chosen_group_wide, group == 'PD-')$chosen, subset(df_chosen_group_wide, group == 'PD-' )$not_chosen, paired = T)`
 
 ```{r}
 #| label: tab-bonusround-chosen-reward
@@ -2282,7 +2283,7 @@ ggplot(filter(df_mean_reward_subject, group != "Control"), aes(x = hoehn_yahr, y
 # ggsave("plots/performance_groups_HY.png", dpi=300, height = 3, width = 5)
 ```
 
-### Reading list
+# Reading list
 
 - **Frank et al. (2004)**  
   *Cognitive reinforcement learning in parkinsonism*  
@@ -2340,6 +2341,6 @@ ggplot(filter(df_mean_reward_subject, group != "Control"), aes(x = hoehn_yahr, y
   Chen et al. (2024): *Dopamine and norepinephrine mediate explore/exploit tradeoff*. [J Neurosci, 44](https://doi.org/10.1523/JNEUROSCI.1194-23.2024)
   
 - **Sharp et al (2019)**  
-  *Dopamine selectively remediates ‘model-based’reward learning: a computational approach*  
-   Sharp, M. E., Foerde, K., Daw, N. D., & Shohamy, D. (2016). Dopamine selectively remediates ‘model-based’ reward learning: a computational approach. Brain, 139(2), 355-364
-   https://academic.oup.com/brain/article/139/2/355/1753805
+  *Dopamine selectively remediates ‘model-based’ reward learning: a computational approach*  
+  Sharp, M. E., Foerde, K., Daw, N. D., & Shohamy, D. (2016). Dopamine selectively remediates ‘model-based’ reward learning: a computational approach. Brain, 139(2), 355-364
+  https://academic.oup.com/brain/article/139/2/355/1753805
