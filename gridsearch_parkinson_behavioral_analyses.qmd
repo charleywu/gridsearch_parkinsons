@@ -48,7 +48,7 @@ knitr::opts_chunk$set(prefer_html = TRUE)
 options(knitr.kable.NA = '')
 options(brms.backend = "cmdstanr") # more stability for M1 Mac
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2", "parameters", "bridgesampling", "cmdstanr",  "magick", "grid")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "gtsummary", "webshot", "webshot2", "parameters", "bridgesampling", "cmdstanr",  "magick", "grid", "modelsummary", "broom.mixed")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -80,7 +80,8 @@ jit_width   <- 0.05
 jit_alpha   <- 0.6
 
 # colors 
-groupcolors    <- c("#7570b3", "#1b9e77", "#d95f02")
+# groupcolors    <- c("#7570b3", "#1b9e77", "#d95f02")
+groupcolors    <- c("#d95f02", "#1b9e77", "#7570b3")
 choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 
 ```
@@ -142,7 +143,7 @@ A central distinction between different forms of exploration behavior is that *d
 
 We investigated how patients with Parkinson's disease (PD) manage the explore-exploit trade-off using a spatially correlated multi-armed bandit task. Participants accumulated rewards by selecting tiles (options) with normally distributed rewards. The spatial correlation between rewards facilitated generalization, allowing participants to adapt to the structure of the environment and balance exploring new options versus exploiting known high-reward options.
 
-![Screenshot from experiment, procedure and example environments](img/task_overview.png)
+![Screenshot from experiment, procedure and example environments](img/task.png)
 
 ## Materials and procedure
 
@@ -304,9 +305,13 @@ head(dat %>%
 
 ## Performance: Rewards by round
 
+@fig-performance-rounds shows the obtained rewards by round, for each group. A hierarchical linear regression with round and group as predictors and random intercepts for participants revealed only a difference between groups, but no performance differences across rounds (and no interaction). A Bayesian regression analysis yielded comparable results, with the estimated effect of round on mean reward being very small and the credible interval including zero. In the all subsequent analyses, we therefore average across rounds.
+
 ```{r}
-#| label: fig-brms-performance-rounds
-#| fig-cap: "Bayesian regression analysis for performance over rounds (excluding tutorial and bonus round)."
+#| label: fig-performance-rounds
+#| fig-cap: "Performance over rounds (excluding tutorial and bonus round)."
+#| fig-width: 6
+#| fig-height: 3
 
 # mean reward per subject (practice and bonus round excluded)
 df_mean_reward_subject_by_round <- dat %>% 
@@ -326,13 +331,44 @@ df_summary_by_round <- df_mean_reward_subject_by_round %>%
     .groups = 'drop'
   )
 
-aov_rounds <- aov_ez(
-  id = "id",                 
-  dv = "mean_reward",        
-  within = "round",          
-  between = "group",         
-  data = df_mean_reward_subject_by_round
-)
+
+# Plot the mean reward by round for each group with dodged points and error bars
+ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, shape = group,  color = group, fill = group)) +
+  geom_line(position = position_dodge(width = 0.3)) +  
+  # geom_errorbar(aes(ymin = mean_of_means - 1.96 * se_reward, ymax = mean_of_means + 1.96 * se_reward), width = 0.2, position = dodge, color = "black") +  # 
+  geom_errorbar(aes(ymin = mean_of_means - se_reward, ymax = mean_of_means + se_reward), width = 0.2, position = position_dodge(width = 0.3), alpha=0.7) +  #
+  geom_point(position = position_dodge(width = 0.3), size = 3, stroke = 1, alpha=.9) +  
+  #coord_cartesian(ylim = c(20,40)) +
+  coord_cartesian(ylim = c(0.4,0.75)) +
+  #scale_shape_manual(values = c(21, 24, 22)) +  # circle, triangle, and square
+  scale_fill_manual(values = groupcolors) +  
+  scale_color_manual(values = groupcolors) +  
+  #scale_color_manual(values = c("black","black","black")) +  
+  # scale_y_continuous("Mean reward ± 95% CI") +
+  scale_y_continuous("Mean reward ± SE") +
+  scale_x_continuous("Round", breaks = 2:9) +
+  theme_classic() +
+  theme(legend.title = element_blank(),
+      plot.title = element_text(size=16),
+      axis.text = element_text(size=14),
+      axis.title = element_text(size=14))
+
+# ggsave("plots/performance_rounds.png", width = 6, height = 3)
+```
+
+```{r}
+#| label: fig-brms-performance-rounds
+#| fig-cap: "Bayesian regression analysis for performance over rounds (excluding tutorial and bonus round)."
+
+
+# mixed ANOVA
+# aov_rounds <- aov_ez(
+#   id = "id",                 
+#   dv = "mean_reward",        
+#   within = "round",          
+#   between = "group",         
+#   data = df_mean_reward_subject_by_round
+# )
 
 
 # kable(as.data.frame(aov_rounds$anova_table), 
@@ -341,6 +377,49 @@ aov_rounds <- aov_ez(
 #   kable_styling("striped", full_width = FALSE)
 
 
+# Hierarchical regression analysis
+lmer_performance_rounds <- lmer(mean_reward ~ group + round + (1 | id), 
+                                  data =  df_mean_reward_subject_by_round)
+
+tab_model(lmer_performance_rounds, title = "Hierarchical regression results: Performance (obtained rewards) as function of group and round.", bpe="mean")
+
+res.table <- as.data.frame(coef(summary(lmer_performance_rounds)))
+
+# generate latex code
+
+# options(modelsummary_format_numeric_latex = "plain")
+# msummary(
+#   list("Performance ~ group × round" = lmer_performance_rounds),
+#   output    = "latex",
+#   title     = "Hierarchical regression results: Performance as a function of group and round",
+#   fmt       = 2,
+#   estimate  = "{estimate} [{conf.low}, {conf.high}]",
+#   statistic = "{p.value}",
+#   gof_omit  = "IC|Log|Adj|RMSE",
+#   conf_level = 0.95,
+#   tidy_options = list(effects = "fixed") 
+# )
+# 
+# 
+# ## Make LaTeX backend classic tabular (no tabularray/tinytable)
+# options(modelsummary_factory_latex = "kableExtra")
+# 
+# ## Let modelsummary pick the right tidier automatically (or force 'broom')
+# options(modelsummary_get = "broom")   # or: options(modelsummary_get = "all")
+# 
+# msummary(
+#   list("Performance ~ group × round" = lmer_performance_rounds),
+#   output       = "latex",
+#   title        = "Hierarchical regression results: Performance as a function of group and round",
+#   fmt          = 2,
+#   estimate     = "{estimate} [{conf.low}, {conf.high}]",
+#   statistic    = "{p.value}",
+#   conf_level   = 0.95,
+#   tidy_options = list(effects = "fixed"),       # only fixed effects
+#   gof_omit     = "IC|Log|Adj|RMSE|^SD"         # hide SD(...) random-effect rows
+# )
+
+# Hierarchical Bayesian regression analysis
 brm_rounds <- run_model(
   expr = quote(brm(
     mean_reward ~ round * group + (1 | id),
@@ -364,7 +443,7 @@ df_mean_reward_subject_by_round$fitted_mean_reward <- fitted_values[, "Estimate"
 p <- ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
   geom_point(data = df_summary_by_round, aes(x = round, y = mean_of_means, shape = group), size = 3) +
   geom_line(aes(y = fitted_mean_reward), linewidth = 1) +  
-  geom_jitter(aes(x = round, y = mean_reward), size = 1, alpha = 0.3, width = 0.2) +
+  geom_jitter(aes(x = round, y = mean_reward), size = 1.5, alpha = 0.6, width = 0.1) +
   scale_y_continuous("Mean Reward", breaks = c(25,30,35)) +
   xlab("Round") +
   scale_fill_manual(values = groupcolors) +
@@ -409,38 +488,76 @@ modelName='brm_reward_rounds_reduced')
 
 ```
 
-@fig-performance-rounds shows the obtained rewards by round, for each group. An ANOVA with *round* as within- and *group* as between-subjects factor showed a difference between groups, with Control patients achieving the greatest rewards, followed by PD+ and PD- patients, but no change across rounds (and no interaction). A Bayesian regression analysis yielded comparable results, with the estimated effect of round on mean reward being very small (Estimate = `r round(fixef(brm_rounds)["round", "Estimate"], 2)`, 95% CI \[`r round(fixef(brm_rounds)["round", "Q2.5"], 2)`, `r round(fixef(brm_rounds)["round", "Q97.5"], 2)`\]) and the credible interval including zero. In the subsequent analyses, we therefore aggregate across rounds.
+### Performance: Role of physiological and cognitive assessments (BDI, MMSE, Hoehn-Yahr)
+
+We assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only). We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance.
 
 ```{r}
-#| label: fig-performance-rounds
-#| fig-cap: "Performance over rounds (excluding tutorial and bonus round)."
-#| fig-width: 6
-#| fig-height: 3
+# Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
+lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id), 
+                                  data = subset(dat, trial > 0 & round %in% 2:9))
+
+res.table <- as.data.frame(coef(summary(lmer_performance_BDI_MMSE)))
 
 
-# Plot the mean reward by round for each group with dodged points and error bars
-ggplot(df_summary_by_round, aes(x = round, y = mean_of_means, group = group, shape = group,  color = group, fill = group)) +
-  geom_line(position = position_dodge(width = 0.3)) +  
-  # geom_errorbar(aes(ymin = mean_of_means - 1.96 * se_reward, ymax = mean_of_means + 1.96 * se_reward), width = 0.2, position = dodge, color = "black") +  # 
-  geom_errorbar(aes(ymin = mean_of_means - se_reward, ymax = mean_of_means + se_reward), width = 0.2, position = position_dodge(width = 0.3), alpha=0.7) +  #
-  geom_point(position = position_dodge(width = 0.3), size = 3, stroke = 1, alpha=.9) +  
-  #coord_cartesian(ylim = c(20,40)) +
-  coord_cartesian(ylim = c(0.4,0.75)) +
-  #scale_shape_manual(values = c(21, 24, 22)) +  # circle, triangle, and square
-  scale_fill_manual(values = groupcolors) +  
-  scale_color_manual(values = groupcolors) +  
-  #scale_color_manual(values = c("black","black","black")) +  
-  # scale_y_continuous("Mean reward ± 95% CI") +
-  scale_y_continuous("Mean reward ± SE") +
-  scale_x_continuous("Round", breaks = 2:9) +
-  theme_classic() +
-  theme(legend.title = element_blank(),
-      plot.title = element_text(size=16),
-      axis.text = element_text(size=14),
-      axis.title = element_text(size=14))
+# addtionally including demographics
+# lmer_performance <- lmer(z ~ gender + age + round +group + BDI + MMSE + (1 | id), 
+#                                   data = subset(dat, trial > 0 & round %in% 2:9))
+# summary(lmer_performance)
 
-# ggsave("plots/performance_rounds.png", width = 6, height = 3)
+#summary(lmer_reward_BDI_MMSE)
+tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
+
+# Hierarchical Bayesian regression with random intercept: Reward as function of BDI and MMSE score (all patients)                              
+brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
+                                          data=subset(dat, trial > 0 & round %in% 2:9 ),
+                                          chains = 4,                               
+                                          cores = 4,                                
+                                          save_pars = save_pars(all = TRUE),
+                                          seed = 0815,
+                                          iter = 5000,
+                                          warmup=1000,
+                                          backend = "cmdstanr",
+                                          control = list(adapt_delta = 0.99, max_treedepth = 15)),
+                                      #prior = prior(normal(0,10), class = "b")),
+                                      modelName = 'brm_performance_BDI_MMSE')
+#tab_model(brm_performance_assessment, bpe="mean", title = "Hierarchical Bayesian regression: Performance as function of BDI and MMSE score.") 
+#bayes_R2(brm_performance_assessment) 
+#tab_model(lmer_performance_BDI_MMSE, brm_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
+
+
 ```
+
+Finally, we ran a hierarchical regression for Parkinson's patients only, with reward as dependent variable and group, BDI, MMSE, and Hoehn-Yahr score as predictors; with random intercepts for participants to account for individual differences. This analysis only yielded an influence of group, i.e. being on or off L-Dopa.
+
+```{r}
+# Hierarchical frequentist regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)   
+lmer_reward_PD_only_BDI_MMSE_HY <- lmer(z ~ group + BDI + MMSE + hoehn_yahr + (1 | id), 
+                                        data = subset(dat, trial > 0 & round %in% 2:9 & group != "Control"))
+
+#summary(lmer_reward_PD_only_BDI_MMSE_HY)
+
+tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
+
+res.table <- as.data.frame(coef(summary(lmer_reward_PD_only_BDI_MMSE_HY)))
+
+# Hierarchical Bayesian regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)                          
+brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
+                                                     data=subset(dat, trial > 0 & round %in% 2:9 & group != "Control"),
+                                                     cores=4,
+                                                     chains = 4,
+                                                     seed = 0815,
+                                                     iter = 5000,
+                                                     warmup=1000,
+                                                     backend = "cmdstanr",
+                                                     control = list(adapt_delta = 0.99)),
+                                                 #prior = prior(normal(0,10), class = "b")),
+                                                 modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
+
+# tab_model(lmer_reward_PD_only_BDI_MMSE_HY, brm_performance_PD_only_BDI_MMSE_HYtitle = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
+
+```
+
 
 ## Performance: Rewards by group
 
@@ -490,7 +607,7 @@ df_mean_reward_subject <- dat %>%
 p_performance <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
   geom_hline(yintercept=.5, linetype='dashed', color='black') + # random choice model (mean across all 40 environments)
   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.4) +  
-  geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +  
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -525,8 +642,8 @@ ggsave("plots/performance.png", p_performance, dpi=300, height = 5, width = 6 )
 # p_performance_by_group_CPP <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
 #   #geom_hline(yintercept=.5, linetype='dashed', color='red') + # random choice model (mean across all 40 environments)
 #   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.5) +  
-#   geom_jitter(width = 0.15, size = 2, alpha = 0.8) +  
-#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +  
+#   geom_jitter(width = 0.15, size = 1.5, alpha = 0.8) +  
+#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 1.5) +  
 #   scale_color_manual(values = groupcolors) +
 #   scale_fill_manual(values = groupcolors) +
 #   ylab("Mean normalized reward") +
@@ -649,74 +766,6 @@ ggsave("plots/learning_curves.png", p_learning_curves, dpi=300,height=5,width=8)
 
 ```
 
-### Performance: Role of physiological and cognitive assessments (BDI, MMSE, Hoehn-Yahr)
-
-We assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only). We ran a hierarchical regression with reward as dependent variable and group, BDI score, and MMSE score; with random intercepts for participants to account for individual differences. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance.
-
-TO DO: Keep eye on MMSE scores, approaching significance
-
-```{r}
-# Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
-lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id), 
-                                  data = subset(dat, trial > 0 & round %in% 2:9))
-
-
-# addtionally including demographics
-# lmer_performance <- lmer(z ~ gender + age + round +group + BDI + MMSE + (1 | id), 
-#                                   data = subset(dat, trial > 0 & round %in% 2:9))
-# summary(lmer_performance)
-
-#summary(lmer_reward_BDI_MMSE)
-tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
-
-# Hierarchical Bayesian regression with random intercept: Reward as function of BDI and MMSE score (all patients)                              
-brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
-                                          data=subset(dat, trial > 0 & round %in% 2:9 ),
-                                          chains = 4,                               
-                                          cores = 4,                                
-                                          save_pars = save_pars(all = TRUE),
-                                          seed = 0815,
-                                          iter = 5000,
-                                          warmup=1000,
-                                          backend = "cmdstanr",
-                                          control = list(adapt_delta = 0.99, max_treedepth = 15)),
-                                      #prior = prior(normal(0,10), class = "b")),
-                                      modelName = 'brm_performance_BDI_MMSE')
-#tab_model(brm_performance_assessment, bpe="mean", title = "Hierarchical Bayesian regression: Performance as function of BDI and MMSE score.") 
-#bayes_R2(brm_performance_assessment) 
-#tab_model(lmer_performance_BDI_MMSE, brm_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
-
-
-```
-
-Next, we ran a hierarchical regression for Parkinson's patients only, with reward as dependent variable and group, BDI, MMSE, and Hoehn-Yahr score as predictors; with random intercepts for participants to account for individual differences. This analysis only yielded an influence of group, i.e. being on or off L-Dopa.
-
-```{r}
-# Hierarchical frequentist regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)   
-lmer_reward_PD_only_BDI_MMSE_HY <- lmer(z ~ group + BDI + MMSE + hoehn_yahr + (1 | id), 
-                                        data = subset(dat, trial > 0 & round %in% 2:9 & group != "Control"))
-
-#summary(lmer_reward_PD_only_BDI_MMSE_HY)
-
-tab_model(lmer_reward_PD_only_BDI_MMSE_HY, title = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
-
-
-# Hierarchical Bayesian regression with random intercept: Reward as function of BDI, MMSE, and Hoehner-Yahr score (Parkinson's patients only)                          
-brm_performance_PD_only_BDI_MMSE_HY <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
-                                                     data=subset(dat, trial > 0 & round %in% 2:9 & group != "Control"),
-                                                     cores=4,
-                                                     chains = 4,
-                                                     seed = 0815,
-                                                     iter = 5000,
-                                                     warmup=1000,
-                                                     backend = "cmdstanr",
-                                                     control = list(adapt_delta = 0.99)),
-                                                 #prior = prior(normal(0,10), class = "b")),
-                                                 modelName = 'brm_performance_PD_only_BDI_MMSE_HY')
-
-# tab_model(lmer_reward_PD_only_BDI_MMSE_HY, brm_performance_PD_only_BDI_MMSE_HYtitle = "Hierarchical regression results: Performance of patients with Parkinson's disease as function of BDI, MMSE, and Hoehn-Yahr score.",  bpe="mean")
-
-```
 
 ## Exploration vs. exploitation choices
 
@@ -785,7 +834,7 @@ Controls exploited more than PD patients (`r ttestPretty(subset(df_unique_choice
 
 p_explore_exploit_choices <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha= 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -832,7 +881,7 @@ p_explore_exploit_choices_over_time <- ggplot(dat_repeat_prop, aes(x = trial, y 
   labs(
     x = "Trial",
     y = "Exploitation choices (M±95% CI)",
-    title = "Exploration and exploitation over time"
+    title = "Exploitation over time"
   ) +
   theme_classic() +
   theme(strip.background = element_blank(),  
@@ -891,8 +940,8 @@ p_main <- ggplot(dat_repeat_prop, aes(x = trial, y = prop_repeat, fill = group, 
 # Inset plot
 p_inset <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
   geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 0.8) +  
-  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+  geom_jitter(width = 0.1, size = 0.8) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 1.5) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
   scale_y_continuous("", 
@@ -981,7 +1030,7 @@ p_explore_exploit_choices_inset <- ggdraw() +
 # p_inset_CPP <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
 #   geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA, width=0.75) +  
 #   geom_jitter(width = 0.15, size = 0.8) +  
-#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 1.5) +
 #   scale_color_manual(values = groupcolors) +
 #   scale_fill_manual(values = groupcolors) +
 #   scale_y_continuous("", 
@@ -1040,8 +1089,8 @@ df_reward_explore_exploit <- dat %>%
 ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
   facet_wrap(~is_new_label) + 
   geom_boxplot(alpha = 0.2, size = 0.5, outlier.shape = NA, width=0.75) +  
-  geom_jitter(width = 0.15, size = 0.8) +  
-  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 2) +
+  geom_jitter(width = 0.1, size = 0.8, alpha = 0.6) +  
+  stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 1.5) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
   scale_y_continuous("Mean reward") + 
@@ -1086,6 +1135,51 @@ We next consider participant's spatial search trajectories (distance among conse
 
 The most frequent choice was to select a neighboring tile (distance = 1), reflecting a local search approach [@Wu_2018grid]. On average, Control patients had the shortest distances, indicating more local searches and repeated clicks. PD+ patients had greater distances than Control but shorter than PD- patients, who showed the highest distances. The distribution of distances shows that this is primarily due to the few repeat choices (distance = 0) they made, i.e. very limited exploitation behavior.
 
+```{r}
+# simulate consecutive search distances for learner choosing randomly on each step
+# each learner chooses with uniform probability among the 8x8=64 options
+# first tile (option) chosen randomly, then 25 random choices by the learner
+# analyzed is the consecutive distance among choices
+
+simulate_learner <- function(n_trial = 26, grid_size = 8) {
+  # random sequence of choices (positions on 8x8 grid)
+  x <- sample(1:grid_size, n_trial, replace = TRUE)
+  y <- sample(1:grid_size, n_trial, replace = TRUE)
+  
+  # trial index: 0 is randomly revelead trial, then 25 trials by learner
+  trial <- 0:(n_trial - 1)
+  
+  # data frame
+  path <- data.frame(trial = trial, x = x, y = y)
+  
+  # Manhattan distance between consecutive choices
+  path$distance <- c(NA, abs(diff(path$x)) + abs(diff(path$y)))
+  
+  return(path)
+}
+
+# number of learners
+n_learners <- 10^4
+simulations <- lapply(1:n_learners, function(i) simulate_learner())
+
+# bind results
+simulations_df <- do.call(rbind, lapply(seq_along(simulations), function(i) {
+  cbind(learner = i, simulations[[i]])
+}))
+
+# exploration (consecutive distance > 0) vs. exploitation (consecutive distance == 0) decisions 
+df_props_simulated <- 
+simulations_df %>%
+  filter(trial > 0) %>%
+  group_by(distance) %>%
+  summarise(count = n()) %>% 
+  mutate(prop = count / sum(count)) %>%
+  mutate(group = "Random") 
+
+# mean(simulations_df$distance, na.rm = T)
+```
+
+
 ```{r, echo=F}
 #| label: fig-distances
 #| fig-cap: "Distance among consecutive clicks."
@@ -1105,7 +1199,7 @@ df_mean_distance_subject <- dat %>%
 
 
 #  distance by  group
-# df_mean_distance <- 
+df_mean_distance <- 
   df_mean_distance_subject %>%
   group_by(group) %>%
  summarise(
@@ -1128,14 +1222,72 @@ df_props <-
   summarise(count = n(), .groups = "drop_last") %>%
   mutate(type_choice = if_else(distance == 0, "Repeat", "Exploration")) %>%
   mutate(prop = count / sum(count))
-highlight_colours <- c(
-  "Control" = "#7570b3", 
-  "PD+"   = "#1b9e77", 
-  "PD-"  = "#d95f02"
-)
 
-p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = group)) +
-  facet_wrap(~group) +
+
+# plot without simulated learners
+
+# p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = group)) +
+#   facet_wrap(~group) +
+#   geom_col(
+#     aes(fill = group),
+#     width    = 1,
+#     # color    = "black",
+#     alpha = 0.7
+#   ) +
+#   geom_col(
+#     data     = df_props %>% filter(distance == 0),
+#     aes(x     = distance, y = prop),
+#     # fill     = "firebrick",
+#     fill   = c("#d95f02","#1b9e77","#7570b3"),
+#     color    = "black",
+#     width    = 1
+#   ) +
+#   scale_fill_manual(values = groupcolors) +
+#   scale_color_manual(values = groupcolors) +
+#   scale_y_continuous(
+#     "Average proportion",
+#     limits = c(0, 0.7),
+#     breaks = seq(0, 0.6, 0.2),
+#     expand = c(0, 0),
+#     labels = percent_format(accuracy = 1)
+#   ) +
+#   scale_x_continuous("Distance") +
+#   # geom_vline(xintercept = 0.5, linetype = "dashed") +
+#   # geom_text(data = df_mean_distance, aes(x = Inf, y = Inf, label = paste0("M: ", round(mean_distance, 1))), # add mean distanecs
+#   #           hjust = 1.4, vjust = 1.5, size = 6, inherit.aes = FALSE) +
+#   ggtitle("Distance consecutive choices") +
+#   theme_classic() +
+# theme(plot.title = element_text(size = 24),
+#         legend.title = element_blank(),
+#         legend.position = 'none',
+#         legend.text =  element_text(colour="black"),
+#         text = element_text(colour = "black"),
+#         strip.background =element_blank(),
+#         strip.text = element_text(colour="black", size=18),
+#         axis.text = element_text(colour="black", size=18),
+#         axis.title = element_text(colour="black", size=18),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.spacing = unit(0.5, "cm"),
+#         plot.margin     = margin(r = 20))
+# 
+# p_distance_consecutive
+
+# plot with simulated learners
+# add proportions from random learner
+df_props_sim <- df_props %>% 
+  select(-type_choice) %>% 
+  bind_rows(df_props_simulated) %>% 
+  mutate(group = factor(group,
+                        levels = c("PD-", "PD+", "Control", "Random"))) 
+
+df_mean_dist <- df_props_sim %>%
+  group_by(group) %>%
+  summarise(mean_distance = sum(distance * prop)) 
+
+p_distance_consecutive_sim <- 
+  ggplot(df_props_sim, aes(x = distance, y = prop, color = group)) +
+  facet_wrap(~group, nrow = 1) +
   geom_col(
     aes(fill = group),
     width    = 1,
@@ -1143,15 +1295,15 @@ p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = g
     alpha = 0.7
   ) +
   geom_col(
-    data     = df_props %>% filter(distance == 0),
+    data     = df_props_sim %>% filter(distance == 0),
     aes(x     = distance, y = prop),
     # fill     = "firebrick",
-    fill   = highlight_colours[ df_props$group[df_props$distance == 0] ],
+    fill   = c("#d95f02","#1b9e77","#7570b3", "steelblue"),
     color    = "black",
     width    = 1
   ) +
-  scale_fill_manual(values = groupcolors) +
-  scale_color_manual(values = groupcolors) +
+  scale_fill_manual(values = c(groupcolors,"steelblue")) +
+  scale_color_manual(values = c(groupcolors, "steelblue")) +
   scale_y_continuous(
     "Average proportion",
     limits = c(0, 0.7),
@@ -1161,9 +1313,19 @@ p_distance_consecutive <- ggplot(df_props, aes(x = distance, y = prop, color = g
   ) +
   scale_x_continuous("Distance") +
   # geom_vline(xintercept = 0.5, linetype = "dashed") +
-  # geom_text(data = df_mean_distance, aes(x = Inf, y = Inf, label = paste0("Mean: ", round(mean_distance, 1))), # add mean distanecs
-  #           hjust = 1.4, vjust = 1.5, size = 6, inherit.aes = FALSE) +
-  ggtitle("Distance consecutive choices") +
+  geom_text(
+  data = df_mean_dist, 
+  aes(
+    x = -Inf, y = Inf, 
+    label = paste0("italic(M)==", round(mean_distance, 1))
+  ), 
+  parse = TRUE,          
+  hjust = -0.1, #1.4, 
+  vjust = 3, 
+  size = 6, 
+  inherit.aes = FALSE
+) +
+    ggtitle("Distance of consecutive choices") +
   theme_classic() +
 theme(plot.title = element_text(size = 24),
         legend.title = element_blank(),
@@ -1179,7 +1341,8 @@ theme(plot.title = element_text(size = 24),
         panel.spacing = unit(0.5, "cm"),
         plot.margin     = margin(r = 20))
 
-p_distance_consecutive
+p_distance_consecutive_sim
+
 
 # p_distance_consecutive <- 
   # ggplot(filter(dat, trial > 0 & round %in% 2:9), aes(x = distance)) +
@@ -1212,9 +1375,9 @@ p_distance_consecutive
   #                            b = 0,  
   #                            l = 0))
 
-p_distance_consecutive
-
-ggsave("plots/distance_consecutive.png", p_distance_consecutive, dpi=300,height=4, width=9)
+# p_distance_consecutive
+# 
+# ggsave("plots/distance_consecutive.png", p_distance_consecutive, dpi=300,height=4, width=9)
 # ggsave("plots/distance_consecutive.pdf", p_distance_consecutive, height=4, width=9)
 ```
 
@@ -1362,7 +1525,7 @@ df_types_choices_trial_subject <- dat %>%
 ggplot(df_types_choices_trial_subject, aes(x = trial, y = prop, color = type_choice, group = type_choice)) +
   facet_wrap(~group) +  
   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, , position=position_dodge(width=0.5)) +  
-  stat_summary(fun = mean, geom = "point", size = 2, position=position_dodge(width=0.5)) +  
+  stat_summary(fun = mean, geom = "point", size = 1.5, position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
   scale_fill_manual(values = choice3_colors) + 
   scale_color_manual(values = choice3_colors)+ 
@@ -1482,7 +1645,7 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
   guides(color = guide_legend(
     override.aes = list(
       fill = NA, 
-      size = 2
+      size = 1.5
     )))
 
 # p_lmer_distance_reward$layers[[2]]$show.legend <- FALSE
@@ -1709,7 +1872,7 @@ Controls had lower prediction error than PD- patients; no other group difference
 p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean_error, color = group, fill = group, shape = group)) +
   geom_hline(yintercept=randomPerformance, linewidth = 0.5, color = "darkred", linetype = "dotted") +
   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.4) +
-  geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -1806,10 +1969,10 @@ fixedDF_conf_error <- data.frame(group = rep(c("Control","PD+", "PD-"), each=len
 
 
 ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
-  geom_jitter(data = dat_bonus, size = 0.5, width = 0.1, alpha = .4) +
+  geom_jitter(data = dat_bonus, size = 0.5, width = 0.1, alpha = .6) +
   geom_line(size = 0.7)  +
   geom_errorbar(aes(ymin=lower, ymax = upper), width = 0.2, colour = "black", position = position_dodge(width = 0.2)) +
-  geom_point(shape = 21, size = 2, colour = "black", position = position_dodge(width = 0.2))  +
+  geom_point(shape = 21, size = 1.5, colour = "black", position = position_dodge(width = 0.2))  +
   scale_fill_manual(values = groupcolors) +
   scale_colour_manual(values = groupcolors) +
   scale_y_continuous("Prediction Error") + #, breaks = seq(0,30,10)) +
@@ -1880,7 +2043,7 @@ p_bonusround_prediction_chosen <-
   ggplot(df_chosen_group, aes(x = chosen, y = m_givenValue, color = group, fill = group, shape = group)) +
   facet_wrap(~group) +
   geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.4) +
-  geom_jitter(position = position_jitter(width = 0.2), size = 1.5, alpha = 0.8) +
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -2007,7 +2170,7 @@ ggsave("plots/task_model.pdf", height=10, width=15, limitsize = FALSE )
 cowplot::plot_grid(
    p_performance, p_learning_curves,
    p_explore_exploit_choices, p_explore_exploit_choices_over_time,
-   p_distance_consecutive, p_regression_distance_reward, #p_distance_consecutive p_types_choices_overall
+   p_distance_consecutive_sim, p_regression_distance_reward, #p_distance_consecutive p_types_choices_overall
    p_bonusround_prediction_error, p_bonusround_prediction_chosen,
    labels = c("auto"),
    label_size = 22,
@@ -2259,7 +2422,7 @@ ggplot(filter(df_mean_reward_subject, group != "Control"), aes(x = hoehn_yahr, y
   #geom_hline(data=filter(df_random_performance, environment=="Rough"), linetype="dotted", aes(yintercept=z_learn_envs)) + 
   #geom_hline(data=filter(df_random_performance, environment=="Smooth"), linetype="dotted",aes(yintercept=z_learn_envs)) +
   geom_smooth(colour = "black", linetype = "dashed", size = 0.5, method="lm", se=T, alpha = 0.2) +
-  geom_jitter(aes(fill = MMSE), shape = 21, alpha = jit_alpha, jit_width=0.0001, colour = "black") +
+  geom_jitter(aes(fill = MMSE), shape = 21, alpha = jit_alpha, width=0.0001, colour = "black") +
   #geom_point(aes(fill = hoehn_yahr), shape = 21, alpha = jit_alpha, colour = "black") +
   scale_fill_gradient(low="blue",high="red") +
   scale_y_continuous("Mean normalized reward") + 

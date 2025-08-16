@@ -95,7 +95,7 @@ jit_width   <- 0.05
 jit_alpha   <- 0.6
 
 # colors for age groups
-groupcolors    <- c("#7570b3", "#1b9e77", "#d95f02")
+groupcolors    <- c("#d95f02", "#1b9e77", "#7570b3")
 choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 
 ```
@@ -288,7 +288,7 @@ comparisons_df <- comparisons_df %>%
 p_model_comparison <- ggplot(modelFits, aes(x = shortname, y = R2, fill = group, shape = group, color = group)) +
   facet_wrap(~group, nrow = 1) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
   scale_y_continuous(name = expression("Predictive accuracy " ~ R^2),
                      breaks = c(0, 0.5, 1))+  
@@ -498,41 +498,6 @@ df_gpucb_params %>%
 #| fig-width: 12
 
 
-# facetted plot (all log scaled values)
-# p_gpucb_params <- ggplot(df_gpucb_params, aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
-#   facet_wrap(
-#     ~ param,
-#     labeller = labeller(
-#       param = c(
-#         "lambda" = "'Generalization '*lambda",
-#         "beta"   = "'Exploration bonus '*beta",
-#         "tau"    = "'Random exploration '*tau"
-#       ),
-#       .default = label_parsed  
-#   )) +
-#   scale_y_log10(name = "Estimate (log scale)", breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
-#   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-#   geom_jitter(width = 0.15, size = 2) +  
-#   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
-#   scale_color_manual(values = groupcolors) +
-#   scale_fill_manual(values = groupcolors) +
-#   scale_x_discrete("") + 
-#   ggtitle("GP-UCB parameter estimates: Group differences") + 
-#   theme_classic() +
-#   theme(strip.background = element_blank(),  
-#         strip.text = element_text(color = "black", size=18),
-#         legend.position = "none",
-#         legend.justification = c(0, 1),
-#         axis.title = element_text(size = 18),
-#         axis.text = element_text(size = 18),
-#        # plot.margin = margin(0, 0, 0, 0),
-#         plot.title = element_text(size = 24),
-#        plot.margin = margin(0, 0, 20, 0) 
-#   )
-# 
-# p_gpucb_params  
-# ggsave("plots/GP-UCB_params.png", p_gpucb_params,dpi=300, width = 9, height = 5)
-
 # separate plots
 # generalization lambda
 p_gpucb_params_lambda <- 
@@ -540,7 +505,7 @@ p_gpucb_params_lambda <-
   geom_hline(yintercept = 1, linetype = "dashed", color = "darkred") + # true lambda
   scale_y_continuous(name = "Estimate", breaks = c(0, 0.5, 1, 2), labels = c("0", "0.5", "1", "2"), limits = c(0, 1.45)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -564,7 +529,7 @@ p_gpucb_params_beta <-
   ggplot(subset(df_gpucb_params, param == "beta"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
   scale_y_log10(name = " ", breaks = c(0.01, 0.1, 1, 10), labels = c("0.01", "0.1", "1", "10"), limits = c(0.005, 55)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
@@ -588,7 +553,7 @@ p_gpucb_params_tau <-
   ggplot(subset(df_gpucb_params, param == "tau"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
   scale_y_log10(name = " ", breaks = c(0.01, 0.1, 1, 10), labels = c("0.01", "0.1", "1", "10"), limits = c(0.005, 55)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
-  geom_jitter(width = 0.15, size = 2) +  
+  geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
