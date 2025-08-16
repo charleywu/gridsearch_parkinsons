@@ -2507,3 +2507,4 @@ ggplot(filter(df_mean_reward_subject, group != "Control"), aes(x = hoehn_yahr, y
   *Dopamine selectively remediates ‘model-based’ reward learning: a computational approach*  
   Sharp, M. E., Foerde, K., Daw, N. D., & Shohamy, D. (2016). Dopamine selectively remediates ‘model-based’ reward learning: a computational approach. Brain, 139(2), 355-364
   https://academic.oup.com/brain/article/139/2/355/1753805
+  
