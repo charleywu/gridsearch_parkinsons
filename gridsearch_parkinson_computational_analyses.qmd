@@ -55,7 +55,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix", "magick", "grid")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix", "magick", "grid", "cetcolor")
 
 installed <- packages %in% rownames(installed.packages())
 if (any(!installed)) {
@@ -1001,8 +1001,286 @@ Analysis of parameter estimates on the group level showed that this overall rela
 -   PD+: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD+")$estimate, subset(df_params_performance, param == "tau" & group == "PD+")$mean_reward, method = "kendall")`
 -   PD-: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD-")$estimate, subset(df_params_performance, param == "tau" & group == "PD-")$mean_reward, method = "kendall")`
 
-### Further analyses
-2) take ratio of explore/exploit and correlate with model params
+
+# Model simulations
+To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ at 1, corresponding to the true amount of correlation in the used environments, and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 100 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study.
+
+
+```{r}
+#| label: fig-simulateModels-results
+#| fig-cap: "Model simulation."
+#| fig-width: 12
+#| fig-height: 8
+
+# simulation results
+sim = read.csv('modelResults/simulatedModels_local_lambda_1.csv')
+
+# normalize reward
+sim$meanReward = sim$mu / 50
+
+sim_means <-  sim %>% 
+  group_by(tau,beta) %>% 
+  summarise(meanReward = mean(mu)) %>% 
+  mutate(meanReward = meanReward/50) %>% 
+  mutate(log10_beta = log10(beta),
+         log10_tau = log10(tau)
+  )
+
+
+# plot with markers (median tau and beta per group)
+
+# get mean parameter estimates by group
+marker <- df_gpucb_params %>%
+  group_by(group, param) %>%
+  summarise(#mean = mean(estimate, na.rm = TRUE), 
+            median = median(estimate, na.rm = TRUE),
+                             .groups = "drop") %>%
+  filter(param %in% c("beta", "tau")) %>%
+  pivot_wider(names_from = param, values_from = median) %>%
+  mutate(log10_beta = log10(beta), log10_tau = log10(tau))
+
+# tick positions in the original scale
+bx <- c(0.001, 0.01, 0.1, 1, 10, 50)
+by <- c(0.001, 0.01, 0.1, 1, 10, 20)
+
+ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
+  labs(x = expression(paste('Explorations bonus ', beta)),
+       y = expression(paste('Random exploration ', tau))) +
+  scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
+  # scale_fill_viridis_c(option = "inferno", name = "Normalized\nreward") +
+  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  geom_point(
+    data = marker,
+    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    inherit.aes = FALSE,  # do not use fill=meanReward
+    size = 3, stroke = 1
+  ) +
+  scale_shape_manual(values = c(16, 17, 15), guide = "none") +   
+  scale_colour_manual(values = groupcolors, guide = "none") +
+  geom_text(
+    data = marker,
+    aes(x = log10_beta, y = log10_tau, label = group, colour = group),
+    inherit.aes = FALSE,
+    hjust = -0.5, vjust = 0, size = 4
+  ) +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        #        legend.position = "none",
+        #        legend.justification = c(0, 1),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 24)
+        # plot.margin = margin(0, 0, 20, 0) 
+  )
+
+ggsave("plots/model_simulation_local.png", dpi = 300, width = 12, height = 6)
+
+# get mean parameter estimates by group
+marker2 <-
+  df_gpucb_params %>%
+  select(id, group, param, estimate) %>%
+  filter(param %in% c("beta", "tau")) %>%
+  pivot_wider(names_from = param, values_from = estimate) %>%
+  mutate(log10_beta = log10(beta), log10_tau = log10(tau))
+
+# Control group
+p_model_simulation_params_pd_control <- 
+ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
+  labs(x = expression(paste('Exploration bonus ', beta)),
+       y = expression(paste('Random exploration ', tau))) +
+  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
+  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
+  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "Control"),
+    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    fill = "#7570b3",
+    shape = 21,
+    stroke = 0.3,
+    color = "white",
+    width = 0.1
+  ) +
+ geom_point( # add median
+    data = subset(marker, group == "Control"),
+    aes(x = log10_beta, y = log10_tau, colour = group),
+    inherit.aes = FALSE,
+    shape = 21,        
+    size = 5,          
+    stroke = 1.5,
+    fill = "#7570b3",
+    color = "white"
+  ) +
+  ggtitle("Control") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        #        legend.justification = c(0, 1),
+         
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 20),
+        axis.title.y = element_blank()
+        # axis.text.y = element_blank()
+  )
+
+#p_model_simulation_params_pd_control
+
+# PD- group
+p_model_simulation_params_pd_off <- 
+ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
+  labs(x = expression(paste('Exploration bonus ', beta)),
+       y = expression(paste('Random exploration ', tau))) +
+  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
+  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
+   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
+  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "PD-"),
+    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    color = "white",
+    fill = "#d95f02",
+    shape = 22,
+    stroke = 0.3,
+    width = 0.1
+  ) +
+ geom_point( # add median
+    data = subset(marker, group == "PD-"),
+    aes(x = log10_beta, y = log10_tau, colour = group),
+    inherit.aes = FALSE,
+    shape = 22,        
+    size = 5,          
+    stroke = 1.5,
+    fill = "#d95f02",
+    color = "white"
+  ) +
+  ggtitle("PD-") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        #        legend.justification = c(0, 1),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 20)
+        # plot.margin = margin(0, 0, 20, 0) 
+  )
+
+# PD+ group
+p_model_simulation_params_pd_on <- 
+  ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
+  labs(x = expression(paste('Exploration bonus ', beta)),
+       y = expression(paste('Random exploration ', tau))) +
+  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
+  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
+   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
+  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "PD+"),
+    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    color = "white",
+    fill = "#1b9e77",
+    shape = 24,
+    stroke = 0.3,
+    width = 0.1
+  ) +
+ geom_point( # add median
+    data = subset(marker, group == "PD+"),
+    aes(x = log10_beta, y = log10_tau, colour = group),
+    inherit.aes = FALSE,
+    shape = 24,        
+    size = 5,          
+    stroke = 1.5,
+    fill = "#1b9e77",
+    color = "white"
+  ) +
+  ggtitle("PD+") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        #        legend.justification = c(0, 1),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 20),
+        axis.title.y = element_blank()
+        # axis.text.y = element_blank()
+  )
+p_model_simulation_params_pd_on
+
+# Extract legend
+shared_legend <- cowplot::get_legend(
+  p_model_simulation_params_pd_control +
+    theme(legend.position = "right",
+          legend.title = element_text(size = 12),
+          legend.text  = element_text(size = 10))
+)
+
+# combine plots
+p_model_simulation_params_combined <- cowplot::plot_grid(
+  p_model_simulation_params_pd_off,
+  p_model_simulation_params_pd_on,
+  p_model_simulation_params_pd_control,
+  nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
+  labels = NULL
+)
+
+# add  legend
+p_model_simulation_params_combined <- cowplot::plot_grid(
+  p_model_simulation_params_combined, shared_legend,
+  ncol = 2, rel_widths = c(1, 0.10)   
+)
+
+# add title 
+p_model_simulation_params <- ggdraw() +
+  draw_label(
+    "Model simulation parameters",   
+    x = 0.2, y = 0.98,               
+    hjust = 0.5, vjust = 1,
+    size = 24
+  ) +
+  draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
+
+p_model_simulation_params
+
+ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
+
+
+# p_model_simulation_params <- grid.arrange(
+#   grobs = list( p_model_simulation_params_pd_off, p_model_simulation_params_pd_on, p_model_simulation_params_pd_control),
+#   nrow = 1,
+#   top = textGrob(
+#     "         Model simulation parameters", 
+#     x = 0,            
+#     hjust = 0,        
+#     gp = gpar(fontsize = 24)
+#   ),
+#   padding = unit(0.5, "lines") 
+# )
+
+ggsave("plots/model_simulation_params.png", p_model_simulation_params,
+       width = 14, height = 5, dpi = 300)
+```
 
 
 
@@ -1091,7 +1369,7 @@ The parameter $\tau$ represents the amount of decision noise, i.e. stochastic va
 
 
 ```{r}
-#| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant.Only participants are included who were best described by the GP-UCB model."
+#| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant. Only participants are included who were best described by the GP-UCB model."
 #| label: fig-GP-CUB_params_subset
 #| fig-width: 12
 

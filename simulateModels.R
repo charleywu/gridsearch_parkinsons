@@ -70,7 +70,7 @@ tau_range    <- tukeysFence(log(modelFit$tau)); tau_range[1] <- -5  # enforce lo
 
 
 # fixed theoratical range
-lambda_vals <- 1
+lambda_vals <- 0.5
 beta_vals   <- exp(seq(log(0.001), log(50), length.out = 100))
 tau_vals    <- exp(seq(log(0.001), log(20), length.out = 100))
 
@@ -177,12 +177,12 @@ for (i in seq_len(nrow(params))) {
   }
 }
 
-# ensure output dir exists
-outdir <- "modelResults/simulatedModels/local"
-if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
-outfile <- file.path(outdir, "simulatedModels_local.csv")
-write.csv(dparams, outfile, row.names = FALSE)
-message("Wrote: ", outfile)
+write.csv(dparams, "modelResults/simulatedModels_local_lambda_0_5.csv", row.names = FALSE)
+
+
+##########################################################
+# Original Code from Giron et al 2023 (optimized for cluster)
+#########################################################
 
 
 # parameter range based on Tukey's fence
