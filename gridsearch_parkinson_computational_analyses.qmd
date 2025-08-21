@@ -791,7 +791,7 @@ The amount of generalization was positively related with obtained rewards, showi
 ```{r}
 #| fig-cap: "Correlation of GP-UCB parameters with obtained mean reward across all trials and rounds. Each dot is one participant. The insets show the correlations for a restricted parameter range from 0 to 1."
 #| label: fig-params_reward_cor
-#| fig-width: 12
+#| fig-width: 13
 #| fig-height: 5
 
 
@@ -799,8 +799,8 @@ The amount of generalization was positively related with obtained rewards, showi
 p_lambda_reward <- 
   ggplot(subset(df_params_performance, param == "lambda"), aes(x = estimate, y = mean_reward)) +
   geom_point(aes(color = group, shape = group, fill = group)) +
-  #geom_point() +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) +
+  # geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) + # one regression line
+  geom_smooth(aes(color = group, fill = group), method = "lm", linetype = "dashed", alpha = 0.2, se = TRUE) +  # one regrssion line per group
   stat_cor(method = "kendall", cor.coef.name = expression(r[tau]), label.x.npc = "left",  label.y = 0.4,  size=5, p.accuracy=0.001) +
   labs(
     title = expression("Generalization " * lambda),
@@ -833,9 +833,9 @@ p_lambda_reward <-
 # plot correlation between exploration bonus beta (log10) and reward  
 p_beta_reward <-
   ggplot(subset(df_params_performance, param == "beta"), aes(x = estimate, y = mean_reward)) +
-  geom_point(aes(color = group, shape = group, fill = group)) +
-  # geom_point() +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) +
+   geom_point(aes(color = group, shape = group, fill = group)) +
+  # geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) + # one regression line
+  geom_smooth(aes(color = group, fill = group), method = "lm", linetype = "dashed", alpha = 0.2, se = TRUE) +  # one regrssion line per group
   stat_cor(method = "kendall", cor.coef.name = expression(r[tau]), label.x.npc = "left",  label.y = 0.4,  p.accuracy=0.001, size=5) + #label.x = 0.00,  label.y = 0.4,
   labs(
     title = expression("Exploration bonus " * beta),
@@ -860,11 +860,11 @@ p_beta_reward <-
 
 
 # plot correlation between amount of random exploration (temperature tau of softmax choice rule) and reward  
- p_tau_reward <-
+p_tau_reward <-
   ggplot(subset(df_params_performance, param == "tau"), aes(x = estimate, y = mean_reward)) +
   geom_point(aes(color = group, shape = group, fill = group)) +
-  # geom_point() +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) +
+  # geom_smooth(method = "lm", color = "black", linetype = "dashed", fill = "lightgray", se = TRUE) + # one regression line
+  geom_smooth(aes(color = group, fill = group), method = "lm", linetype = "dashed", alpha = 0.2, se = TRUE) +  # one regrssion line per group
   stat_cor(method = "kendall", cor.coef.name = expression(r[tau]), label.x.npc = "left",  label.y = 0.4, p.accuracy=0.01, size=5) +
   labs(
     title = expression("Random exploration " * tau),
@@ -892,7 +892,7 @@ p_parameters_reward <- grid.arrange(
   grobs = list(p_lambda_reward, p_beta_reward, p_tau_reward),
   nrow = 1,
   top = textGrob(
-    "         GP-UCB parameters: Correlation with performance", 
+    "         GP-UCB parameters: Relations to performance", 
     x = 0,            
     hjust = 0,        
     gp = gpar(fontsize = 24)
@@ -900,7 +900,9 @@ p_parameters_reward <- grid.arrange(
   padding = unit(0.5, "lines") 
 )
 
-ggsave("plots/parameters_reward.png", p_parameters_reward, dpi = 300, width = 12, height = 4)
+p_parameters_reward
+
+ggsave("plots/parameters_reward.png", p_parameters_reward, dpi = 300, width = 13, height = 4)
  
 # # plot correlation between parameter estimates and mean reward, with inset for smaller estimate range 
 # main_plot <- ggscatter(df_params_performance, x = "estimate", y = "mean_reward",
@@ -1001,8 +1003,51 @@ Analysis of parameter estimates on the group level showed that this overall rela
 -   PD+: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD+")$estimate, subset(df_params_performance, param == "tau" & group == "PD+")$mean_reward, method = "kendall")`
 -   PD-: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD-")$estimate, subset(df_params_performance, param == "tau" & group == "PD-")$mean_reward, method = "kendall")`
 
+## Regression: Perfomance and model parameters
+We also performed a regression analysis where we included all model paramaters together with group as predictors. 
+```{r}
+#| label: tbl-performance-parameters
+#| tbl-cap: "Regression results: Performance (obtained rewards) as function of group and model parameters (log scale)."
 
-# Model simulations
+df_params_performance_wide <- 
+  df_params_performance %>% 
+    filter(ModelName == "GP-UCB") %>% 
+    select(id, group, mean_reward, param, estimate_log10) %>%
+    distinct(id, group, param, .keep_all = TRUE) %>%   # drop duplicates if any
+  pivot_wider(names_from = param, values_from = estimate_log10) %>%
+  drop_na(beta, tau, lambda)   
+
+lm_performance_parameters_log <- lm(mean_reward ~ group * (lambda + beta + tau), data =  df_params_performance_wide)
+
+tab_model(lm_performance_parameters_log)
+
+# res.table <- as.data.frame(coef(summary(lm_performance_parameters_log)))
+
+# check models
+# library(performance)
+# check_model(lm_performance_parameters_log)
+# 
+# df_params_performance_wide2 <- 
+#   df_params_performance %>% 
+#     filter(ModelName == "GP-UCB") %>% 
+#     select(id, group, mean_reward, param, estimate) %>%
+#     distinct(id, group, param, .keep_all = TRUE) %>%   # drop duplicates if any
+#   pivot_wider(names_from = param, values_from = estimate) %>%
+#   drop_na(beta, tau, lambda)   
+# 
+# 
+# lm_performance_parameters <- lm(mean_reward ~ group * (lambda + beta + tau), data =  df_params_performance_wide2)
+# 
+# tab_model(lm_performance_parameters, title = "Regression results: Performance (obtained rewards) as function of group and model parameters.")
+# 
+# res.table <- as.data.frame(coef(summary(lm_performance_parameters)))
+# 
+# check_model(lm_performance_parameters)
+
+```
+
+
+## Model simulations
 To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ at 1, corresponding to the true amount of correlation in the used environments, and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 100 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study.
 
 
@@ -1014,6 +1059,7 @@ To evaluate how well different parameter settings balance exploration and exploi
 
 # simulation results
 sim = read.csv('modelResults/simulatedModels_local_lambda_1.csv')
+#sim = read.csv('modelResults/simulatedModels_local_lambda_0_5.csv')
 
 # normalize reward
 sim$meanReward = sim$mu / 50
@@ -1022,12 +1068,10 @@ sim_means <-  sim %>%
   group_by(tau,beta) %>% 
   summarise(meanReward = mean(mu)) %>% 
   mutate(meanReward = meanReward/50) %>% 
-  mutate(log10_beta = log10(beta),
-         log10_tau = log10(tau)
+  mutate(beta_log10 = log10(beta),
+         tau_log10 = log10(tau)
   )
 
-
-# plot with markers (median tau and beta per group)
 
 # get mean parameter estimates by group
 marker <- df_gpucb_params %>%
@@ -1037,59 +1081,23 @@ marker <- df_gpucb_params %>%
                              .groups = "drop") %>%
   filter(param %in% c("beta", "tau")) %>%
   pivot_wider(names_from = param, values_from = median) %>%
-  mutate(log10_beta = log10(beta), log10_tau = log10(tau))
+  mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
 
-# tick positions in the original scale
-bx <- c(0.001, 0.01, 0.1, 1, 10, 50)
-by <- c(0.001, 0.01, 0.1, 1, 10, 20)
-
-ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
-  geom_raster() +
-  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
-  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
-  labs(x = expression(paste('Explorations bonus ', beta)),
-       y = expression(paste('Random exploration ', tau))) +
-  scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
-  # scale_fill_viridis_c(option = "inferno", name = "Normalized\nreward") +
-  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
-  geom_point(
-    data = marker,
-    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
-    inherit.aes = FALSE,  # do not use fill=meanReward
-    size = 3, stroke = 1
-  ) +
-  scale_shape_manual(values = c(16, 17, 15), guide = "none") +   
-  scale_colour_manual(values = groupcolors, guide = "none") +
-  geom_text(
-    data = marker,
-    aes(x = log10_beta, y = log10_tau, label = group, colour = group),
-    inherit.aes = FALSE,
-    hjust = -0.5, vjust = 0, size = 4
-  ) +
-  theme_classic() +
-  theme(strip.background = element_blank(),  
-        strip.text = element_text(color = "black", size=18),
-        #        legend.position = "none",
-        #        legend.justification = c(0, 1),
-        axis.title = element_text(size = 18),
-        axis.text = element_text(size = 18),
-        plot.title = element_text(size = 24)
-        # plot.margin = margin(0, 0, 20, 0) 
-  )
-
-ggsave("plots/model_simulation_local.png", dpi = 300, width = 12, height = 6)
-
-# get mean parameter estimates by group
+# get median parameter estimates by group
 marker2 <-
   df_gpucb_params %>%
   select(id, group, param, estimate) %>%
   filter(param %in% c("beta", "tau")) %>%
   pivot_wider(names_from = param, values_from = estimate) %>%
-  mutate(log10_beta = log10(beta), log10_tau = log10(tau))
+  mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
+
+# tick positions in the original scale
+bx <- c(0.001, 0.01, 0.1, 1, 10, 50)
+by <- c(0.001, 0.01, 0.1, 1, 10, 20)
 
 # Control group
-p_model_simulation_params_pd_control <- 
-ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+p_model_simulation_params_control <- 
+ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
@@ -1098,10 +1106,10 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
   # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
   # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
-  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  #coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
   geom_jitter( # add individual points
     data = subset(marker2, group == "Control"),
-    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     fill = "#7570b3",
@@ -1112,7 +1120,7 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
   ) +
  geom_point( # add median
     data = subset(marker, group == "Control"),
-    aes(x = log10_beta, y = log10_tau, colour = group),
+    aes(x = beta_log10, y = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 21,        
     size = 5,          
@@ -1129,16 +1137,15 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
          
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
-        plot.title = element_text(size = 20),
+        plot.title = element_text(size = 18, hjust = 0.5),
         axis.title.y = element_blank()
-        # axis.text.y = element_blank()
   )
 
-#p_model_simulation_params_pd_control
+#p_model_simulation_params_control
 
 # PD- group
 p_model_simulation_params_pd_off <- 
-ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
@@ -1150,7 +1157,7 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
   coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD-"),
-    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     color = "white",
@@ -1161,7 +1168,7 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
   ) +
  geom_point( # add median
     data = subset(marker, group == "PD-"),
-    aes(x = log10_beta, y = log10_tau, colour = group),
+    aes(x = beta_log10, y = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 22,        
     size = 5,          
@@ -1177,13 +1184,12 @@ ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
         #        legend.justification = c(0, 1),
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
-        plot.title = element_text(size = 20)
-        # plot.margin = margin(0, 0, 20, 0) 
+        plot.title = element_text(size = 18, hjust = 0.5)
   )
 
 # PD+ group
 p_model_simulation_params_pd_on <- 
-  ggplot(sim_means, aes(x = log10_beta, y = log10_tau, fill = meanReward)) +
+  ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
@@ -1195,7 +1201,7 @@ p_model_simulation_params_pd_on <-
   coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD+"),
-    aes(x = log10_beta, y = log10_tau, shape = group, colour = group),
+    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     color = "white",
@@ -1206,7 +1212,7 @@ p_model_simulation_params_pd_on <-
   ) +
  geom_point( # add median
     data = subset(marker, group == "PD+"),
-    aes(x = log10_beta, y = log10_tau, colour = group),
+    aes(x = beta_log10, y = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 24,        
     size = 5,          
@@ -1222,25 +1228,25 @@ p_model_simulation_params_pd_on <-
         #        legend.justification = c(0, 1),
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
-        plot.title = element_text(size = 20),
+        plot.title = element_text(size = 18, hjust = 0.5),
         axis.title.y = element_blank()
         # axis.text.y = element_blank()
   )
-p_model_simulation_params_pd_on
+# p_model_simulation_params_pd_on
 
 # Extract legend
 shared_legend <- cowplot::get_legend(
-  p_model_simulation_params_pd_control +
+  p_model_simulation_params_control +
     theme(legend.position = "right",
-          legend.title = element_text(size = 12),
-          legend.text  = element_text(size = 10))
+          legend.title = element_text(size = 16),
+          legend.text  = element_text(size = 14))
 )
 
 # combine plots
 p_model_simulation_params_combined <- cowplot::plot_grid(
   p_model_simulation_params_pd_off,
   p_model_simulation_params_pd_on,
-  p_model_simulation_params_pd_control,
+  p_model_simulation_params_control,
   nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
   labels = NULL
 )
@@ -1254,32 +1260,47 @@ p_model_simulation_params_combined <- cowplot::plot_grid(
 # add title 
 p_model_simulation_params <- ggdraw() +
   draw_label(
-    "Model simulation parameters",   
-    x = 0.2, y = 0.98,               
+    "Model performance simulation",   
+    x = 0, y = 0.98,               
     hjust = 0.5, vjust = 1,
     size = 24
   ) +
   draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
 
-p_model_simulation_params
+# p_model_simulation_params
 
 ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
 
 
-# p_model_simulation_params <- grid.arrange(
-#   grobs = list( p_model_simulation_params_pd_off, p_model_simulation_params_pd_on, p_model_simulation_params_pd_control),
-#   nrow = 1,
-#   top = textGrob(
-#     "         Model simulation parameters", 
-#     x = 0,            
-#     hjust = 0,        
-#     gp = gpar(fontsize = 24)
-#   ),
-#   padding = unit(0.5, "lines") 
-# )
 
-ggsave("plots/model_simulation_params.png", p_model_simulation_params,
-       width = 14, height = 5, dpi = 300)
+# zoomed in version
+# combine plots
+p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
+  p_model_simulation_params_pd_off + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)), 
+  p_model_simulation_params_pd_on + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)), 
+  p_model_simulation_params_control + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)) ,
+  nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
+  labels = NULL
+)
+
+# add  legend
+p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
+  p_model_simulation_params_combined_zoom, shared_legend,
+  ncol = 2, rel_widths = c(1, 0.10)   
+)
+
+# add title 
+p_model_simulation_params_zoom <- ggdraw() +
+  draw_label(
+    "Model performance simulation",   
+    x = 0, y = 0.98,               
+    hjust = 0, vjust = 1,
+    size = 24
+  ) +
+  draw_plot(p_model_simulation_params_combined_zoom, y = 0, height = 0.9)  
+
+p_model_simulation_params_zoom
+ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 ```
 
 
@@ -1301,7 +1322,8 @@ cowplot::plot_grid(
   p_model_comparison,
   p_classification_participants,
   p_gpucb_params,
-  p_parameters_reward,
+  # p_parameters_reward,
+  p_model_simulation_params_zoom,
   ncol = 1,
   # rel_heights = c(1.2, 1, 1),
   labels = c("auto"),
