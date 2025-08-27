@@ -228,6 +228,8 @@ sampleTausA <- function(myTau,myN,nSamples = 3e3, var = 1){
 ##############################################################################################################################################################################################################################
 #Bayes factor for rank tests
 #van Doorn, J., Ly, A., Marsman, M., & Wagenmakers, E. J. (2017). Bayesian Latent-Normal Inference for the Rank Sum Test, the Signed Rank Test, and Spearman's $\rho$. arXiv preprint arXiv:1712.06941.
+
+#van Doorn, J., Ly, A., Marsman, M., & Wagenmakers, E. J. (2020). Bayesian rank-based hypothesis testing for the rank sum test, the signed rank test, and Spearman's ρ. Journal of Applied Statistics, 47(16), 2984-3006.
 ##############################################################################################################################################################################################################################
 rankSumGibbsSampler <- function(xVals,yVals, nSamples = 10000, progBar = TRUE, cauchyPriorParameter = 1/sqrt(2), 
                                 nGibbsIterations = 10){
