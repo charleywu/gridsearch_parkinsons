@@ -58,7 +58,7 @@ knitr::opts_chunk$set(fig.align='center')
 
 options(knitr.kable.NA = '')
 
-packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix", "magick", "grid", "cetcolor")
+packages <- c('gridExtra', 'BayesFactor', 'tidyverse', "RColorBrewer", "lme4", "sjPlot", "lsr", "brms", "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle", "ggthemes", "parameters", "rstatix", "magick", "grid", "cetcolor", "ggcorrplot")
 
 installed <- packages %in% rownames(installed.packages())
 if (any(!installed)) {
@@ -143,7 +143,8 @@ These files are combined to data frame _dat_, which includes the following varia
 -   *time_exp*: time of the experiment (HH:MM)
 -   *time_since_ldopa*: time since last L-Dopa (in minutes)
 
-File _modelFits.csv_
+File _modelFits.csv_ contains the results of the computational model simulations (GP-UCB model and lesioned variants).
+
 ```{r}
 ########################################################
 # get behavioral data
@@ -1313,8 +1314,7 @@ p_model_simulation_params <- ggdraw() +
 
 # p_model_simulation_params
 
-ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
-
+# ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
 
 
 # zoomed in version
@@ -1345,6 +1345,7 @@ p_model_simulation_params_zoom <- ggdraw() +
 
 p_model_simulation_params_zoom
 ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
+# ggsave("plots/model_simulation_params_zoom_lambda_0_5.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 ```
 
 
@@ -1359,8 +1360,6 @@ For parametric group comparisons, we report (paired or independent) Student's _t
 Linear correlations were assessed using Pearson's $r$, with the Bayes factors computed with the _BayesFactor_ package [@BF_Morey_Rouder], using its default settings. Bayes factors for rank correlations quantified with Kendall’s tau were computed using an implementation from @van2018bayesian. 
 
 ## Supplementary computational results
-
-
 
 # Article figure
 
@@ -1416,6 +1415,237 @@ ggsave("plots/computational_results.png", dpi=300, height=16, width=14)
 # ggsave("plots/computational_results.png", dpi=300, height=16, width=15)
 ```
 
+# Relations of model parameters and clinical indicators
+
+## Bivariate correlations
+```{r}
+# 
+df_params_clinical_indicators <- df_gpucb_params %>% 
+  left_join(dat_sample, by= c("id", "group")) %>% 
+  select(id, group, param, estimate, hoehn_yahr, BDI, MMSE) %>%
+  pivot_wider(names_from = param, values_from = estimate) %>% 
+  ungroup()
+
+
+# control group
+cor_matrix_controls <- df_params_clinical_indicators %>% 
+  filter(group == "Control") %>% 
+  select(BDI, MMSE, lambda, beta, tau) %>% 
+  cor(method = "kendall", use = "pairwise.complete.obs")
+
+p_cor_matrix_controls <- 
+  ggcorrplot(cor_matrix_controls,
+           # method = "circle",     
+           type   = "lower",      
+           lab    = TRUE,         
+           show.legend = FALSE,    
+           title  = "Controls") +
+    scale_fill_gradient2(
+    low = "darkred",   
+    mid = "white",     
+    high = "darkgreen",
+    midpoint = 0,
+    limit = c(-1, 1)
+  ) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 14),
+        plot.title = element_text(size = 16, hjust = 0.5),
+        axis.title = element_blank()
+  ) +
+  scale_x_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    )) +
+  scale_y_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    ))
+
+# PD+ patients on medication 
+cor_matrix_pd_plus <- df_params_clinical_indicators %>% 
+  filter(group == "PD+") %>% 
+  select(hoehn_yahr, BDI, MMSE, lambda, beta, tau) %>% 
+  cor(method = "pearson", use = "pairwise.complete.obs")
+
+p_cor_matrix_pd_plus <- 
+  ggcorrplot(cor_matrix_pd_plus,
+           # method = "circle",     
+           type   = "lower",      
+           lab    = TRUE,         
+           show.legend = FALSE,    
+           title  = "PD+") +
+    scale_fill_gradient2(
+    low = "darkred",   
+    mid = "white",     
+    high = "darkgreen",
+    midpoint = 0,
+    limit = c(-1, 1)
+  ) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 14),
+        plot.title = element_text(size = 16, hjust = 0.5),
+        axis.title = element_blank()
+  ) +
+  scale_x_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    )) +
+  scale_y_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    ))
+
+
+
+# PD- patients off medication 
+cor_matrix_pd_minus <- df_params_clinical_indicators %>% 
+  filter(group == "PD-") %>% 
+  select(hoehn_yahr, BDI, MMSE, lambda, beta, tau) %>% 
+  cor(method = "pearson", use = "pairwise.complete.obs")
+
+p_cor_matrix_pd_minus <- 
+  ggcorrplot(cor_matrix_pd_minus,
+           # method = "circle",     
+           type   = "lower",      
+           lab    = TRUE,         
+           show.legend = FALSE,    
+           title  = "PD-") +
+    scale_fill_gradient2(
+    low = "darkred",   
+    mid = "white",     
+    high = "darkgreen",
+    midpoint = 0,
+    limit = c(-1, 1)
+  ) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 14),
+        plot.title = element_text(size = 16, hjust = 0.5),
+        axis.title = element_blank()
+  ) +
+  scale_x_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    )) +
+  scale_y_discrete("",
+    labels = c(
+      "lambda" = "λ",
+      "beta"   = "β",
+      "tau"    = "τ",
+      "hoehn_yahr" = "Hoehn–Yahr",
+      "BDI"    = "BDI",
+      "MMSE"   = "MMSE"
+    ))
+
+p_cor_matrix <- cowplot::plot_grid(
+  p_cor_matrix_pd_minus,
+  p_cor_matrix_pd_plus,
+  p_cor_matrix_controls,
+  nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
+  labels = NULL
+)
+
+p_cor_matrix2 <- p_cor_matrix + draw_figure_label(label = "Correlation of model parameters and clinical indicators (Kendall's τ)", position = "top.left", size = 18)
+
+ggsave("plots/cor_matrix_params_indicators.png", p_cor_matrix2, width = 12, height = 4)
+```
+
+## Regression analyses
+
+GP-UCB model parameters $\lambda$ (amount of generalization), $\beta$ (exploration bonus), and $\tau$ (amount of random exploration) acorss allparticipants
+```{r}
+#| tbl-cap: "Linear regression with model GP-UCB model paramteres as function of group and depression level (BDI-II) and cognitive functioning (MMSE). All participants "
+
+# for now, random intercepts only, Random intercept + random slope not stable
+
+# fit models: main effects only
+lm_tau_bdi_mmse <- lm(log(tau) ~ group + BDI + MMSE , 
+                             data = df_params_clinical_indicators)
+
+lm_beta_bdi_mmse <- lm(log(beta) ~ group + BDI + MMSE , 
+                             data = df_params_clinical_indicators)
+
+lm_lambda_bdi_mmse <- lm(lambda ~ group + BDI + MMSE , 
+                             data = df_params_clinical_indicators)
+
+
+tab_model(lm_lambda_bdi_mmse, lm_beta_bdi_mmse, lm_tau_bdi_mmse)
+
+
+# fit models: main effects + interactions with group
+lm_tau_bdi_mmse <- lm(log(tau) ~ group *(BDI + MMSE), 
+                             data = df_params_clinical_indicators)
+
+lm_beta_bdi_mmse <- lm(log(beta) ~ group * (BDI + MMSE), 
+                             data = df_params_clinical_indicators)
+
+lm_lambda_bdi_mmse <- lm(lambda ~ group * (BDI + MMSE), 
+                             data = df_params_clinical_indicators)
+
+
+tab_model(lm_lambda_bdi_mmse, lm_beta_bdi_mmse, lm_tau_bdi_mmse)
+
+```
+
+GP-UCB model parameters $\lambda$ (amount of generalization), $\beta$ (exploration bonus), and $\tau$ (amount of random exploration); PD patients only.
+```{r}
+#| tbl-cap: "Linear regression with model GP-UCB model paramteres as function of group and depression level (BDI-II) and cognitive functioning (MMSE). PD patients only."
+
+# for now, random intercepts only, Random intercept + random slope not stable
+
+# fit models: main effects only
+lm_tau_bdi_mmse_hy <- lm(log(tau) ~ group + BDI + MMSE + hoehn_yahr,
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+lm_beta_bdi_mmse_hy <- lm(log(beta) ~ group + BDI + MMSE + hoehn_yahr,
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+lm_lambda_bdi_mmse_hy <- lm(lambda ~ group + BDI + MMSE + hoehn_yahr, 
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+tab_model(lm_lambda_bdi_mmse_hy, lm_beta_bdi_mmse_hy, lm_tau_bdi_mmse_hy)
+
+
+# fit models: main effects and interactions
+lm_tau_bdi_mmse_hy <- lm(log(tau) ~ group * (BDI + MMSE + hoehn_yahr),
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+lm_beta_bdi_mmse_hy <- lm(log(beta) ~ group * (BDI + MMSE + hoehn_yahr),
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+lm_lambda_bdi_mmse_hy <- lm(lambda ~ group * (BDI + MMSE + hoehn_yahr), 
+                             data = subset(df_params_clinical_indicators, group != "Control"))
+
+tab_model(lm_lambda_bdi_mmse_hy, lm_beta_bdi_mmse_hy, lm_tau_bdi_mmse_hy)
+
+```
 
 
 

@@ -64,9 +64,9 @@ tukeysFence <- function(x, k = 1.5, na.rm = TRUE) {
 }
 
 # Use log-ranges
-lambda_range <- tukeysFence(log(modelFit$lambda))
-beta_range   <- tukeysFence(log(modelFit$beta))
-tau_range    <- tukeysFence(log(modelFit$tau)); tau_range[1] <- -5  # enforce lower bound
+# lambda_range <- tukeysFence(log(modelFit$lambda))
+# beta_range   <- tukeysFence(log(modelFit$beta))
+# tau_range    <- tukeysFence(log(modelFit$tau)); tau_range[1] <- -5  # enforce lower bound
 
 
 # fixed theoratical range

@@ -1,4 +1,4 @@
-# Uncertainty-directed and random exploration in Parkinson’s disease
+# gridsearch_parkinsons
 
 ### Cite as:
 Meder, B., Sterf, M. Wu, C.M, & Guggenmos, M. (2025). Uncertainty-directed and random exploration in Parkinson’s disease. _PsyArXiv_ 
@@ -18,16 +18,16 @@ https://
 - `data/behavioralData.csv`: behavioral data of all xxx participants   
 - `data/modelFit.csv`: parameter estimates of all computational models for all participants   
 - `data/roughKernel.json`: all 40 environments, from which a new environment was chosen in each round without replacement. Also used for computational analyses.
-- `gridsearch_parkinson.bib`: BibTex bibliography, used by `.qmd``` files
+- `gridsearch_parkinson.bib`: BibTex bibliography, used by `.qmd` files
 
 
 ## Scripts:   
 - `gridsearch_parkinsons.Rproj`: R Studio project file 
-- `gridsearch_parkinson_behavioral_analyses.qmd`: Quarto document with R code used for the statistical analyses and plots of the behavioral data
-- `gridsearch_parkinson_computational_analyses.qmd`: Quarto document with R code used for the computational analyses
-- `dataProcessing.R`: import and pre-process behavioral data and parameter estimates (added for completeness; analysis scripts load the generated `.csv` files)
-- `statisticalTests.R` contains wrapper functions for all statistical tests used for the analyses
-- `simulateModels.R`: simulate the GP-UCB model with different parameter combinations and plot expected rewards 
-- `simulate_consecutive_choices.R`: simulate consecutive search distances for learner choosing randomly on each step
+- `gridsearch_parkinson_behavioral_analyses.qmd`: Quarto document with R code used for the statistical analyses and plots of the behavioral data. Generates Figures 1 and 2.
+- `gridsearch_parkinson_computational_analyses.qmd`: Quarto document with R code used for the computational analyses. Generates Figure 3.
+- `dataProcessing.R`: import and pre-process behavioral data and parameter estimates (added for completeness; analysis scripts load the generated `.csv` files).
+- `statisticalTests.R` various wrapper functions for statistical tests used for the analyses.
+- `simulateModels.R`: simulate the GP-UCB model with different parameter combinations and plot expected rewards.
+- `simulate_consecutive_choices.R`: simulate consecutive search distances for learner choosing randomly on each step.
    
 

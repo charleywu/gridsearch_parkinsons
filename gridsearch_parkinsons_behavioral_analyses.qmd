@@ -104,6 +104,10 @@ All materials, including this document and all data, are available at:
 
 # Load data
 
+:::callout-important
+behavioral data (json file) for id 1525 still missing
+:::
+
 ```{r}
 ########################################################
 # get behavioral data
@@ -557,7 +561,8 @@ dat <- dat %>%
     is_new = factor(if_else(!duplicated(chosen), "new", "repeat")),  # Check uniqueness based on 'chosen' column
     is_new_label = factor(if_else(!duplicated(chosen), "Exploration", "Exploitation"), levels = c("Exploration", "Exploitation"))
   ) %>%
-  ungroup()
+  ungroup() %>% 
+  mutate(is_new = if_else(trial == 0, NA, is_new))
 
 dat_repeat_prop <- dat %>%
   filter(trial > 0 & round %in% 2:9) %>% 
@@ -1375,6 +1380,100 @@ ggsave("plots/regression_distance_reward_brms.png", p_regression_distance_reward
 # ggsave("plots/regression_distance_reward_brms_CPP.pdf", height=5, width=6)
 
 ```
+
+### Bayesian hierarchical regression analysis with search distance as function of previous reward: exploratory choices only
+
+```{r}
+#| label: fig-brm_distance_reward
+#| fig-cap: "Bayesian hierarchical regression analysis with search distance as function of previous reward: exploratory choices only. Dots are the empirical mean distances for each reward value, aggregated over participants, trials, and rounds."
+
+# Bayesian regression analysis
+# run_model() is a wrapper for brm models such that it saves the full model the first time it is run, otherwise it loads it from disk from directory `~brm`
+# Fixed effects: previous_reward and group.
+# Random effects: random slopes and a random intercept for both previous_reward and group by id, i.e., the effect of previous_reward and group can vary across individuals (id).
+
+# random intercept and random slope
+# brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (previous_reward + group | id), 
+
+# random intercept                                     
+brm_distance_reward_exploration_only <- run_model(brm(distance ~ previous_reward * group + (1|id),
+                                     data=subset(dat, trial > 0 & round %in% 2:9 & distance > 0),
+                                     cores=4,
+                                     chains=4,
+                                     backend = "cmdstanr",
+                                     seed = 0815,
+                                     iter = 5000,
+                                     warmup=1000,
+                                     control = list(adapt_delta = 0.99, max_treedepth = 15)),
+                                 #prior = prior(normal(0,10), class = "b")),
+                                 modelName = 'brm_distance_reward_exploration_only')
+#tab_model(brm_distance_reward_exploration_only, bpe="mean", title = "Bayesian regression results (exploration only): Search distance as function of reward on previous step.") 
+#bayes_R2(brm_distance_reward_exploration_only) 
+
+# generate plot manually  predictions (otherwise difficult to plot the mean empirical values per geom_point)
+# prevReward <-  seq(-3,55) / 50 # normalized reward
+
+prevReward <-  seq(round(min(dat$previous_reward, na.rm=T),1),round(max(dat$previous_reward, na.rm=T),1), 0.1) # normalized reward
+
+group  <-  levels(dat$group)
+newdat <-  expand.grid(previous_reward=prevReward, group=group)
+
+# predict distance based on previous reward
+preds <-  fitted(brm_distance_reward_exploration_only, re_formula=NA, newdata=newdat, probs=c(.025, .975))
+predsDF <-  data.frame(previous_reward=rep(prevReward, 3),
+                       group=rep(levels(dat$group), each=length(prevReward)),
+                       distance=preds[,1],
+                       lower=preds[,3],
+                       upper=preds[,4])
+
+# average distance
+grid  <-  expand.grid(x1=0:7, x2=0:7, y1=0:7, y2=0:7)
+grid$distance <-  NA
+
+for(i in 1:dim(grid)[1]){
+  grid$distance[i] <- dist(rbind(c(grid$x1[i], grid$x2[i]), c(grid$y1[i], grid$y2[i])), method = "manhattan")
+}
+
+meanDist  <-  mean(grid$distance)
+
+# plot predictions
+p_regression_distance_reward_exploration_only <- 
+  ggplot() +
+  stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm=T)+
+  geom_line(predsDF, mapping=aes(x=previous_reward, y=distance, color=group), linewidth=1) +
+  geom_ribbon(predsDF, mapping=aes(x=previous_reward, y=distance, ymin=lower, ymax=upper, fill=group), alpha=.3) +
+  #geom_hline(yintercept=meanDist, linetype='dashed', color='red') + # mean distance
+  # xlab('Normalized Previous Reward')+
+  coord_cartesian(ylim= c(0,5), xlim= c(-0.01,1)) +
+  scale_x_continuous(
+    name = "Previous normalized reward",
+    breaks = seq(0, 1, 0.1),
+    labels = sprintf("%.1f", seq(0, 1, 0.1))) +
+  scale_y_continuous(name = 'Distance to next chosen option', breaks = seq(0,5,1), labels = c(" 0"," 1"," 2"," 3"," 4"," 5"))+
+  scale_fill_manual(values=groupcolors) +
+  scale_color_manual(values=groupcolors) +
+  labs(
+  title = "Search distance as function of previous reward (consecutive distance > 0 only)",
+  #subtitle = "(Bayesian hierarchical regression)"
+  ) +
+  theme_classic() +
+  theme(legend.position = "inside", 
+        legend.position.inside = c(0.85, 0.9),   
+        legend.justification = c(1, 1),
+        legend.title = element_blank(),
+        legend.text = element_text(colour = "black", size = 18),
+        plot.title = element_text(colour = "black", size = 24),
+        plot.subtitle = element_text(colour = "black", size = 18),
+        axis.text = element_text(colour = "black", size = 18),
+        axis.title = element_text(colour = "black", size = 18)
+        )        
+
+p_regression_distance_reward_exploration_only
+ggsave("plots/regression_distance_reward_brms_exploration_only.png", p_regression_distance_reward, dpi=300, height=5, width=7)
+
+```
+
+
 # Supplementary Information {#sec-SI}
 
 ## Statistical analyses
@@ -2446,6 +2545,12 @@ The Hoehn-Yahr scale provides basic information about the severity of motor impa
 #| fig-cap: "Performance as function of Hoehn-Yahr scale (Parkinson patients only)."
 #| fig-width: 5
 #| fig-height: 3
+
+
+# df_mean_reward_subject %>%  
+#   filter(group != "Control") %>% 
+#   group_by(group,hoehn_yahr) %>% 
+#   summarise(mean_reward = mean(mean_reward))
 
 # separately for each group
 df_correlation_groups_hoehn_yahr <- df_mean_reward_subject %>%  
