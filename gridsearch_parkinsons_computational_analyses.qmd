@@ -257,7 +257,8 @@ groupDF <-dat_sample %>%
 # length(unique(groupDF$id))
 
 modelFits <- merge(modelFits, groupDF[,c('id', 'group')], by = "id") # merge to add group 
-
+write_csv(modelFits, "modelResults/modelFits_group.csv")
+  
 # kernels <- c("RBF", "BMT") # RBF = Radial Basis Function kernel, BMT= Bayesian Mean Tracker
 # acqFuncs <- c("GM", "UCB", "EG") # UCB = Upper Confidence Bound, GM=greedyMean, EG = epsilonGreedy
 modelFits <-  modelFits %>%
