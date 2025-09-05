@@ -105,7 +105,7 @@ choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 
 # Preamble
 
-This document provides R code for the statistical analyses and plots of the behavioral data reported in the article 
+This document provides R code for the computational analyses and plots reported in the article 
 
 Meder, B., Sterf, M. Wu, C.M, & Guggenmos, M. (2025). Uncertainty-directed and random exploration in Parkinson’s disease. _PsyArXiv_ 
 
@@ -1242,7 +1242,7 @@ p_model_comparison_R2 <- ggplot(modelFits, aes(x = shortname, y = R2, fill = gro
 
    
 p_model_comparison_R2
-ggsave("plots/SI_model_comparison_R2.png", p_model_comparison_R2, dpi=300, width = 10, height = 5)
+ggsave("plots/S4_model_comparison_R2.png", p_model_comparison_R2, dpi=300, width = 10, height = 5)
 #ggsave("plots/model_comparison.pdf", p_model_comparison, width = 10, height = 5) # ü
 
 # plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
@@ -1541,12 +1541,14 @@ Analysis of parameter estimates on the group level showed that this overall rela
 -   PD+: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD+")$estimate, subset(df_params_performance, param == "tau" & group == "PD+")$mean_reward, method = "kendall")`
 -   PD-: `r corTestPretty(subset(df_params_performance, param == "tau" & group == "PD-")$estimate, subset(df_params_performance, param == "tau" & group == "PD-")$mean_reward, method = "kendall")`
 
-## Regression: Perfomance and model parameters
-We also performed a regression analysis where we included all model paramaters together with group as predictors. 
+## Regression: Model parameters and reward
+We also performed a regression analysis where we included all model parameters together with group as predictors. We ran one model with main effects only and one full model including all interaction terms. Note, however, that these analyses should be interpreted with caution, as we would not theoretically expect linear relations between model parameters and reward; rather, non-linear (e.g., inverse U-shaped) relations are more plausible.
+
 ```{r}
 #| label: tbl-performance-parameters
 #| tbl-cap: "Regression results: Performance (obtained rewards) as function of group and model parameters (log scale)."
 
+# main effects + interaction
 df_params_performance_wide <- 
   df_params_performance %>% 
     filter(ModelName == "GP-UCB") %>% 
@@ -1557,30 +1559,18 @@ df_params_performance_wide <-
 
 lm_performance_parameters_log <- lm(mean_reward ~ group * (lambda + beta + tau), data =  df_params_performance_wide)
 
-tab_model(lm_performance_parameters_log)
+# tab_model(lm_performance_parameters_log)
 
-# res.table <- as.data.frame(coef(summary(lm_performance_parameters_log)))
+# main effects only
+lm_performance_parameters_log_main_effects <- lm(mean_reward ~ group + lambda + beta + tau, data =  df_params_performance_wide)
 
-# check models
-# library(performance)
-# check_model(lm_performance_parameters_log)
-# 
-# df_params_performance_wide2 <- 
-#   df_params_performance %>% 
-#     filter(ModelName == "GP-UCB") %>% 
-#     select(id, group, mean_reward, param, estimate) %>%
-#     distinct(id, group, param, .keep_all = TRUE) %>%   # drop duplicates if any
-#   pivot_wider(names_from = param, values_from = estimate) %>%
-#   drop_na(beta, tau, lambda)   
-# 
-# 
-# lm_performance_parameters <- lm(mean_reward ~ group * (lambda + beta + tau), data =  df_params_performance_wide2)
-# 
-# tab_model(lm_performance_parameters, title = "Regression results: Performance (obtained rewards) as function of group and model parameters.")
-# 
-# res.table <- as.data.frame(coef(summary(lm_performance_parameters)))
-# 
-# check_model(lm_performance_parameters)
+# tab_model(lm_performance_parameters_log_main_effects)
+
+tab_model(
+  lm_performance_parameters_log_main_effects, 
+  lm_performance_parameters_log,
+  dv.labels = c("Main effects only", "Full model")
+)
 
 ```
 
