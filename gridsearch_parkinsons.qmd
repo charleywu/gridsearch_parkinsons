@@ -542,11 +542,28 @@ df_unique_choices_round <-
   mutate(prop_unique = unique_tiles/total,
          prop_repeat = repeat_tiles/total) 
 
+
 # proportion of unique choices across 8 rounds per subject
 df_unique_choices_subject <- df_unique_choices_round %>% 
   group_by(id, group) %>% 
   summarize(m_prop_unique = mean(prop_unique),
             m_prop_repeat = mean(prop_repeat))
+
+# means and CIs by group
+df_unique_choices_subject %>%
+  group_by(group) %>% 
+  summarize(
+    mean_prop_unique  = mean(m_prop_unique, na.rm = TRUE),
+    sd_prop_unique    = sd(m_prop_unique, na.rm = TRUE),
+    ci_low_unique     = mean(m_prop_unique, na.rm = TRUE) - 1.96 * sd(m_prop_unique, na.rm = TRUE)/sqrt(n()),
+    ci_high_unique    = mean(m_prop_unique, na.rm = TRUE) + 1.96 * sd(m_prop_unique, na.rm = TRUE)/sqrt(n()),
+    mean_prop_repeat  = mean(m_prop_repeat, na.rm = TRUE),
+    sd_prop_repeat    = sd(m_prop_repeat, na.rm = TRUE),
+    ci_low_repeat     = mean(m_prop_repeat, na.rm = TRUE) - 1.96 * sd(m_prop_repeat, na.rm = TRUE)/sqrt(n()),
+    ci_high_repeat    = mean(m_prop_repeat, na.rm = TRUE) + 1.96 * sd(m_prop_repeat, na.rm = TRUE)/sqrt(n())
+  ) %>%
+  knitr::kable(format = "html", escape = FALSE, digits = 2) %>%
+  kableExtra::kable_styling("striped", full_width = FALSE)
 
 dat <- dat %>%
   group_by(id, round) %>%
@@ -1974,7 +1991,7 @@ p_gpucb_params_tau <-
 # p_gpucb_params_tau  
 # ggsave("plots/GP-p_gpucb_params_tau.png", p_gpucb_params_tau, dpi=300, width = 4, height = 4)
 
-# out together and add title
+# put together and add title
 p_gpucb_params <- grid.arrange(
   grobs = list(p_gpucb_params_lambda, p_gpucb_params_beta, p_gpucb_params_tau),
   nrow = 1,
@@ -1987,157 +2004,9 @@ p_gpucb_params <- grid.arrange(
   padding = unit(0.5, "lines") 
 )
 
-ggsave("plots/gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height = 4)
- 
-
+# ggsave("plots/gpucb_params.png", p_gpucb_params, dpi = 300, width = 12, height = 4)
 
 ```
-
-```{r}
-
-# plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
-# 
-# # Define your comparisons
-# comparisons <- list(c("PD+", "PD-"), c("Control", "PD+"), c("Control", "PD-"))
-# 
-# # Extract function for p and BF from ttestPretty output
-# # TO DO: Cumbersome via 
-# extract_p_and_bf <- function(tt_string) {
-#   matches <- stringr::str_match_all(tt_string, "\\$p=([^$]+)\\$|\\$BF=([^$]+)\\$")
-#   flat <- unlist(matches)
-#   
-#   raw_vals <- flat[!is.na(flat) & grepl("^\\.?\\d+", flat)]
-#   
-#   # Convert to numeric and round to 2 decimal places
-#   nums <- signif(as.numeric(raw_vals), 2)
-#   
-#   # Format with 2 decimal digits (or scientific if very small/large)
-#   p_fmt <- formatC(nums[1], digits = 2, format = "f")
-#   bf_fmt <- formatC(nums[2], digits = 2, format = "f")
-#   
-#   paste0("p=", p_fmt, ", BF=", bf_fmt)
-# }
-# 
-# # Loop over each param and each comparison
-# comparisons_df <- df_gpucb_params %>%
-#   group_by(param) %>%
-#   group_modify(~{
-#     comparisons <- list(
-#       c("Control", "PD+"),
-#       c("Control", "PD-"),
-#       c("PD+", "PD-")
-#     )
-#     
-#     # For each pairwise group comparison
-#     res <- purrr::map_dfr(comparisons, function(groups) {
-#       g1 <- groups[1]
-#       g2 <- groups[2]
-#       
-#       x1 <- .x$estimate[.x$group == g1]
-#       x2 <- .x$estimate[.x$group == g2]
-#       
-#       if (length(x1) < 2 || length(x2) < 2) {
-#         return(tibble(
-#           group1 = g1,
-#           group2 = g2,
-#           p = NA_real_,
-#           BF = NA_real_,
-#           y.position = NA_real_
-#         ))
-#       }
-#       
-#       # Frequentist test
-#       t_res <- t.test(x1, x2, paired = FALSE, var.equal = TRUE)
-#       p_val <- t_res$p.value
-#       
-#       # Bayes Factor
-#       bf <- BayesFactor::ttestBF(x = x1, y = x2, paired = FALSE)
-#       bf_val <- as.numeric(BayesFactor::extractBF(bf)$bf)
-#       
-#       # y-position (max value in current param group × offset)
-#       y_max <- max(.x$estimate, na.rm = TRUE)
-#       y_pos <- y_max * runif(1, 1.05, 1.15)
-#       
-#       tibble(
-#         group1 = g1,
-#         group2 = g2,
-#         p = p_val,
-#         BF = bf_val,
-#         y.position = y_pos
-#       )
-#     })
-#     
-#     res
-#   }) %>%
-#   ungroup() %>%
-#   mutate(
-#     p.format = case_when(
-#       p < 0.001 ~ "p<.001",
-#       is.na(p) ~ NA_character_,
-#       TRUE ~ paste0("p=", signif(p, 2))
-#     ),
-#     BF.format = case_when(
-#       is.na(BF) ~ NA_character_,
-#       BF > 100 ~ "BF>100",
-#       TRUE ~ paste0("BF=", signif(BF, 2))
-#     ),
-#     plot_label = paste0(p.format, ", ", BF.format)
-#   )
-# 
-# comparisons_df$y.position <- rep(c(1.8, 2.6, 2.2), 3)
-# 
-# p_GP_UCB_params_CPP <-  
-#   ggboxplot(df_gpucb_params, 
-#           x = "group", 
-#           y = "estimate",
-#           color = "group", palette =groupcolors, fill = "group", alpha = 0.2,
-#           add = "jitter", jitter.size = 0.5, shape = "group", title = "GP-UCB parameter estimates") +
-#   facet_wrap(~param, nrow = 1) +
-#   scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100"), expand = expansion(mult = c(0.1, 0.15))  ) +
-#   # scale_y_log10( expand = expansion(mult = c(0, 0.1))  ) +
-#   # coord_cartesian(ylim = c(0.01,260)) +
-#   ylab("Estimate (log scale)") +
-#   xlab("") +
-#     # ignore p values because of log; only done to position brackets correctly
-#  # stat_compare_means(comparisons = list( c("Control", "PD+"), c("PD+", "PD-"), c("Control", "PD-")  ),
-#  #                     paired = F,
-#  #                     method = "t.test",
-#  #                     # label = "p.format",
-#  #                     aes(label = paste0("p = ", after_stat(p.format)))
-#  #                     #aes(label = paste0(" "))
-#  #  ) +
-#     stat_pvalue_manual(
-#     filter(comparisons_df, param == "lambda"),
-#     label = "plot_label",
-#     tip.length = 0.01, bracket.size = 0.3, size = 3
-#   ) +
-#     stat_pvalue_manual(
-#     filter(comparisons_df, param == "beta"),
-#     label = "plot_label",
-#     tip.length = 0.01, bracket.size = 0.3, size = 3
-#   ) +
-#     stat_pvalue_manual(
-#     filter(comparisons_df, param == "tau"),
-#     label = "plot_label",
-#     tip.length = 0.01, bracket.size = 0.3, size = 3
-#   ) +
-#   stat_summary(fun = mean, geom="point", shape = 23, fill = "white", size=2) +
-#   theme_classic() +
-#   theme(strip.background = element_blank(),  
-#         strip.text = element_text(color = "black", size=14),
-#         legend.position = "none",
-#         plot.title = element_text(size = 20),
-#         axis.text= element_text(colour="black", size = 12),
-#         axis.title= element_text(colour="black", size = 12),
-#         panel.spacing = unit(3, "lines") 
-#   )
-# 
-# ggsave("plots/GP-UCB_params_CPP.png", p_GP_UCB_params_CPP, dpi = 300, width = 8, height = 5)
-# ggsave("plots/GP-UCB_params_CPP.pdf", p_GP_UCB_params_CPP, width = 8, height = 5)
-
-
-```
-
 
 To better understand the mechanisms underlying the observed behavioral differences, we analyzed the parameters of the Gaussian Process Upper Confidence Bound (GP-UCB) model (@fig-GP-CUB_params). 
 
@@ -2163,8 +2032,8 @@ The parameter $\tau$ represents the amount of decision noise, i.e. stochastic va
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 
 
-### Model simulations: Controls and PD patients on medication balance directed and undirected exploration better than PD patients off medication
-To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ at 1, corresponding to the true amount of correlation in the used environments, and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 100 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study.
+### Model simulations
+Controls and PD patients on medication balance directed and undirected exploration better than PD patients off medication. To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ to 1, corresponding to the true amount of correlation in the used environments (length-scale of the RBF kernel), and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 100 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study.
 
 ```{r}
 #| label: fig-simulateModels-results
@@ -2173,7 +2042,7 @@ To evaluate how well different parameter settings balance exploration and exploi
 #| fig-height: 4
 
 # simulation results (pre-computed)
-sim = read.csv('modelResults/simulatedModels_local_lambda_1.csv')
+sim = read.csv('modelResults/simulatedModels_local_lambda_1_0.csv')
 
 # normalize reward
 sim$meanReward = sim$mu / 50
@@ -2205,22 +2074,39 @@ marker2 <-
   pivot_wider(names_from = param, values_from = estimate) %>%
   mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
 
+marker2 %>%
+  group_by(group) %>%
+  summarize(
+    beta_min       = min(beta),
+    beta_max       = max(beta),
+    tau_min        = min(tau),
+    tau_max        = max(tau),
+    beta_log10_min = min(beta_log10),
+    beta_log10_max = max(beta_log10),
+    tau_log10_min  = min(tau_log10),
+    tau_log10_max  = max(tau_log10)
+  )
+
 # tick positions in the original scale
-bx <- c(0.001, 0.01, 0.1, 1, 10, 50)
-by <- c(0.001, 0.01, 0.1, 1, 10, 20)
+
+#lower_bound <- exp(-5)  # ~0.0067
+#upper_bound <- exp(4)   # ~54.598
+
+bx <- c(0.001, 0.01, 0.1, 1, 10, 50) # exploration bonus beta
+by <- c(0.001, 0.01, 0.1, 1, 10, 50) # temperature tau
+
+# bx <- c(0.001, 0.01, 0.1, 1, 10, 50) # temperature tau
+# by <- c(0.001, 0.01, 0.1, 1, 10, 50) # exploration bonus beta
 
 # Control group
 p_model_simulation_params_control <- 
-ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+  ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
   labs(x = expression(paste('Exploration bonus ', beta)),
        y = expression(paste('Random exploration ', tau))) +
-  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
-  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
-  #coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
   geom_jitter( # add individual points
     data = subset(marker2, group == "Control"),
     aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
@@ -2259,16 +2145,13 @@ ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
 
 # PD- group
 p_model_simulation_params_pd_off <- 
-ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+ ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
   labs(x = expression(paste('Exploration bonus ', beta)),
        y = expression(paste('Random exploration ', tau))) +
-  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
-  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
-   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
-  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD-"),
     aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
@@ -2278,7 +2161,7 @@ ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
     fill = "#d95f02",
     shape = 22,
     stroke = 0.3,
-    width = 0.1
+    width = 0
   ) +
  geom_point( # add median
     data = subset(marker, group == "PD-"),
@@ -2303,16 +2186,13 @@ ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
 
 # PD+ group
 p_model_simulation_params_pd_on <- 
-  ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+ ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
   geom_raster() +
   scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
   scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
-  labs(x = expression(paste('Exploration bonus ', beta)),
+   labs(x = expression(paste('Exploration bonus ', beta)),
        y = expression(paste('Random exploration ', tau))) +
-  # scale_fill_gradientn(colours = colorspace::sequential_hcl(500, "plasma"),name = "Normalized\nreward") +
-  # scale_fill_viridis_c(option = "plasma", name = "Normalized\nreward") +
-   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
-  coord_cartesian(xlim = c(-3,0.5), ylim=c(-3, 0.5)) +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD+"),
     aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
@@ -2382,16 +2262,27 @@ p_model_simulation_params <- ggdraw() +
   draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
 
 # p_model_simulation_params
+ ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
 
-# ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
 
+# zoomed in version# exlcudes some subjects:
 
-# zoomed in version
+zoom_lower <- -2
+zoom_higher <- 0.1
+
+marker2 %>%
+  group_by(group) %>%
+  summarize(
+    excluded = sum(beta_log10 < -2 | beta_log10 > 0.1 |
+                   tau_log10  < -2 | tau_log10  > 0.1),
+    total = n()
+  )
+ 
 # combine plots
 p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
-  p_model_simulation_params_pd_off + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)), 
-  p_model_simulation_params_pd_on + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)), 
-  p_model_simulation_params_control + coord_cartesian(xlim = c(-2,0.1), ylim=c(-2, -0.5)) ,
+  p_model_simulation_params_pd_off + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
+  p_model_simulation_params_pd_on + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
+  p_model_simulation_params_control + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
   nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
   labels = NULL
 )
@@ -2413,7 +2304,7 @@ p_model_simulation_params_zoom <- ggdraw() +
   draw_plot(p_model_simulation_params_combined_zoom, y = 0, height = 0.9)  
 
 p_model_simulation_params_zoom
-# ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
+ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 # ggsave("plots/model_simulation_params_zoom_lambda_0_5.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 ```
 
