@@ -32,7 +32,7 @@ env$en<-rep(1:40, each=64)
 env$y <- env$y*50
 
 # simulation rounds for each parameter combination
-replications <- 100
+replications <- 500
 
 #############################################################################################################################
 # Import fitted parameters
@@ -59,8 +59,8 @@ lower_bound <- exp(-5)  # ~0.0067
 upper_bound <- exp(4)   # ~54.598
 
 # parameter values for tau and beta
-beta_vals <- exp(seq(log(lower_bound), log(upper_bound), length.out = 100))
-tau_vals  <- exp(seq(log(lower_bound), log(upper_bound), length.out = 100))
+beta_vals <- exp(seq(log(lower_bound), log(upper_bound), length.out = 200))
+tau_vals  <- exp(seq(log(lower_bound), log(upper_bound), length.out = 200))
 
 # beta_vals   <- exp(seq(log(0.001), log(50), length.out = 100))
 # tau_vals    <- exp(seq(log(0.001), log(20), length.out = 100))

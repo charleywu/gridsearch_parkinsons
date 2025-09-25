@@ -157,11 +157,11 @@ dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FA
         # group  = factor(group, levels = c("Control", "PD+", "PD-"))) %>% 
          #group  = factor(group, levels = c("Control", "PD+", "PD-"), labels = c("Control", "PD+", "PD-"))) %>% 
         group = fct_recode(group,
-                       "Control" = "PNP"
-                       #"PD+"  = "PD+",
-                       #"PD-" = "PD-"
+                       "Control" = "PNP",
+                       "PD+"  = "PD+",
+                       "PD-" = "PD-"
                        ),
-    group = fct_relevel(group, "PD-", "PD+", "Control")
+    group = fct_relevel(group, "PD-", "PD+", "Control") # 
   ) %>% 
   mutate(last_ldopa = if_else(group != "Control", as_hms(last_ldopa), as_hms(NA)),
          next_ldopa = if_else(group != "Control", as_hms(next_ldopa), as_hms(NA)),
@@ -2032,7 +2032,7 @@ The parameter $\tau$ represents the amount of decision noise, i.e. stochastic va
 - PD+ vs. PD-: `r ranktestPretty(subset(df_gpucb_params, group == 'PD+' & param=="tau")$estimate, subset(df_gpucb_params, group == 'PD-' & param=="tau")$estimate, paired = F)`
 
 
-### Model simulations
+#### Model simulations
 Controls and PD patients on medication balance directed and undirected exploration better than PD patients off medication. To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ to 1, corresponding to the true amount of correlation in the used environments (length-scale of the RBF kernel), and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 100 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study.
 
 ```{r}
@@ -2042,7 +2042,7 @@ Controls and PD patients on medication balance directed and undirected explorati
 #| fig-height: 4
 
 # simulation results (pre-computed)
-sim = read.csv('modelResults/simulatedModels_local_lambda_1_0.csv')
+sim = read.csv('modelResults/simulatedModels_local_lambda_1_0_100rep.csv')
 
 # normalize reward
 sim$meanReward = sim$mu / 50
@@ -2100,31 +2100,31 @@ by <- c(0.001, 0.01, 0.1, 1, 10, 50) # temperature tau
 
 # Control group
 p_model_simulation_params_control <- 
-  ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+  ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
   geom_raster() +
-  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
-  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
-  labs(x = expression(paste('Exploration bonus ', beta)),
-       y = expression(paste('Random exploration ', tau))) +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
+  # labs(y = expression(paste('Exploration bonus ', beta)),
+  #      x = expression(paste('Random exploration ', tau))) +
   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
   geom_jitter( # add individual points
     data = subset(marker2, group == "Control"),
-    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     fill = "#7570b3",
     shape = 21,
-    stroke = 0.3,
+    stroke = 0.5,
     color = "white",
     width = 0.1
   ) +
  geom_point( # add median
     data = subset(marker, group == "Control"),
-    aes(x = beta_log10, y = tau_log10, colour = group),
+    aes(y = beta_log10, x = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 21,        
     size = 5,          
-    stroke = 1.5,
+    stroke = 2,
     fill = "#7570b3",
     color = "white"
   ) +
@@ -2133,8 +2133,6 @@ p_model_simulation_params_control <-
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=18),
         legend.position = "none",
-        #        legend.justification = c(0, 1),
-         
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
         plot.title = element_text(size = 18, hjust = 0.5),
@@ -2145,31 +2143,29 @@ p_model_simulation_params_control <-
 
 # PD- group
 p_model_simulation_params_pd_off <- 
- ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+ ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
   geom_raster() +
-  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
-  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
-  labs(x = expression(paste('Exploration bonus ', beta)),
-       y = expression(paste('Random exploration ', tau))) +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD-"),
-    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     color = "white",
     fill = "#d95f02",
     shape = 22,
-    stroke = 0.3,
+    stroke = 0.5,
     width = 0
   ) +
  geom_point( # add median
     data = subset(marker, group == "PD-"),
-    aes(x = beta_log10, y = tau_log10, colour = group),
+    aes(y = beta_log10, x = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 22,        
     size = 5,          
-    stroke = 1.5,
+    stroke = 2,
     fill = "#d95f02",
     color = "white"
   ) +
@@ -2178,7 +2174,6 @@ p_model_simulation_params_pd_off <-
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=18),
         legend.position = "none",
-        #        legend.justification = c(0, 1),
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
         plot.title = element_text(size = 18, hjust = 0.5)
@@ -2186,31 +2181,29 @@ p_model_simulation_params_pd_off <-
 
 # PD+ group
 p_model_simulation_params_pd_on <- 
- ggplot(sim_means, aes(x = beta_log10, y = tau_log10, fill = meanReward)) +
+ ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
   geom_raster() +
-  scale_x_continuous(breaks = log10(bx), labels = bx, expand = c(0,0)) +
-  scale_y_continuous(breaks = log10(by), labels = by, expand = c(0,0)) +
-   labs(x = expression(paste('Exploration bonus ', beta)),
-       y = expression(paste('Random exploration ', tau))) +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
   scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
   geom_jitter( # add individual points
     data = subset(marker2, group == "PD+"),
-    aes(x = beta_log10, y = tau_log10, shape = group, colour = group),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
     inherit.aes = FALSE,  
     size = 3,
     color = "white",
     fill = "#1b9e77",
     shape = 24,
-    stroke = 0.3,
+    stroke = 0.5,
     width = 0.1
   ) +
  geom_point( # add median
     data = subset(marker, group == "PD+"),
-    aes(x = beta_log10, y = tau_log10, colour = group),
+    aes(y = beta_log10, x = tau_log10, colour = group),
     inherit.aes = FALSE,
     shape = 24,        
     size = 5,          
-    stroke = 1.5,
+    stroke = 2,
     fill = "#1b9e77",
     color = "white"
   ) +
@@ -2219,12 +2212,10 @@ p_model_simulation_params_pd_on <-
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=18),
         legend.position = "none",
-        #        legend.justification = c(0, 1),
         axis.title = element_text(size = 18),
         axis.text = element_text(size = 18),
         plot.title = element_text(size = 18, hjust = 0.5),
         axis.title.y = element_blank()
-        # axis.text.y = element_blank()
   )
 # p_model_simulation_params_pd_on
 
@@ -2266,45 +2257,44 @@ p_model_simulation_params <- ggdraw() +
 
 
 # zoomed in version# exlcudes some subjects:
-
-zoom_lower <- -2
-zoom_higher <- 0.1
-
-marker2 %>%
-  group_by(group) %>%
-  summarize(
-    excluded = sum(beta_log10 < -2 | beta_log10 > 0.1 |
-                   tau_log10  < -2 | tau_log10  > 0.1),
-    total = n()
-  )
- 
-# combine plots
-p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
-  p_model_simulation_params_pd_off + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
-  p_model_simulation_params_pd_on + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
-  p_model_simulation_params_control + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
-  nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
-  labels = NULL
-)
-
-# add  legend
-p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
-  p_model_simulation_params_combined_zoom, shared_legend,
-  ncol = 2, rel_widths = c(1, 0.10)   
-)
-
-# add title 
-p_model_simulation_params_zoom <- ggdraw() +
-  draw_label(
-    "Model performance simulation",   
-    x = 0.05, y = 0.98,               
-    hjust = 0, vjust = 1,
-    size = 24
-  ) +
-  draw_plot(p_model_simulation_params_combined_zoom, y = 0, height = 0.9)  
-
-p_model_simulation_params_zoom
-ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
+# zoom_lower <- -2
+# zoom_higher <- 0.1
+# 
+# marker2 %>%
+#   group_by(group) %>%
+#   summarize(
+#     excluded = sum(beta_log10 < -2 | beta_log10 > 0.1 |
+#                    tau_log10  < -2 | tau_log10  > 0.1),
+#     total = n()
+#   )
+#  
+# # combine plots
+# p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
+#   p_model_simulation_params_pd_off + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
+#   p_model_simulation_params_pd_on + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
+#   p_model_simulation_params_control + coord_cartesian(ylim = c(zoom_lower,zoom_higher), xlim=c(zoom_lower, zoom_higher)),
+#   nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
+#   labels = NULL
+# )
+# 
+# # add  legend
+# p_model_simulation_params_combined_zoom <- cowplot::plot_grid(
+#   p_model_simulation_params_combined_zoom, shared_legend,
+#   ncol = 2, rel_widths = c(1, 0.10)   
+# )
+# 
+# # add title 
+# p_model_simulation_params_zoom <- ggdraw() +
+#   draw_label(
+#     "Model performance simulation",   
+#     x = 0.05, y = 0.98,               
+#     hjust = 0, vjust = 1,
+#     size = 24
+#   ) +
+#   draw_plot(p_model_simulation_params_combined_zoom, y = 0, height = 0.9)  
+# 
+# p_model_simulation_params_zoom
+# ggsave("plots/model_simulation_params_zoom.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 # ggsave("plots/model_simulation_params_zoom_lambda_0_5.png", p_model_simulation_params_zoom, width = 14, height = 5, dpi = 300)
 ```
 
@@ -2402,7 +2392,7 @@ p_model_comparison <- plot_grid(
 fig3_computational_results <- cowplot::plot_grid(
   p_model_comparison,
   p_gpucb_params,
-  p_model_simulation_params_zoom,
+  p_model_simulation_params,
   ncol = 1,
   # labels = "auto",
   labels = c("", "c", "d"),  
@@ -2591,22 +2581,47 @@ brm_rounds_reduced <- run_model(brm(
   save_pars = save_pars(all = TRUE)),
 modelName='brm_reward_rounds_reduced')
 
+# estimates
+# model_parameters(brm_rounds)
+
 # Compute Bayes Factor: Full vs. Reduced (without round term)
 #bf_brm_rounds <- bayes_factor(brm_rounds, brm_rounds_reduced)
 
+# compute info from tab_model
+
+# Fixed effects
+# Posterior draws
+draws <- as_draws_array(brm_rounds)
+
+# Posterior mean and highest density interval (HDI)
+fixed_df <- model_parameters(
+  brm_rounds,
+  effects = "fixed",
+  centrality = "mean",
+  ci = 0.95,
+  ci_method = "hdi" # highest density interval
+)
+
+# summary info on random effects
+vc <- VarCorr(brm_rounds)
+
+# Residual variance
+sigma2 <- vc$residual$sd[1, "Estimate"]^2
+
+# variance of random intercept
+tau_00 <- vc$id$sd["Intercept", "Estimate"]^2
+
+# Compute ICC
+# approximation
+icc <- tau_00 / (tau_00 + sigma2)
+
+# same as tab_model 
+#  performance::icc(brm_rounds) can fail with brms models, instead tab_model relies on 
 
 # format_parameters(brm_rounds)
 # 
 # params <- model_parameters(brm_rounds) |> print_md()
-# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
-# params$Parameter <- gsub("groupPDP", "PD+", params$Parameter)
-# params$Term <- gsub("round", "Round", params$Term)
-# 
-# 
-# params$Term <- gsub("groupPDP", "PD", params$Term)
 
-# plot_model(brm_rounds, type = "est") +
-#   theme_classic()
 
 ```
 
