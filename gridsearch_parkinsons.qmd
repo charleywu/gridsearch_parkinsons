@@ -87,6 +87,7 @@ jit_alpha   <- 0.6
 groupcolors    <- c("#d95f02", "#1b9e77", "#7570b3")
 choice3_colors <- c("#e7298a", "#66a61e", "#e6ab02")
 
+grouplabels <- c("Control" = "Control", "PD+" = "PD+", "PD-" = "PD\u2212") # proper minus sign
 ```
 
 
@@ -369,7 +370,7 @@ p_performance <- ggplot(df_mean_reward_subject, aes(x = group, y = mean_reward, 
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
   ylab("Mean normalized reward") +
-  xlab("") +
+  scale_x_discrete(name = "", labels = grouplabels) +
   ggtitle("Performance") +
   theme_classic() +
   theme(
@@ -451,7 +452,8 @@ df_learning_curve_summary <- df_learning_curve %>%
             upper_ci = reward + qt(1 - (0.05 / 2), n - 1) * se_reward) 
 
 
-p_learning_curves <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group, shape = group, group = group)) +
+p_learning_curves <-
+  ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colour=group, fill = group, shape = group)) +
   # geom_errorbar(aes(ymin=lower_ci, ymax = upper_ci), width = 0, linewidth=1, position=position_dodge(width=0.5), alpha =0.5) +
   # geom_point(size = 3, position=position_dodge(width=0.5)) +
   # geom_line(position=position_dodge(width=0.5)) +
@@ -462,8 +464,9 @@ p_learning_curves <- ggplot(df_learning_curve, aes(x=trial, y=mean_reward, colou
   scale_y_continuous("Normalized reward (M±95%CI)") + 
   # coord_cartesian(ylim = c(20,45))
   scale_x_continuous("Trial", limits = c(0.8, 25.2), breaks = c(1,5,10,15,20,25)) +
-  scale_fill_manual(values=groupcolors) +
-  scale_color_manual(values=groupcolors) +
+  scale_fill_manual(values=groupcolors, labels = grouplabels) +
+  scale_color_manual(values=groupcolors, labels = grouplabels) +
+  scale_shape_manual(values = c(16, 17, 15), labels = grouplabels) +
   ggtitle("Learning curves") +
   theme_classic() +
   theme(
@@ -595,12 +598,12 @@ Controls exploited more than PD patients (`r ttestPretty(subset(df_unique_choice
 #| fig-width: 8
 #| fig-height: 4.5
 
-p_explore_exploit_choices <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group, shape = group)) +
+p_explore_exploit_choices <-  ggplot(df_unique_choices_subject, aes(x = group, y = m_prop_repeat, color = group, fill = group)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
   geom_jitter(width = 0.1, size = 1.5, alpha= 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 5) +
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
+  scale_color_manual(values = groupcolors, labels = grouplabels) +
+  scale_fill_manual(values = groupcolors, labels = grouplabels) +
   scale_y_continuous("Exploitation choices", 
                      breaks = c(0, 0.5, 1), 
                      labels = percent_format(accuracy = 1)) +
@@ -638,8 +641,9 @@ p_explore_exploit_choices_over_time <- ggplot(dat_repeat_prop, aes(x = trial, y 
   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.5, position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "point", size = 3, position=position_dodge(width=0.5)) +  
   stat_summary(fun = mean, geom = "line", position=position_dodge(width=0.5)) +  
-  scale_fill_manual(values = groupcolors) + 
-  scale_color_manual(values = groupcolors)+ 
+  scale_fill_manual(values = groupcolors, labels = grouplabels) + 
+  scale_color_manual(values = groupcolors, labels = grouplabels) +
+  scale_shape_manual(values = c(16, 17, 15), labels = grouplabels) +
   scale_y_continuous(labels = percent_format(accuracy = 1)) + 
   labs(
     x = "Trial",
@@ -1002,7 +1006,16 @@ df_mean_dist <- df_props_sim %>%
 
 p_distance_consecutive_sim <- 
   ggplot(df_props_sim, aes(x = distance, y = prop, color = group)) +
-  facet_wrap(~group, nrow = 1) +
+  facet_wrap(
+    ~group,
+    nrow = 1,
+    labeller = as_labeller(c(
+      "Control" = "Control",
+      "PD+"     = "PD+",
+      "PD-"     = "PD\u2212",# unicode minus
+      "Random" = "Random"
+    ))
+  ) +
   geom_col(
     aes(fill = group),
     width    = 1,
@@ -1017,8 +1030,8 @@ p_distance_consecutive_sim <-
     color    = "black",
     width    = 1
   ) +
-  scale_fill_manual(values = c(groupcolors,"steelblue")) +
-  scale_color_manual(values = c(groupcolors, "steelblue")) +
+  scale_fill_manual(values = c(groupcolors,"steelblue"), labels = grouplabels) +
+  scale_color_manual(values = c(groupcolors, "steelblue"), labels = grouplabels) +
   scale_y_continuous(
     "Average proportion",
     limits = c(0, 0.7),
@@ -1230,12 +1243,12 @@ lmer_distance_reward <- lmer(distance ~ previous_reward * group + (1 | id),
 #emmeans(lmer_distance_reward, pairwise ~ previous_reward | group, pbkrtest.limit = 15000)
 
 p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms = c("previous_reward", "group")) +
-  stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group,shape = group), fun=mean, geom='point', alpha=0.7, size=1, na.rm = TRUE)+
+  stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm = TRUE)+
   # scale_x_continuous('Previous Reward', breaks = (c(0,10,20,30,40,50))) +
   # scale_x_continuous('Previous Reward', breaks = (c(0,0.210,20,30,40,50))) +
   ylab('Distance to Next Option')+
-  scale_fill_manual(values=groupcolors) +
-  scale_color_manual(values=groupcolors) +
+  scale_fill_manual(values=groupcolors, labels = grouplabels) +
+  scale_color_manual(values=groupcolors, labels = grouplabels) +
   ggtitle('Search distance ~ previous reward (lmer)') +
   theme_classic() +
   theme(legend.position = "inside", 
@@ -1699,7 +1712,15 @@ p_pxp <-
 # grouped by patient group
 p_pxp <- 
 ggplot(df_pxp_long, aes(x = model, y = pxp, fill = condition)) +
-  facet_wrap(~ condition, nrow = 1) +
+  facet_wrap(
+    ~condition,
+    nrow = 1,
+    labeller = as_labeller(c(
+      "Control" = "Control",
+      "PD+"     = "PD+",
+      "PD-"     = "PD\u2212" # unicode minus
+    ))
+  ) +
   geom_bar(stat= "identity", color = "black") +
   scale_y_continuous(
     name = "pxp",
@@ -1834,7 +1855,15 @@ p_classification_participants <-
     size = 1, 
     n_rows = 5
   ) +
-  facet_wrap(~group, nrow=1) +
+  facet_wrap(
+    ~group,
+    nrow = 1,
+    labeller = as_labeller(c(
+      "Control" = "Control",
+      "PD+"     = "PD+",
+      "PD-"     = "PD\u2212" # unicode minus
+    ))
+  ) +
   scale_x_discrete(
     expand = c(0,0,0,0)
   ) +
@@ -1920,15 +1949,15 @@ df_gpucb_params %>%
 # separate plots
 # generalization lambda
 p_gpucb_params_lambda <- 
-  ggplot(subset(df_gpucb_params, param == "lambda"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
+  ggplot(subset(df_gpucb_params, param == "lambda"), aes(x = group, y = estimate, fill = group, color = group)) +
   geom_hline(yintercept = 1, linetype = "dashed", color = "darkred") + # true lambda
   scale_y_continuous(name = "Estimate", breaks = c(0, 0.5, 1, 2), labels = c("0", "0.5", "1", "2"), limits = c(0, 1.45)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
   geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
-  scale_x_discrete("") + 
+  scale_color_manual(values = groupcolors, labels = grouplabels) +
+  scale_fill_manual(values = groupcolors, labels = grouplabels) +
+  scale_x_discrete("", labels = grouplabels) + 
   # ggtitle("GP-UCB parameter estimates: Group differences") + 
   ggtitle(expression("Generalization " * lambda)) + 
   theme_classic() +
@@ -1945,14 +1974,14 @@ p_gpucb_params_lambda <-
 
 # exploration bonus beta
 p_gpucb_params_beta <- 
-  ggplot(subset(df_gpucb_params, param == "beta"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
+  ggplot(subset(df_gpucb_params, param == "beta"), aes(x = group, y = estimate, fill = group,  color = group)) +
   scale_y_log10(name = " ", breaks = c(0.01, 0.1, 1, 10), labels = c("0.01", "0.1", "1", "10"), limits = c(0.005, 55)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
   geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
-  scale_x_discrete("") + 
+  scale_color_manual(values = groupcolors, labels = grouplabels) +
+  scale_fill_manual(values = groupcolors, labels = grouplabels) +
+  scale_x_discrete("", labels = grouplabels) + 
   # ggtitle("GP-UCB parameter estimates: Group differences") + 
   ggtitle(expression("Exploration bonus " * beta)) + 
   theme_classic() +
@@ -1969,14 +1998,14 @@ p_gpucb_params_beta <-
 
 # random exploration temperature tau 
 p_gpucb_params_tau <- 
-  ggplot(subset(df_gpucb_params, param == "tau"), aes(x = group, y = estimate, fill = group, shape = group, color = group)) +
+  ggplot(subset(df_gpucb_params, param == "tau"), aes(x = group, y = estimate, fill = group, color = group)) +
   scale_y_log10(name = " ", breaks = c(0.01, 0.1, 1, 10), labels = c("0.01", "0.1", "1", "10"), limits = c(0.005, 55)) +
   geom_boxplot(alpha = 0.2, width = 0.4, outlier.shape = NA) +  
   geom_jitter(width = 0.1, size = 1.5, alpha = 0.6) +  
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 4) +
-  scale_color_manual(values = groupcolors) +
-  scale_fill_manual(values = groupcolors) +
-  scale_x_discrete("") + 
+  scale_color_manual(values = groupcolors, labels = grouplabels) +
+  scale_fill_manual(values = groupcolors, labels = grouplabels) +
+  scale_x_discrete("", labels = grouplabels) + 
   # ggtitle("GP-UCB parameter estimates: Group differences") + 
   ggtitle(expression("Random exploration " * tau)) + 
   theme_classic() +
@@ -2169,7 +2198,7 @@ p_model_simulation_params_pd_off <-
     fill = "#d95f02",
     color = "white"
   ) +
-  ggtitle("PD-") +
+  ggtitle("PD\u2212") + 
   theme_classic() +
   theme(strip.background = element_blank(),  
         strip.text = element_text(color = "black", size=18),
@@ -2482,6 +2511,7 @@ A hierarchical linear regression with round and group as predictors and random i
 #| tbl-cap: "Hierarchical regression results: Performance (obtained rewards) as function of group and round."
 
 # Hierarchical regression analysis
+# random intercept for participants (random slopes (round | id) for rounds yields problems in model estimation)
 lmer_performance_rounds <- lmer(mean_reward ~ group + round + (1 | id), 
                                   data =  df_mean_reward_subject_by_round)
 
@@ -2547,6 +2577,9 @@ brm_rounds <- run_model(
   )),
   modelName = 'brm_reward_rounds'
 )
+
+# model_parameters(brm_rounds)
+# summary(brm_rounds)
 
 # Extract fitted values and add to data df
 fitted_values <- fitted(brm_rounds, re_formula = NA)
@@ -3258,7 +3291,7 @@ We additionally conducted simulations with $\lambda=0.5$, which is closer to the
 #| fig-height: 4
 
 # simulation results (pre-computed)
-sim = read.csv('modelResults/simulatedModels_local_lambda_0_5.csv')
+sim = read.csv('modelResults/simulatedModels_local_lambda_0_5_100rep.csv')
 
 # normalize reward
 sim$meanReward = sim$mu / 50
