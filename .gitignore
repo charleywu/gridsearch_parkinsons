@@ -58,3 +58,7 @@ rsconnect/
 data/raw_data/
 
 .DS_Store
+
+# large csv files; RDS files contain same data
+modelResults/simulatedModels_local_lambda_1_0.csv
+modelResults/simulatedModels_local_lambda_0_5.csv

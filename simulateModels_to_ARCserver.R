@@ -12,6 +12,21 @@ source("models.R")
 packages <- c('plyr', 'dplyr', 'jsonlite', 'lsr', 'BayesFactor', 'matrixcalc', 'furrr', 'data.table')
 lapply(packages, require, character.only = TRUE) #loads packages
 
+
+
+# 2. Multithreading DEAKTIVIEREN (NACH dem Laden der Pakete!)
+Sys.setenv(
+  "OMP_NUM_THREADS" = 1,      # OpenMP (z. B. für data.table, BayesFactor)
+  "MKL_NUM_THREADS" = 1,      # Intel MKL (z. B. für matrixcalc)
+  "OPENBLAS_NUM_THREADS" = 1, # OpenBLAS
+  "GOTO_NUM_THREADS" = 1,      # GotoBLAS
+  "VECLIB_MAXIMUM_THREADS" = 1 # macOS Accelerate Framework
+)
+
+# 3. Spezifische Paket-Optionen setzen (falls nötig)
+# options(data.table.threads = 1)  # data.table explizit auf 1 Thread begrenzen
+
+
 set.seed(0511)
 
 ##########################################################################################
@@ -52,7 +67,7 @@ replications <- 1000
 #############################################################################################################################
 
 # fixed theoretical range
-lambda_vals <- 1 # level of generalization (length-scale of RBF kernel), gfixed to 1.0 or 0.5
+lambda_vals <- 0.5 # level of generalization (length-scale of RBF kernel), gfixed to 1.0 or 0.5
 
 # bounds from parameter fitting
 lower_bound <- exp(-5)  # ~0.0067
@@ -76,7 +91,21 @@ k<-rbf
 ###########################################################################
 
 # set up parallel plan
-plan(multisession, workers = parallel::detectCores() - 1)
+# plan(multisession, workers = parallel::detectCores() - 1)
+
+
+# Anzahl der verfügbaren Cores ermitteln und  begrenzen
+total_cores <- parallel::detectCores()
+
+# maximal 50% der Cores,  nie mehr als 32
+# max_cores <- min(floor(total_cores * 0.5), 32)
+
+max_cores <- 90
+
+
+# Parallelisierung
+plan(multisession, workers = max_cores)
+
 
 # run simulations in parallel
 dparams <- future_pmap_dfr(params, function(lambda, beta, tau) {

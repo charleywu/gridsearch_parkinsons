@@ -608,7 +608,7 @@ p_explore_exploit_choices <-  ggplot(df_unique_choices_subject, aes(x = group, y
                      breaks = c(0, 0.5, 1), 
                      labels = percent_format(accuracy = 1)) +
   coord_cartesian(ylim = c(0, 1)) +
-  xlab("") +
+  scale_x_discrete(name = "", labels = grouplabels) +
   ggtitle("Proportion exploitation choices") +
   theme_classic() +
   theme(
@@ -859,7 +859,7 @@ ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group,
                    #breaks = c(0, 10, 20, 30, 40, 50), 
                    #labels = c("0","10","20","30","40","50"),
                    #limits = c(0, 55)) +
-  xlab("") +
+  scale_x_discrete(name = "", labels = grouplabels) +
   ggtitle("Mean rewards for exploration and exploitation") +
   theme_classic() +
   theme(
@@ -2070,8 +2070,12 @@ Controls and PD patients on medication balance directed and undirected explorati
 #| fig-width: 12
 #| fig-height: 4
 
-# simulation results (pre-computed)
-sim = read.csv('modelResults/simulatedModels_local_lambda_1_0_100rep.csv')
+# simulation results (pre-computed) using modelResults.R
+# due to the file size limit on github we only store the mean values whcih are then plotted
+# files with full simulation data:
+# sim  <-  read.csv('modelResults/simulatedModels_local_lambda_1_0.csv') # large (>2TB) csv file
+# saveRDS(sim, 'modelResults/simulatedModels_local_lambda_1_0.rds')
+# sim <- readRDS('modelResults/simulatedModels_local_lambda_1_0.rds')
 
 # normalize reward
 sim$meanReward = sim$mu / 50
@@ -2084,6 +2088,10 @@ sim_means <-  sim %>%
          tau_log10 = log10(tau)
   )
 
+# write.csv(sim_means, 'modelResults/simulatedModels_means_lambda_1_0.csv') 
+
+#get data
+sim  <-  read.csv('modelResults/simulatedModels_means_lambda_1_0.csv') 
 
 # get mean parameter estimates by group
 marker <- df_gpucb_params %>%
@@ -2142,7 +2150,7 @@ p_model_simulation_params_control <-
     inherit.aes = FALSE,  
     size = 3,
     fill = "#7570b3",
-    shape = 21,
+    shape = 22,
     stroke = 0.5,
     color = "white",
     width = 0.1
@@ -2151,7 +2159,7 @@ p_model_simulation_params_control <-
     data = subset(marker, group == "Control"),
     aes(y = beta_log10, x = tau_log10, colour = group),
     inherit.aes = FALSE,
-    shape = 21,        
+    shape = 22,        
     size = 5,          
     stroke = 2,
     fill = "#7570b3",
@@ -2184,7 +2192,7 @@ p_model_simulation_params_pd_off <-
     size = 3,
     color = "white",
     fill = "#d95f02",
-    shape = 22,
+    shape = 21,
     stroke = 0.5,
     width = 0
   ) +
@@ -2192,7 +2200,7 @@ p_model_simulation_params_pd_off <-
     data = subset(marker, group == "PD-"),
     aes(y = beta_log10, x = tau_log10, colour = group),
     inherit.aes = FALSE,
-    shape = 22,        
+    shape = 21,        
     size = 5,          
     stroke = 2,
     fill = "#d95f02",
@@ -2369,7 +2377,7 @@ cowplot::plot_grid(
 )
 
 ggsave("plots/Fig1_task_model.png", dpi=300, height=10, width=15)
-ggsave("plots/Fig1_task_model.pdf", height=10, width=15, limitsize = FALSE )
+# ggsave("plots/Fig1_task_model.pdf", height=10, width=15, limitsize = FALSE )
 
 ```
 
@@ -2395,7 +2403,7 @@ cowplot::plot_grid(
 )
 
 ggsave("plots/Fig2_behavioral_results.png", dpi=300, height=15, width=18)
-ggsave("plots/Fig2_behavioral_results.pdf", height=15, width=18)
+# ggsave("plots/Fig2_behavioral_results.pdf", height=15, width=18)
 
 ```
 
@@ -2435,7 +2443,7 @@ fig3_computational_results <- cowplot::plot_grid(
 
 fig3_computational_results
 
-ggsave("plots/fig3_computational_results.png", fig3_computational_results, dpi=300, height=12, width=15)
+ggsave("plots/Fig3_computational_results.png", fig3_computational_results, dpi=300, height=12, width=15)
 
 ```
 
@@ -3286,12 +3294,18 @@ We additionally conducted simulations with $\lambda=0.5$, which is closer to the
 
 ```{r}
 #| label: fig-simulateModels-results-lambda-0-5
-#| fig-cap: "Performance landscape of the GP-UCB model across different amounts of random exploration tau and uncertainty-directed exploration beta. The amount of generalization was fixed to lambda=0.5 and beta and tau were varied, with 100 simulated learners per parameter combination. Each dot shows one participant; the larger markers indicate the group median."
+#| fig-cap: "Performance landscape of the GP-UCB model across different amounts of random exploration tau and uncertainty-directed exploration beta. The amount of generalization was fixed to lambda=0.5 and beta and tau were varied between exp(-4) and exp(5), with 1000 simulated learners per parameter combination. Each dot shows one participant; the larger markers indicate the group median."
 #| fig-width: 12
 #| fig-height: 4
 
-# simulation results (pre-computed)
-sim = read.csv('modelResults/simulatedModels_local_lambda_0_5_100rep.csv')
+# simulation results (pre-computed) using modelResults.R
+# due to the file size limit on github we only store the mean values whcih are then plotted
+# files with full simulation data:
+
+# sim  <-  read.csv('modelResults/simulatedModels_local_lambda_0_5.csv') # large (>2TB) csv file
+# saveRDS(sim, 'modelResults/simulatedModels_local_lambda_0_5.rds') # still too large
+# sim <- readRDS('modelResults/simulatedModels_local_lambda_0_5.rds')
+
 
 # normalize reward
 sim$meanReward = sim$mu / 50
@@ -3304,6 +3318,10 @@ sim_means <-  sim %>%
          tau_log10 = log10(tau)
   )
 
+# write.csv(sim_means, 'modelResults/simulatedModels_means_lambda_0_5.csv') 
+
+#get data
+sim  <-  read.csv('modelResults/simulatedModels_means_lambda_0_5.csv') 
 
 # get mean parameter estimates by group
 marker <- df_gpucb_params %>%
