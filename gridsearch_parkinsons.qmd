@@ -2282,8 +2282,9 @@ p_model_simulation_params_combined <- cowplot::plot_grid(
 p_model_simulation_params <- ggdraw() +
   draw_label(
     "Model performance simulation",   
-    x = 0.1, y = 0.98,               
-    hjust = 0.5, vjust = 1,
+    x = 0.05, y = 0.99,               
+    hjust = 0,
+    vjust = 1,
     size = 24
   ) +
   draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
