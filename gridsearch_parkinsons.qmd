@@ -51,7 +51,7 @@ knitr::opts_chunk$set(prefer_html = TRUE)
 options(knitr.kable.NA = '')
 options(brms.backend = "cmdstanr") # more stability for M1 Mac
 
-packages <- c("gridExtra", "BayesFactor", "tidyverse", "RColorBrewer", "lme4", "sjPlot", "lsr", "brms",  "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle",  "ggthemes", "parameters", "rstatix", "magick", "grid", "cetcolor", "ggcorrplot", "gtsummary",  "webshot", "webshot2", "bridgesampling", "cmdstanr", "modelsummary", "broom.mixed")
+packages <- c("gridExtra", "BayesFactor", "tidyverse", "RColorBrewer", "lme4", "sjPlot", "lsr", "brms",  "kableExtra", "afex", "emmeans", "viridis", "ggpubr", "hms", "scales", "cowplot", "waffle",  "ggthemes", "parameters", "rstatix", "magick", "grid", "cetcolor", "ggcorrplot", "gtsummary",  "webshot", "webshot2", "bridgesampling", "cmdstanr", "modelsummary", "broom.mixed", "bayestestR")
 lapply(packages, require, character.only = TRUE)
 
 set.seed(0815)
@@ -143,12 +143,14 @@ dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types 
 # normalize reward and previous reward
 dat_gridsearch$z = dat_gridsearch$z / 50
 dat_gridsearch$previous_reward = dat_gridsearch$previous_reward / 50
+# length(unique(dat_gridsearch$id))
 
 ########################################################
 # get bonus round data
 ########################################################
 dat_bonus   <- read_csv(file="data/data_gridsearch_Parkinson_bonusround.csv") %>% 
   mutate(bonus_environment = as.factor(bonus_environment))
+# length(unique(df_bonus_round$id))
 
 ########################################################
 # get subject data
@@ -169,10 +171,18 @@ dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FA
          time_exp = if_else(group != "Control", as_hms(time_exp), as_hms(NA))) %>% 
   mutate(time_since_ldopa = as.numeric(time_exp - last_ldopa, unit = "mins"))
 
+# one participants' data was lost due to a computer crash
+# dat_sample$id[!dat_sample$id %in% dat_gridsearch$id]
+
+dat_sample <- dat_sample[dat_sample$id %in% dat_gridsearch$id, ]
+length(unique(dat_sample$id))
+
 # combine behavioral and subject data
 dat <- dat_sample %>% 
-  left_join(dat_gridsearch, by = "id") %>% 
+  inner_join(dat_gridsearch, by = "id") %>% 
   arrange(group)
+
+# length(unique(dat$id))
 
 ########################################################
 # get modeling data
@@ -2638,14 +2648,8 @@ lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id),
 
 res.table <- as.data.frame(coef(summary(lmer_performance_BDI_MMSE)))
 
-
-# addtionally including demographics
-# lmer_performance <- lmer(z ~ gender + age + round +group + BDI + MMSE + (1 | id), 
-#                                   data = subset(dat, trial > 0 & round %in% 2:9))
-# summary(lmer_performance)
-
-#summary(lmer_reward_BDI_MMSE)
-tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
+#summary(lmer_performance_BDI_MMSE)
+tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as of function group and clinical indicators (BDI and MMSE score).", bpe="mean")
 ```
 
 A Bayesian regression yielded converging results (@tbl-performance-clinical-predictors-brms).
@@ -2654,8 +2658,11 @@ A Bayesian regression yielded converging results (@tbl-performance-clinical-pred
 #| label: tbl-performance-clinical-predictors-brms
 #| tbl-cap: "Hierarchical Bayesian regression with random intercept: Reward as function of BDI-II and MMSE score (all patients)."
 
+dat$BDI_scaled <- scale(dat$BDI)
+dat$MMSE_scaled <-  scale(dat$MMSE)
+
 # Hierarchical Bayesian regression with random intercept: Reward as function of BDI and MMSE score (all patients)                              
-brm_performance_BDI_MMSE <- run_model(brm(z ~ group + BDI + MMSE + (1|id),
+brm_performance_BDI_MMSE <- run_model(brm(z ~ group + scale(BDI) + scale(MMSE) + (1|id),
                                           data=subset(dat, trial > 0 & round %in% 2:9 ),
                                           chains = 4,                               
                                           cores = 4,                                
@@ -2672,7 +2679,7 @@ tab_model(brm_performance_BDI_MMSE, bpe="mean")
 #bayes_R2(brm_performance_assessment) 
 #tab_model(lmer_performance_BDI_MMSE, brm_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as function of BDI and MMSE score.", bpe="mean")
 
-
+bayesfactor_parameters(brm_performance_BDI_MMSE)
 ```
 
 Finally, we ran a hierarchical regression for Parkinson's patients only, with reward as dependent variable and group, BDI, MMSE, and Hoehn-Yahr score as predictors; with random intercepts for participants to account for individual differences. This analysis only yielded an influence of group, i.e. being on or off levodopa (@tbl-performance-clinical-predictors-PD-lmer). 
