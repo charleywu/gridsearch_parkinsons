@@ -21,6 +21,8 @@ data = read.csv('data/data_gridsearch_Parkinson.csv')
 #Normalize data
 data$z <- (data$z - 25) / 50
 
+data = subset(data, id %in% c(1532, 1596, 1663)) #DEBUG: only run additional participants
+
 nParticipants = length(unique(data$id))
 
 ##############################################################################################################
