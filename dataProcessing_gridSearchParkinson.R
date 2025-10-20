@@ -199,6 +199,8 @@ write.table(df_bonus_round, file="data/data_gridsearch_Parkinson_bonusround.csv"
 #############################################################################################################################
 # imports and preprocesses model results 
 importModelResults <- function(dataFolder, kernels, acqFuncs){
+  
+  # read data from individual .csv files
   # ("RBF", "BMT") \times (greedyMean, ucb, epsilonGreedy)
   # dataFolder <- "modelResults/batch2/"
   #kernels <- c("RBF", "BMT") # RBF = Radial Basis Function kernel, BMT= Bayesian Mean Tracker
@@ -207,12 +209,18 @@ importModelResults <- function(dataFolder, kernels, acqFuncs){
   # write.csv(modelFit[[1]], "modelResults/modelFit.csv", row.names = FALSE)
   # write.csv(modelFit[[2]], "modelResults/params.csv", row.names = FALSE)
   
+  # write individual model fits by group
+  # write_csv(modelFits, "modelResults/modelFits_group.csv")
+  # write_csv(subset(modelFits, group == "Control"), "modelResults/modelFits_control.csv")
+  # write_csv(subset(modelFits, group == "PD-"),"modelResults/modelFits_PD_minus.csv")
+  # write_csv(subset(modelFits, group == "PD+"), "modelResults/modelFits_PD_plus.csv")
   
   #Participant data
   #data<-dataImport()
   # import preprocessed data
   data = read.csv('data/data_gridsearch_Parkinson.csv')
   uids = unique(data$id)
+  #length(uids)
   
   #initialize data frames
   modelFit <- data.frame() 
