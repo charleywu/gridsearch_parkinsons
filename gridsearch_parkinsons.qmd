@@ -1219,13 +1219,7 @@ Finally, we analysed the relation between the value of a reward obtained at time
 
 Across all trials and rounds, search distance and previous reward were negatively correlated, indicating that participants tended to search further away following lower rewards compared to higher rewards. This relationship was stronger in Control patients (`r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`) and PD+ patients (`r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`) compared to PD- patients (`r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`). These findings suggest that PD patients off medication exhibited less adaptive search behavior than those on medication and individuals with polyneuropathies.
 
-```{=html}
-<!--
-* Control: `r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`
-* PD+: `r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`
-* PD-: `r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`
--->
-```
+
 
 ```{r}
 # correlation of previous reward and distance of consecutive choices, by age group and environment
@@ -1317,6 +1311,7 @@ p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms 
 # ggsave("plots/regression_distance_reward_lmer.png", p_lmer_distance_reward, dpi=300, height=5, width=7)
 ```
 
+
 ```{r}
 #| label: fig-brm_distance_reward
 #| fig-cap: "Bayesian hierarchical regression analysis with search distance as function of previous reward. Dots are the empirical mean distances for each reward value, aggregated over participants, trials, and rounds."
@@ -1340,7 +1335,7 @@ brm_distance_reward <- run_model(brm(distance ~ previous_reward * group + (1|id)
                                  modelName = 'brm_distance_reward')
 
 # create HTML table
-tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.") 
+#tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.") 
 
 # describe_posterior(
 #   brm_distance_reward,
@@ -1470,6 +1465,10 @@ p_regression_distance_reward
 
 ```
 
+```{r}
+# create HTML table
+tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.")
+```
 
 
 ```{r include=FALSE}
@@ -1762,7 +1761,7 @@ p_pxp <-
     )
   ) +
   geom_bar(stat= "identity", color = "black") +
-  scale_y_continuous(name = "pxp", breaks = c(0, 0.5, 1), limits = c(0,1), expand = c(0,0),)+  
+  scale_y_continuous(name = "pxp", breaks = c(0, 0.5, 1), limits = c(0,1), expand = c(0,0))+  
   scale_x_discrete("") +
   scale_fill_manual(values = groupcolors) + 
   ggtitle("Hierarchical Bayesian model selection") + 
