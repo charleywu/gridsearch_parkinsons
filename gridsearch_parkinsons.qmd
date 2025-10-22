@@ -892,6 +892,10 @@ df_reward_explore_exploit_full <- dat %>%
            fill = list(n = 0, mean_reward = NA)) %>%
   ungroup()
 
+df_reward_subset_both_explot_explore <- df_reward_explore_exploit_full %>% 
+  group_by(id) %>% 
+  filter(all(n[is_new_label %in% c("Exploration", "Exploitation")] > 0)) 
+    
 # table(df_reward_explore_exploit_full$group, df_reward_explore_exploit_full$is_new_label)
 
 # ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
@@ -923,6 +927,8 @@ df_reward_explore_exploit_full <- dat %>%
 
 ```
 
+1. Analysis including all subjects, meaning that subjects who never exploited are still considered in the explore decisions:
+
 _Explore choices_
 
 - Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
@@ -935,6 +941,23 @@ _Exploit choices_
 - Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 - Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 - PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+
+
+2. Analysis including only subjects who engaged at elast once in each choice type:
+
+_Explore choices_
+
+- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+
+
+_Exploit choices_
+
+- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- PD+ vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+
 
 ## Levodopa restores reward sensitivity during exploration
 
@@ -2690,6 +2713,8 @@ scale_color_manual(values = groupcolors) +
 ggtitle("Mean reward by rounds and group") +
 theme_classic() +
 theme(legend.title = element_blank())
+
+p_rounds
 
 ggsave("plots/S1_performance_rounds.png", p_rounds, width = 6, height = 3)
 
