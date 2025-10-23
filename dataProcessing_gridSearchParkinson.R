@@ -134,6 +134,26 @@ cohensd.ci <- function(d, n1, n2, ci = 0.95) {
 # read bonus round data from json and write to .csv --------------------------------------------------
 #############################################################################################################################
 
+# create single json file
+json_files <- list.files(path = "data/raw_data/all", pattern = "(?i)\\.json$", full.names = F )
+# length(json_files)
+
+# Create an empty list to hold the content of all JSON files
+all_json_content <- list()
+
+for (file in json_files) {
+  json_content <- fromJSON(file.path("data/raw_data/all", file))
+  all_json_content <- c(all_json_content, list(json_content))
+}
+
+# Write the combined content to a single JSON file as an array
+write_json(all_json_content, "data/all_data_gridsearch_parkinson.json", pretty = TRUE)
+
+# check number of participants
+# extract number of participants
+# all_ids <- sapply(all_json_content, function(x) x$participantId)
+# length(unique(all_ids))
+
 dataFile <- "data/all_data_gridsearch_parkinson.json"
 
 #read in json

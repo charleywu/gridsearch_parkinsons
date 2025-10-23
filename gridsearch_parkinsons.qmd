@@ -895,7 +895,7 @@ df_reward_explore_exploit_full <- dat %>%
 df_reward_subset_both_explot_explore <- df_reward_explore_exploit_full %>% 
   group_by(id) %>% 
   filter(all(n[is_new_label %in% c("Exploration", "Exploitation")] > 0)) 
-    
+
 # table(df_reward_explore_exploit_full$group, df_reward_explore_exploit_full$is_new_label)
 
 # ggplot(df_reward_explore_exploit, aes(x = group, y = mean_reward, color = group, fill = group, shape = group)) +
@@ -925,38 +925,37 @@ df_reward_subset_both_explot_explore <- df_reward_explore_exploit_full %>%
 # ggsave("plots/explore_exploit_choices_rewards.png", dpi=300, width = 7, height = 5)
 # ggsave("plots/explore_exploit_choices_rewards.pdf", width = 7, height = 5)
 
+# Analysis including all subjects, meaning that subjects who never exploited are still considered in the explore decisions:
+# 
+# _Explore choices_
+# 
+# - Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+# - Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+# - PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+# 
+# 
+# _Exploit choices_
+# 
+# - Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+# - Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+# - PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+
 ```
 
-1. Analysis including all subjects, meaning that subjects who never exploited are still considered in the explore decisions:
+Group comaprisons including only subjects who engaged at least once in each choice type:
 
 _Explore choices_
 
-- Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-- Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-
-
-_Exploit choices_
-
-- Control vs. PD+: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-- Control vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-- PD+ vs. PD-: `r ttestPretty(subset(df_reward_explore_exploit, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_explore_exploit, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-
-
-2. Analysis including only subjects who engaged at elast once in each choice type:
-
-_Explore choices_
-
-- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
-- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
 - PD+ vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
 
 
 _Exploit choices_
 
-- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
-- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 - PD+ vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
+- Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploitation")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploitation")$mean_reward, var.equal = TRUE)`
 
 
 ## Levodopa restores reward sensitivity during exploration
@@ -1005,9 +1004,9 @@ df_props <-
 
 ```
 
-- Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)` 
-- Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
 - PD+ on medication vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "PD+")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
+- Control vs. PD- off medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD-")$mean_distance, var.equal = TRUE)`
+- Control vs. PD+  patients on medication: `r ttestPretty(subset(df_mean_distance_subject, group == "Control")$mean_distance, subset(df_mean_distance_subject, group == "PD+")$mean_distance, var.equal = TRUE)` 
 
 ```{r}
 # simulate consecutive search distances for learner choosing randomly on each step
@@ -2187,21 +2186,21 @@ sim_means  <-  read.csv('modelResults/simulatedModels_means_lambda_1_0.csv')
 
 # get parameter estimates by group
 marker <- df_gpucb_params %>%
-group_by(group, param) %>%
-summarise(#mean = mean(estimate, na.rm = TRUE), 
-median = median(estimate, na.rm = TRUE),
-.groups = "drop") %>%
-filter(param %in% c("beta", "tau")) %>%
-pivot_wider(names_from = param, values_from = median) %>%
-mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
+  group_by(group, param) %>%
+  summarise(#mean = mean(estimate, na.rm = TRUE), 
+    median = median(estimate, na.rm = TRUE),
+    .groups = "drop") %>%
+  filter(param %in% c("beta", "tau")) %>%
+  pivot_wider(names_from = param, values_from = median) %>%
+  mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
 
 # get median parameter estimates by group
 marker2 <-
-df_gpucb_params %>%
-select(id, group, param, estimate) %>%
-filter(param %in% c("beta", "tau")) %>%
-pivot_wider(names_from = param, values_from = estimate) %>%
-mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
+  df_gpucb_params %>%
+  select(id, group, param, estimate) %>%
+  filter(param %in% c("beta", "tau")) %>%
+  pivot_wider(names_from = param, values_from = estimate) %>%
+  mutate(beta_log10 = log10(beta), tau_log10 = log10(tau))
 
 
 # tick positions in the original scale
@@ -2213,158 +2212,158 @@ by <- c(0.001, 0.01, 0.1, 1, 10, 50) # temperature tau
 
 # Control group
 p_model_simulation_params_control <- 
-ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
-geom_raster() +
-scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
-scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
-# labs(y = expression(paste('Exploration bonus ', beta)),
-#      x = expression(paste('Random exploration ', tau))) +
-scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
-geom_jitter( # add individual points
-data = subset(marker2, group == "Control"),
-aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
-inherit.aes = FALSE,  
-size = 3,
-fill = "#7570b3",
-shape = 22,
-stroke = 0.5,
-color = "white",
-width = 0
-) +
-geom_point( # add median
-data = subset(marker, group == "Control"),
-aes(y = beta_log10, x = tau_log10, colour = group),
-inherit.aes = FALSE,
-shape = 22,        
-size = 5,          
-stroke = 2,
-fill = "#7570b3",
-color = "white"
-) +
-ggtitle("Control") +
-theme_classic() +
-theme(strip.background = element_blank(),  
-strip.text = element_text(color = "black", size=18),
-legend.position = "none",
-axis.title = element_text(size = 18),
-axis.text = element_text(size = 18),
-plot.title = element_text(size = 18, hjust = 0.5),
-axis.title.y = element_blank()
-)
+  ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
+  # labs(y = expression(paste('Exploration bonus ', beta)),
+  #      x = expression(paste('Random exploration ', tau))) +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l6 l16 i5 "rainbow"
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "Control"),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    fill = "#7570b3",
+    shape = 22,
+    stroke = 0.5,
+    color = "white",
+    width = 0
+  ) +
+  geom_point( # add median
+    data = subset(marker, group == "Control"),
+    aes(y = beta_log10, x = tau_log10, colour = group),
+    inherit.aes = FALSE,
+    shape = 22,        
+    size = 5,          
+    stroke = 2,
+    fill = "#7570b3",
+    color = "white"
+  ) +
+  ggtitle("Control") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        axis.title.y = element_blank()
+  )
 
 #p_model_simulation_params_control
 
 # PD- group
 p_model_simulation_params_pd_off <- 
-ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
-geom_raster() +
-scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
-scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
-scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
-geom_jitter( # add individual points
-data = subset(marker2, group == "PD-"),
-aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
-inherit.aes = FALSE,  
-size = 3,
-color = "white",
-fill = "#d95f02",
-shape = 21,
-stroke = 0.5,
-width = 0
-) +
-geom_point( # add median
-data = subset(marker, group == "PD-"),
-aes(y = beta_log10, x = tau_log10, colour = group),
-inherit.aes = FALSE,
-shape = 21,        
-size = 5,          
-stroke = 2,
-fill = "#d95f02",
-color = "white"
-) +
-ggtitle("PD\u2212") + 
-theme_classic() +
-theme(strip.background = element_blank(),  
-strip.text = element_text(color = "black", size=18),
-legend.position = "none",
-axis.title = element_text(size = 18),
-axis.text = element_text(size = 18),
-plot.title = element_text(size = 18, hjust = 0.5)
-)
+  ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "PD-"),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    color = "white",
+    fill = "#d95f02",
+    shape = 21,
+    stroke = 0.5,
+    width = 0
+  ) +
+  geom_point( # add median
+    data = subset(marker, group == "PD-"),
+    aes(y = beta_log10, x = tau_log10, colour = group),
+    inherit.aes = FALSE,
+    shape = 21,        
+    size = 5,          
+    stroke = 2,
+    fill = "#d95f02",
+    color = "white"
+  ) +
+  ggtitle("PD\u2212") + 
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 18, hjust = 0.5)
+  )
 
 # PD+ group
 p_model_simulation_params_pd_on <- 
-ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
-geom_raster() +
-scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
-scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
-scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
-geom_jitter( # add individual points
-data = subset(marker2, group == "PD+"),
-aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
-inherit.aes = FALSE,  
-size = 3,
-color = "white",
-fill = "#1b9e77",
-shape = 24,
-stroke = 0.5,
-width = 0
-) +
-geom_point( # add median
-data = subset(marker, group == "PD+"),
-aes(y = beta_log10, x = tau_log10, colour = group),
-inherit.aes = FALSE,
-shape = 24,        
-size = 5,          
-stroke = 2,
-fill = "#1b9e77",
-color = "white"
-) +
-ggtitle("PD+") +
-theme_classic() +
-theme(strip.background = element_blank(),  
-strip.text = element_text(color = "black", size=18),
-legend.position = "none",
-axis.title = element_text(size = 18),
-axis.text = element_text(size = 18),
-plot.title = element_text(size = 18, hjust = 0.5),
-axis.title.y = element_blank()
-)
+  ggplot(sim_means, aes(y = beta_log10, x = tau_log10, fill = meanReward)) +
+  geom_raster() +
+  scale_x_continuous(expression(paste('Random exploration ', tau)), breaks = log10(bx), labels = bx, expand = c(0,0)) +
+  scale_y_continuous( expression(paste('Exploration bonus ', beta)), breaks = log10(by), labels = by, expand = c(0,0)) +
+  scale_fill_gradientn(colours = cet_pal(5, name = "l7"), name = "Normalized\nreward") + #l3 l16 i5 "rainbow"
+  geom_jitter( # add individual points
+    data = subset(marker2, group == "PD+"),
+    aes(y = beta_log10, x = tau_log10, shape = group, colour = group),
+    inherit.aes = FALSE,  
+    size = 3,
+    color = "white",
+    fill = "#1b9e77",
+    shape = 24,
+    stroke = 0.5,
+    width = 0
+  ) +
+  geom_point( # add median
+    data = subset(marker, group == "PD+"),
+    aes(y = beta_log10, x = tau_log10, colour = group),
+    inherit.aes = FALSE,
+    shape = 24,        
+    size = 5,          
+    stroke = 2,
+    fill = "#1b9e77",
+    color = "white"
+  ) +
+  ggtitle("PD+") +
+  theme_classic() +
+  theme(strip.background = element_blank(),  
+        strip.text = element_text(color = "black", size=18),
+        legend.position = "none",
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 18),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        axis.title.y = element_blank()
+  )
 # p_model_simulation_params_pd_on
 
 # Extract legend
 shared_legend <- cowplot::get_legend(
-p_model_simulation_params_control +
-theme(legend.position = "right",
-legend.title = element_text(size = 16),
-legend.text  = element_text(size = 14))
+  p_model_simulation_params_control +
+    theme(legend.position = "right",
+          legend.title = element_text(size = 16),
+          legend.text  = element_text(size = 14))
 )
 
 # combine plots
 p_model_simulation_params_combined <- cowplot::plot_grid(
-p_model_simulation_params_pd_off,
-p_model_simulation_params_pd_on,
-p_model_simulation_params_control,
-nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
-labels = NULL
+  p_model_simulation_params_pd_off,
+  p_model_simulation_params_pd_on,
+  p_model_simulation_params_control,
+  nrow = 1, align = "hv", axis = "tblr", rel_widths = c(1,1,1),
+  labels = NULL
 )
 
 # add  legend
 p_model_simulation_params_combined <- cowplot::plot_grid(
-p_model_simulation_params_combined, shared_legend,
-ncol = 2, rel_widths = c(1, 0.10)   
+  p_model_simulation_params_combined, shared_legend,
+  ncol = 2, rel_widths = c(1, 0.10)   
 )
 
 # add title 
 p_model_simulation_params <- ggdraw() +
-draw_label(
-"Model performance simulation",   
-x = 0.05, y = 0.99,               
-hjust = 0,
-vjust = 1,
-size = 24
-) +
-draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
+  draw_label(
+    "Model performance simulation",   
+    x = 0.05, y = 0.99,               
+    hjust = 0,
+    vjust = 1,
+    size = 24
+  ) +
+  draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
 
 p_model_simulation_params
 # ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
@@ -2605,26 +2604,26 @@ res.table <- as.data.frame(coef(summary(lmer_performance_rounds)))
 # Hierarchical Bayesian regression analysis
 # random slopes not stable
 brm_rounds <- run_model(
-expr = quote(brm(
-mean_reward ~ round * group + (id | id),
-data = df_mean_reward_subject_by_round,
-family = gaussian(),
-iter = 4000,
-warmup = 1000,
-chains = 4,
-cores = 4,
-seed = 0511,
-backend = "cmdstanr",
-save_pars = save_pars(all = TRUE)
-)),
-modelName = 'brm_reward_rounds'
+  expr = quote(brm(
+    mean_reward ~ round * group + (id | id),
+    data = df_mean_reward_subject_by_round,
+    family = gaussian(),
+    iter = 4000,
+    warmup = 1000,
+    chains = 4,
+    cores = 4,
+    seed = 0511,
+    backend = "cmdstanr",
+    save_pars = save_pars(all = TRUE)
+  )),
+  modelName = 'brm_reward_rounds'
 ) 
 
 # table with key info
 model_parameters(brm_rounds,
-centrality = "mean", ci = 0.95,
-ci_method = "hdi" ) %>% 
-kable(digits = 3, format = "html")
+                 centrality = "mean", ci = 0.95,
+                 ci_method = "hdi" ) %>% 
+  kable(digits = 3, format = "html")
 
 
 # summary(brm_rounds)
@@ -2636,17 +2635,17 @@ kable(digits = 3, format = "html")
 
 # Reduced model for computing BF: no round term
 brm_rounds_reduced <- run_model(brm(
-mean_reward ~ group + (1 | id),
-data = df_mean_reward_subject_by_round,
-family = gaussian(),
-iter = 4000, 
-warmup = 1000, 
-chains = 4, 
-cores = 4, 
-seed = 0511,
-backend = "cmdstanr",
-save_pars = save_pars(all = TRUE)),
-modelName='brm_reward_rounds_reduced')
+  mean_reward ~ group + (1 | id),
+  data = df_mean_reward_subject_by_round,
+  family = gaussian(),
+  iter = 4000, 
+  warmup = 1000, 
+  chains = 4, 
+  cores = 4, 
+  seed = 0511,
+  backend = "cmdstanr",
+  save_pars = save_pars(all = TRUE)),
+  modelName='brm_reward_rounds_reduced')
 
 # estimates
 # model_parameters(brm_rounds)
@@ -2662,11 +2661,11 @@ draws <- as_draws_array(brm_rounds)
 
 # Posterior mean and highest density interval (HDI)
 fixed_df <- model_parameters(
-brm_rounds,
-effects = "fixed",
-centrality = "mean",
-ci = 0.95,
-ci_method = "hdi" # highest density interval
+  brm_rounds,
+  effects = "fixed",
+  centrality = "mean",
+  ci = 0.95,
+  ci_method = "hdi" # highest density interval
 )
 
 # summary info on random effects
@@ -2689,7 +2688,6 @@ icc <- tau_00 / (tau_00 + sigma2)
 # 
 # params <- model_parameters(brm_rounds) |> print_md()
 
-
 ```
 
 ```{r}
@@ -2701,18 +2699,18 @@ fitted_values <- fitted(brm_rounds, re_formula = NA)
 df_mean_reward_subject_by_round$fitted_mean_reward <- fitted_values[, "Estimate"]
 
 p_rounds <- 
-ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
-geom_jitter(aes(x = round, y = mean_reward), size = 0.5, alpha = 0.5, width = 0.1) +  
-geom_point(data = df_summary_by_round, aes(x = round, y = mean_of_means, shape = group), size = 2) +
-geom_line(aes(y = fitted_mean_reward), linewidth = 1) +  
-scale_y_continuous("Mean Reward", breaks = c(0.2,0.5,0.8,1)) +
-scale_x_continuous("Round", breaks = c(2,3,4,5,6,7,8,9)) +
-xlab("Round") +
-scale_fill_manual(values = groupcolors) +
-scale_color_manual(values = groupcolors) +
-ggtitle("Mean reward by rounds and group") +
-theme_classic() +
-theme(legend.title = element_blank())
+  ggplot(df_mean_reward_subject_by_round, aes(x = round, y = mean_reward, group = group, shape = group, color = group)) +
+  geom_jitter(aes(x = round, y = mean_reward), size = 0.5, alpha = 0.5, width = 0.1) +  
+  geom_point(data = df_summary_by_round, aes(x = round, y = mean_of_means, shape = group), size = 2) +
+  geom_line(aes(y = fitted_mean_reward), linewidth = 1) +  
+  scale_y_continuous("Mean Reward", breaks = c(0.2,0.5,0.8,1)) +
+  scale_x_continuous("Round", breaks = c(2,3,4,5,6,7,8,9)) +
+  xlab("Round") +
+  scale_fill_manual(values = groupcolors) +
+  scale_color_manual(values = groupcolors) +
+  ggtitle("Mean reward by rounds and group") +
+  theme_classic() +
+  theme(legend.title = element_blank())
 
 p_rounds
 
@@ -2729,9 +2727,9 @@ Second, we assessed patients in terms of their depressive symptoms (via BDI-II),
 
 # compute mean reward across all trials
 df_mean_reward_by_subject <- dat %>%
-filter(trial > 0 & round %in% 2:9) %>%
-group_by(id, group, BDI, MMSE) %>%
-summarize(mean_reward = mean(z, na.rm = TRUE), .groups = "drop")
+  filter(trial > 0 & round %in% 2:9) %>%
+  group_by(id, group, BDI, MMSE) %>%
+  summarize(mean_reward = mean(z, na.rm = TRUE), .groups = "drop")
 
 # plain linear rgression with mean across all trials as DV
 # results comparable to hierarchical model
@@ -2740,15 +2738,13 @@ summarize(mean_reward = mean(z, na.rm = TRUE), .groups = "drop")
 
 # Hierarchical frequentist regression with random intercept: Reward as function of BDI and MMSE score (all patients)    
 lmer_performance_BDI_MMSE <- lmer(z ~ group + BDI + MMSE + (1 | id), 
-data = subset(dat, trial > 0 & round %in% 2:9))
+                                  data = subset(dat, trial > 0 & round %in% 2:9))
 
 res.table <- as.data.frame(coef(summary(lmer_performance_BDI_MMSE)))
 
 #summary(lmer_performance_BDI_MMSE)
 # tab_model(lmer_performance_BDI_MMSE, title = "Hierarchical regression results: Performance as of function group and clinical indicators (BDI and MMSE score).", bpe="mean")
 ```
-
-A Bayesian regression yielded converging results (@tbl-performance-clinical-predictors-brms).
 
 ```{r}
 #| label: tbl-performance-clinical-predictors-brms
@@ -2904,8 +2900,8 @@ dat_bonus_error <- dat_bonus %>%
 
 Controls had lower prediction error than PD- patients; no other group differences were observed.
 
--   Control vs. PD+: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error, var.equal = T)`
 -   Control vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
+-   Control vs. PD+: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error, var.equal = T)`
 -   PD+ vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'PD+')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
 
 
@@ -3009,14 +3005,12 @@ brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group +
 
 #bayes_R2(brm_bonus_confidence_error_by_group)
 
-# modelsummary(
-#   list("Prediction error & confidence" = brm_bonus_confidence_error_by_group),
-#   output    = "latex",
-#   statistic = "conf.int",     # shows [low, high]
-#   estimate  = "{estimate}",   # posterior mean by default
-#   fmt       = 3,
-#   title     = "Bayesian regression results: Prediction error and confidence"
-# )
+model_parameters(brm_bonus_confidence_error_by_group,
+                 centrality = "mean", 
+                 ci = 0.95,
+                 ci_method = "hdi",
+                 digits = 3) %>% 
+  kable(digits = 3, format = "html")
 
 ```
 
