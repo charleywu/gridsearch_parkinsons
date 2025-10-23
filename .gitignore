@@ -2,12 +2,14 @@
 .Rhistory
 .Rapp.history
 
+
 # Session Data files
 .RData
 .RDataTmp
 
 # User-specific files
 .Ruserdata
+.Rproj.user/
 
 # Example code in package build process
 *-Ex.R
@@ -62,3 +64,4 @@ data/raw_data/
 # large csv files; RDS files contain same data
 modelResults/simulatedModels_local_lambda_1_0.csv
 modelResults/simulatedModels_local_lambda_0_5.csv
+
