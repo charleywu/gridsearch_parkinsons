@@ -949,6 +949,11 @@ _Explore choices_
 - PD+ vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
 - Control vs. PD-: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD-' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
 - Control vs. PD+: `r ttestPretty(subset(df_reward_subset_both_explot_explore, group == 'Control' & is_new_label == "Exploration")$mean_reward, subset(df_reward_subset_both_explot_explore, group == 'PD+' & is_new_label == "Exploration")$mean_reward, var.equal = TRUE)`
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 933b773ccb85fe89197ff9db29c14aa92a77edca
 
 
 _Exploit choices_

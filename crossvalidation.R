@@ -1,5 +1,5 @@
 #Model comparison code
-#Charley Wu and Anna Giron 2021
+#Charley Wu 2025
 
 rm(list=ls()) #house keeping
 
@@ -21,7 +21,7 @@ data = read.csv('data/data_gridsearch_Parkinson.csv')
 #Normalize data
 data$z <- (data$z - 25) / 50
 
-data = subset(data, id %in% c(1532, 1596, 1663)) #DEBUG: only run additional participants
+data = subset(data, id %in% c(1706, 1722)) #DEBUG: only run additional participants
 
 nParticipants = length(unique(data$id))
 

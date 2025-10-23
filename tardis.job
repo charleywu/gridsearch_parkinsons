@@ -5,7 +5,7 @@
 #SBATCH --mem 400mb
 #SBATCH --cpus-per-task 1
 ##SBATCH --workdir .
-#SBATCH --array=1-18 ##Update with new data
+#SBATCH --array=1-12 ##Update with new data
 #SBATCH -o /home/mpib/cwu/gridsearch_parkinsons/logs/%A_%a.out
 
 
