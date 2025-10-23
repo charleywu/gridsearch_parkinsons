@@ -17,6 +17,7 @@ format:
     theme: zephyr
     code-fold: true
     toc-location: left-body
+    toc-depth: 4
     classoption: fleqn
     lightbox: true
     number-sections: true
@@ -677,7 +678,9 @@ p_explore_exploit_choices_over_time
 ```
 
 
-```{r include = FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #| label: fig-exploitation-choices
 #| fig-cap: "Balancing exploration and exploitation. The main plot shows the mean proportion of exploitation decisions per trial, aggregated over rounds. The inset shows the total proportion of exploitation choices across all trials and rounds."
 #| fig-width: 8
@@ -1177,7 +1180,9 @@ p_distance_consecutive_sim
 ```
 
 
-```{r include=FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #  non-repeat decisions only: distance by  group
 df_mean_distance_subject_exploration <- 
   dat %>%
@@ -1207,7 +1212,9 @@ df_mean_distance_subject_exploration %>%
 
 
 
-```{r include=F}
+```{r}
+#| include: false
+#| eval: false
 
 ### Search distances: Only exploration choices 
 # For this analysis, _exploratory choices_ are defined as consecutive selections in which the previously chosen tile is not clicked again (distance = 0), but a different tile farther away is selected (distance > 0).
@@ -1239,8 +1246,6 @@ df_mean_distance_subject_exploration %>%
 Finally, we analysed the relation between the value of a reward obtained at time $t$ and the search distance on the subsequent trial $t+1$. If a large reward was obtained, searchers should search more locally, while conversely, if a low reward was obtained, searchers should be more likely to search farther away.
 
 Across all trials and rounds, search distance and previous reward were negatively correlated, indicating that participants tended to search further away following lower rewards compared to higher rewards. This relationship was stronger in Control patients (`r corTestPretty(subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "Control" & trial != 0 & round %in% 2:9)$distance)`) and PD+ patients (`r corTestPretty(subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD+" & trial != 0 & round %in% 2:9)$distance)`) compared to PD- patients (`r corTestPretty(subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$previous_reward, subset(dat, group == "PD-" & trial != 0 & round %in% 2:9)$distance)`). These findings suggest that PD patients off medication exhibited less adaptive search behavior than those on medication and individuals with polyneuropathies.
-
-
 
 ```{r}
 # correlation of previous reward and distance of consecutive choices, by age group and environment
@@ -1286,59 +1291,14 @@ Across all trials and rounds, search distance and previous reward were negativel
 
 ```
 
-Given the nested structure of the data, we next employed a Bayesian hierarchical regression analysis to predict search distance based on the reward obtained in the previous step, with group and their interaction as population-level (fixed) effects and subject-wise random intercepts. These analyses show that both the magnitude of reward obtained on the last step and group influence search distance. Notably, PD patients off medication (PD-) adapted their search behavior less in response to reward magnitude, while patients on medication (PD+) exhibited adaptation levels close to to the Control group.
-
-```{r}
-#| fig-cap: "Hierarchical regression with search distance as a function of previous reward."
-#| fig-width: 4
-#| fig-height: 3
-#| 
-# for now, random intercepts only, Random intercept + random slope not stable
-# lmer_distance_reward <- lmer(distance ~ previous_reward * group + (previous_reward + group | id), 
-# data = subset(dat, trial > 0 & round %in% 2:9))
-# fit model
-lmer_distance_reward <- lmer(distance ~ previous_reward * group + (1 | id), 
-                             data = subset(dat, trial > 0 & round %in% 2:9))
-
-#summary(lmer_distance_reward)
-#emmeans(lmer_distance_reward, pairwise ~ previous_reward | group, pbkrtest.limit = 15000)
-
-p_lmer_distance_reward <- plot_model(lmer_distance_reward, type = "pred", terms = c("previous_reward", "group")) +
-  stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm = TRUE)+
-  # scale_x_continuous('Previous Reward', breaks = (c(0,10,20,30,40,50))) +
-  # scale_x_continuous('Previous Reward', breaks = (c(0,0.210,20,30,40,50))) +
-  ylab('Distance to Next Option')+
-  scale_fill_manual(values=groupcolors, labels = grouplabels) +
-  scale_color_manual(values=groupcolors, labels = grouplabels) +
-  ggtitle('Search distance ~ previous reward (lmer)') +
-  theme_classic() +
-  theme(legend.position = "inside", 
-        legend.position.inside = c(0.85, 0.9),   # Use legend.position.inside
-        legend.justification = c(1, 1),
-        legend.title = element_blank(),
-        legend.box.background =  element_blank(),
-        legend.key = element_rect(fill = "white"),
-        axis.text = element_text(colour = "black", size = 14),
-        axis.title = element_text(colour = "black", size = 14),) +
-  guides(color = guide_legend(
-    override.aes = list(
-      fill = NA, 
-      size = 1.5
-    )))
-
-# p_lmer_distance_reward$layers[[2]]$show.legend <- FALSE
-# p_lmer_distance_reward
-
-# ggsave("plots/regression_distance_reward_lmer.png", p_lmer_distance_reward, dpi=300, height=5, width=7)
-```
-
+Given the nested structure of the data, we next employed a Bayesian hierarchical regression analysis to predict search distance based on the reward obtained in the previous step, with group and their interaction as population-level (fixed) effects and subject-wise random intercepts. These analyses show that both the magnitude of reward obtained on the last step and group influence search distance. Notably, PD patients off medication (PD-) adapted their search behavior less in response to reward magnitude, while patients on medication (PD+) exhibited adaptation levels close to controls (@fig-brm_distance_reward and @tbl-brm_distance_reward-exploration).
 
 ```{r}
 #| label: fig-brm_distance_reward
 #| fig-cap: "Bayesian hierarchical regression analysis with search distance as function of previous reward. Dots are the empirical mean distances for each reward value, aggregated over participants, trials, and rounds."
 #| fig-width: 10
 #| fig-height: 5
-#| 
+ 
 # Bayesian regression analysis
 # run_model() is a wrapper for brm models such that it saves the full model the first time it is run, otherwise it loads it from disk from directory `~brm`
 # Fixed effects: previous_reward and group.
@@ -1443,56 +1403,21 @@ p_regression_distance_reward
 # ggsave("plots/regression_distance_reward_brms.png", p_regression_distance_reward, dpi=300, height=5, width=7)
 # ggsave("plots/regression_distance_reward_brms.pdf", p_regression_distance_reward, height=5, width=7)
 
-# mean values vy previosu reward and group
-
-# df_summary <- dat %>%
-#   group_by(previous_reward, group) %>%
-#   summarise(
-#     mean_distance = mean(distance, na.rm = TRUE),
-#     .groups = "drop"
-#   )
-
-# Plot for Computational Psychiatry Conference (Tübingen, July 2025)
-# ggplot() +
-#   stat_summary(dat, mapping=aes(x=previous_reward, y=distance, color=group, fill=group), fun=mean, geom='point', alpha=0.7, size=1, na.rm=T)+
-#   geom_line(predsDF, mapping=aes(x=previous_reward, y=distance, color=group), linewidth=1) +
-#   geom_ribbon(predsDF, mapping=aes(x=previous_reward, y=distance, ymin=lower, ymax=upper, fill=group), alpha=.3) +
-#   #geom_hline(yintercept=meanDist, linetype='dashed', color='red') + # mean distance
-#   scale_x_continuous('Previous Reward', breaks = seq(0,50,10), labels = c(0,10,20,30,40,50)) +
-#   scale_y_continuous('Distance to next choice', breaks = seq(0,7,1), labels = c(0,1,2,3,4,5,6,7))+ 
-#   ylab('Distance to next choice') +
-#   coord_cartesian(ylim= c(0,5)) +
-#   ylab('Distance to next choice')+
-#   scale_fill_manual(values=groupcolors) +
-#   scale_color_manual(values=groupcolors) +
-#   labs(
-#   title = "Search Distance ~ Previous Reward",
-#   subtitle = "(Bayesian hierarchical regression)") +
-#   theme_classic() +
-#   theme(legend.position = "inside", 
-#         legend.position.inside = c(0.85, 0.9),   
-#         legend.justification = c(1, 1),
-#         legend.title = element_blank(),
-#         legend.text = element_text(colour = "black", size = 18),
-#         plot.title = element_text(colour = "black", size = 22),
-#         plot.subtitle = element_text(colour = "black", size = 18),
-#         axis.text = element_text(colour = "black", size = 18),
-#         axis.title = element_text(colour = "black", size = 18)
-#         )          
-# 
-# 
-# ggsave("plots/regression_distance_reward_brms_CPP.png", dpi=300, height=5, width=6)
-# ggsave("plots/regression_distance_reward_brms_CPP.pdf", height=5, width=6)
-
 ```
 
 ```{r}
+#| label: tbl-brm_distance_reward-exploration
+#| tbl-cap: "Bayesian regression results: Search distance as function of reward on previous step." 
+
 # create HTML table
-tab_model(brm_distance_reward, bpe="mean", title = "Bayesian regression results: Search distance as function of reward on previous step.")
+tab_model(brm_distance_reward, bpe="mean")
+
 ```
 
 
-```{r include=FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #| label: fig-brm_distance_reward-exploration
 #| fig-cap: "Bayesian hierarchical regression analysis with search distance as function of previous reward: exploratory choices only. Dots are the empirical mean distances for each reward value, aggregated over participants, trials, and rounds."
 
@@ -1992,15 +1917,14 @@ p_classification_participants
 
 ```
 
-
 ### Analysis of parameter estimates: Levodopa selectively alters uncertainty-directed but not random exploration in PD
 
 The parameters of the GP-UCB model provide a computational perspective onto distinct aspects of learning and exploration. The parameter $\lambda$ of the learning model captures how strongly a learner generalizes, the uncertainty bonus $\beta$ tracks the level of uncertainty-directed exploration, and the temperature parameter $\tau$ indicates the amount of random exploration.
 
+
 ```{r}
 #| label: tbl-GP-UCB-parameters
-#| tbl-cap: "Mean  (95% CI) and median parameter estimates of the GP-UCB model by group."
-
+#| tbl-cap: "Mean (95% CI) and median parameter estimates of the GP-UCB model by group."
 
 df_gpucb_params <- modelFits %>% filter(kernel=='GP' & acq == 'UCB') %>% 
   pivot_longer(c('lambda', 'beta', 'tau'), names_to = 'param', values_to = 'estimate') %>% 
@@ -2023,16 +1947,16 @@ df_gpucb_params %>%
   ) %>%
   select(group, param, summary) %>%
   pivot_wider(names_from = param, values_from = summary) %>%
-  kable(caption = "Mean (95% CI) and median parameter estimates by group", format = "html") %>% 
+  kable(format = "html") %>% 
   kable_styling("striped", full_width = FALSE)
+
 ```
 
 
 ```{r}
-#| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
 #| label: fig-GP-CUB_params
+#| fig-cap: "Parameter estimates of GP-UCB model, estimated through leave-one-round-out cross validation. Each dot is one participant."
 #| fig-width: 12
-
 
 # separate plots
 # generalization lambda
@@ -2150,10 +2074,9 @@ The parameter $\tau$ represents the amount of decision noise, i.e. stochastic va
 
 
 #### Model simulations
-Controls and PD patients on medication balance directed and undirected exploration better than PD patients off medication. To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ to 1, corresponding to the true amount of correlation in the used environments (length-scale of the RBF kernel), and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 1000 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study. 
+To evaluate how well different parameter settings balance exploration and exploitation, we conducted simulations with the GP-UCB model. In these simulations, we fixed the value of $\lambda$ to 1, corresponding to the true amount of correlation in the used environments (length-scale of the RBF kernel), and systematically varied the amount of random exploration ($\tau$) and the size of the uncertainty bonus ($\beta$). For each parameter we defined used equally log-spaced values, and then simulated 1000 learners searching for rewards. Environments were sampled (with replacement) from the set of 40 environments used in the empirical study. 
 
 @fig-simulateModels-results depicts the resulting performance landscape together with the inferred parameters of all participants (@tbl-GP-UCB-parameters). Compared to PD$-$ patients off medication, the parameter estimates for PD$+$ patients on medication and controls cluster more closely around the optimal region. Particularly the inflated exploration bonus $\beta$ places PD$-$ patients in regions yielding low performance.
-
 
 ```{r}
 #| label: fig-simulateModels-results
@@ -2368,7 +2291,6 @@ p_model_simulation_params <- ggdraw() +
 p_model_simulation_params
 # ggsave("plots/model_simulation_params.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
 
-
 ```
 
 # Article figures
@@ -2547,7 +2469,9 @@ p_rewards_round <- ggplot(df_summary_by_round, aes(x = round, y = mean_of_means,
 # ggsave("plots/performance_rounds.png", width = 6, height = 3)
 ```
 
-```{r eval = FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #| label: tbl-performance-rounds-lmer
 #| tbl-cap: "Hierarchical regression results: Performance (obtained rewards) as function of group and round."
 
@@ -2721,7 +2645,9 @@ ggsave("plots/S1_performance_rounds.png", p_rounds, width = 6, height = 3)
 #### No influence of clinical predictors on performance
 Second, we assessed patients in terms of their depressive symptoms (via BDI-II), cognitive functioning (via Mini-Mental-Status Examination, MMSE), and severity of motor symptoms (via Hoehn-Yahr scale, Parkinson's disease patients only). We ran a Bayesian hierarchical regression with reward pre trial as dependent variable and group, BDI score, and MMSE score as population-level ("fixed") effects, and random intercepts for participants. This analysis yielded only an effect of group, suggesting that BDI and MMSE score were not related to performance (@tbl-performance-clinical-predictors-brms).
 
-```{r eval=FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #| label: tbl-performance-clinical-predictors-lmer
 #| tbl-cap: "Hierarchical frequentist regression with random intercept: Reward as function of BDI-II and MMSE score (all patients)."
 
@@ -2786,7 +2712,9 @@ model_parameters(brm_performance_BDI_MMSE,
 
 Finally, we ran a hierarchical regression for Parkinson's patients only, with reward as dependent variable and group, BDI, MMSE, and Hoehn-Yahr score as predictors; with random intercepts for participants to account for individual differences. This analysis only yielded an influence of group, i.e. being on or off levodopa (@tbl-performance-clinical-predictors-PD-brms). 
 
-```{r eval = FALSE}
+```{r}
+#| include: false
+#| eval: false 
 #| label: tbl-performance-clinical-predictors-PD-lmer
 #| tbl-cap: "Hierarchical frequentist regression with random intercept: Reward as function of BDI-II, MMSE, and Hoehn-Yahr score (only PD patients)."
 #| 
