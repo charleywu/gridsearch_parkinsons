@@ -229,12 +229,6 @@ importModelResults <- function(dataFolder, kernels, acqFuncs){
   # write.csv(modelFit[[1]], "modelResults/modelFit.csv", row.names = FALSE)
   # write.csv(modelFit[[2]], "modelResults/params.csv", row.names = FALSE)
   
-  # write individual model fits by group
-  # write_csv(modelFits, "modelResults/modelFits_group.csv")
-  # write_csv(subset(modelFits, group == "Control"), "modelResults/modelFits_control.csv")
-  # write_csv(subset(modelFits, group == "PD-"),"modelResults/modelFits_PD_minus.csv")
-  # write_csv(subset(modelFits, group == "PD+"), "modelResults/modelFits_PD_plus.csv")
-  
   #Participant data
   #data<-dataImport()
   # import preprocessed data
