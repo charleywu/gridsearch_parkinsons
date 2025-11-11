@@ -1,10 +1,10 @@
 # gridsearch_parkinsons
 
 ### Cite as:
-Meder, B., Sterf, M. Wu, C.M, & Guggenmos, M. (2025). Uncertainty-directed and random exploration in Parkinson’s disease. _PsyArXiv_ 
+Meder, B., Sterf, M. Wu, C.M, & Guggenmos, M. (2025). Dopamine depletion in Parkinson’s increases directed but not random exploration. _PsyArXiv_ 
 
 ## Preprint:
-https://
+https://osf.io/preprints/psyarxiv/y2buv_v1
 
 ## Folders
 - `data`: stores various data files
@@ -13,6 +13,7 @@ https://
 - `img`: Task and model visualizations
 - `modelResults`: results of different computational models
 - `plots`: plots generated for article
+- `levodopa`: medication info
 
 ## Datasets:    
 - `data/behavioralData.csv`: behavioral data of all xxx participants   
@@ -23,9 +24,9 @@ https://
 
 ## Scripts:   
 - `gridsearch_parkinsons.Rproj`: R Studio project file 
-- `gridsearch_parkinson_behavioral_analyses.qmd`: Quarto document with R code used for the statistical analyses and plots of the behavioral data. Generates Figures 1 and 2.
-- `gridsearch_parkinson_computational_analyses.qmd`: Quarto document with R code used for the computational analyses. Generates Figure 3.
-- `dataProcessing.R`: import and pre-process behavioral data and parameter estimates (added for completeness; analysis scripts load the generated `.csv` files).
+- `gridsearch_parkinsons.qmd`: Quarto document with R code used for the statistical and computational analyses. Also generates article figures.
+- `gridsearch_parkinsons.html`: Rendered Quarto document with R code used for the statistical and computational analyses. Also includes article figures.
+- `dataProcessing.R`: import and pre-process behavioral data and parameter estimates (added for completeness; analysis scripts load the generated `.csv` files sitting in `data`).
 - `statisticalTests.R` various wrapper functions for statistical tests used for the analyses.
 - `simulateModels.R`: simulate the GP-UCB model with different parameter combinations and plot expected rewards.
 - `simulate_consecutive_choices.R`: simulate consecutive search distances for learner choosing randomly on each step.
