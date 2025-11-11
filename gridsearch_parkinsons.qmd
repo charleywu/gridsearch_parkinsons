@@ -110,11 +110,21 @@ All behavioral data are stored in the following files:
 - `data_gridsearch_subjects.csv` contains participant information, and   
 - `data_gridsearch_Parkinson_bonusround.csv` contains the behavioral data from round 10 from the task ("bonus round"). 
 
-Data frame _dat_ includes all info from `data_gridsearch_parkinson.csv` and `data_gridsearch_subjects.csv`, with the following variables (@tbl-dat):
+Data frame `dat` includes all info from `data_gridsearch_parkinson.csv` and `data_gridsearch_subjects.csv`, with the following variables (@tbl-dat):
 
 -   `id`: participant id
 -   `age` is participant age in years
 -   `gender`: (m)ale, (f)emale, (d)iverse
+-   `group`: condition, where PD+ = PArkinson patients _on_ medication, PD- = Parkinson patients _off_ medication, and Control = age-matched control patients with polyneurpathies
+-   `BDI`: Depression score according to the German verison of Beck's Depression Inventory II
+-   `MMSE`: Score on Mini Mental Status Examination
+-   `LDD`: Daily Levodopa dose (only patients who consented to the access of their medical records; 14 PD$-$ and 12 PD$+$ patients)
+-   `LEDD`: Levodopa equivalent daily dose, calculated according to Jost et al. (2023) 
+-   `hoehn-yahr`: PD severity according to the Hoehn-Yahr scale
+-   `last_ldopa`: time of the last levodopa dose (HH:MM)
+-   `next_ldopa`: scheduled time of the next levodopa dose (HH:MM)
+-   `time_exp`: time of the experiment (HH:MM)
+-   `time_since_ldopa`: time since last levodopa (in minutes)
 -   `x` and `y` are the sampled coordinates on the grid
 -   `chosen`: are the `x` and `y` coordinates of the chosen tile
 -   `z` is the reward obtained from the chosen tile, normalized to the range 0-1. Re-clicked tiles could show small variations in the observed color (i.e., underlying reward) due to normally distributed noise,$\epsilon∼N(0,1)$.
@@ -124,10 +134,7 @@ Data frame _dat_ includes all info from `data_gridsearch_parkinson.csv` and `dat
 -   `distance` is the Manhattan distance between consecutive clicks. `NA` for trial 0, the initially revealed random tile
 -   `type_choice` categorizes consecutive clicks as "repeat" (clicking the same tile as in the previous round), "near" (clicking a directly neighboring tile, i.e. distance=1), and "far" (clicking a tile with distance \> 1). `NA` for trial 0, i.e., the initially revealed random tile.
 -   `previous_reward` is the reward `z` obtained on the previous step. `NA` for trial 0, i.e., the initially revealed random tile.
--   `last_ldopa`: time of the last levodopa dose (HH:MM)
--   `next_ldopa`: scheduled time of the next levodopa dose (HH:MM)
--   `time_exp`: time of the experiment (HH:MM)
--   `time_since_ldopa`: time since last levodopa (in minutes)
+
 
 ```{r}
 ########################################################
@@ -173,12 +180,21 @@ dat_sample <- read_delim("data/data_gridsearch_subjects.csv", escape_double = FA
 dat_sample <- dat_sample[dat_sample$id %in% dat_gridsearch$id, ]
 #length(unique(dat_sample$id))
 
+
+# get medication info (note: not available for all PD patients)
+dat_medication <- read_csv(file="data/levodopa.csv", col_select = -1) 
+
+dat_sample <- dat_sample %>% 
+  left_join(dat_medication, by = "id")
+
 # combine behavioral and subject data
 dat <- dat_sample %>% 
   inner_join(dat_gridsearch, by = "id") %>% 
   arrange(group)
 
 # length(unique(dat$id))
+
+
 
 ########################################################
 # get modeling data
@@ -247,17 +263,18 @@ dat_sample %>%
     gender = factor(gender, levels = c("m","f"),
                     labels = c("Male","Female"))
   ) %>%
-  select(group, gender, age, BDI, MMSE, hoehn_yahr, time_since_ldopa) %>%
+  select(group, gender, age, BDI, MMSE, hoehn_yahr, LEDD, time_since_ldopa) %>%
   tbl_summary(
     by = group,
     type = list(
       gender                                          ~ "categorical",
-      c(age, BDI, MMSE, hoehn_yahr, time_since_ldopa)  ~ "continuous"
+      c(age, BDI, MMSE, hoehn_yahr, LEDD, time_since_ldopa)  ~ "continuous"
     ),
     label = list(
       age        ~ "Age",
       hoehn_yahr ~ "PD severity (Hoehn-Yahr)",
       BDI        ~ "Depression (BDI)",
+      LEDD        ~ "Levodopa EDD",
       time_since_ldopa        ~ "Time since medication (min)"
     ),
     statistic = list(
