@@ -16,7 +16,7 @@ https://osf.io/preprints/psyarxiv/y2buv_v1
 - `levodopa`: medication info
 
 ## Datasets:    
-- `data/behavioralData.csv`: behavioral data of all xxx participants   
+- `data/behavioralData.csv`: behavioral data of all participants   
 - `data/modelFit.csv`: parameter estimates of all computational models for all participants   
 - `data/roughKernel.json`: all 40 environments, from which a new environment was chosen in each round without replacement. Also used for computational analyses.
 - `gridsearch_parkinson.bib`: BibTex bibliography, used by `.qmd` files
