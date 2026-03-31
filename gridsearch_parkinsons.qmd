@@ -3001,6 +3001,27 @@ ggsave("plots/S3_bonusround_regression_prediction_error_confidence.png", dpi=300
 
 ```
 
+
+```{r}
+# regression: prediction error as function of clinial variables
+
+dat_bonus_error <- dat_bonus_error %>% 
+  left_join(
+    dat_sample %>% select(id, BDI, MMSE, hoehn_yahr),
+    by = "id"
+  )
+
+lm_error_PD_only_BDI_MMSE_HY <- lm(mean_error ~ group + BDI + MMSE + hoehn_yahr, 
+                                        data = subset(dat_bonus_error, group!='Control'))
+
+# summary(lm_error_PD_only_BDI_MMSE_HY)
+
+tab_model(lm_error_PD_only_BDI_MMSE_HY, title = "Regression results: Prediction error of PD patients in bonus round as function of BDI, MMSE, and Hoehn-Yahr score.")
+
+
+
+```
+
 After making reward predictions for the five tiles, participants could choose one of them and then continued the round as usual. @fig-bonusround-chosen-reward compares the predicted rewards for chosen and not chosen tiles. To analyze selected and not-selected options, we first averaged the predicted reward and confidence of the not-chosen options within subjects, and then compared chosen and not chosen options. In the control group, predicted rewards for chosen tiles were higher than for not-chosen tiles. There was no difference in PD patients either on or off medication. There was no difference in confidence between selected and not selected tiles in any of the groups.
 
 ```{r}
