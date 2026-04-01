@@ -129,6 +129,7 @@ Data frame `dat` includes all info from `data_gridsearch_parkinson.csv` and `dat
 -   `chosen`: are the `x` and `y` coordinates of the chosen tile
 -   `z` is the reward obtained from the chosen tile, normalized to the range 0-1. Re-clicked tiles could show small variations in the observed color (i.e., underlying reward) due to normally distributed noise,$\epsilon∼N(0,1)$.
 -   `z_scaled` is the observed outcome (reward), scaled in each round to a randomly drawn maximum value in the range of 70% to 90% of the highest reward value
+-   `time`is the timestamp of clicks
 -   `trial` is the trial number (0-25), with 0 corresponding to the initially revealed random tile, i.e. trial 1 is the first choice
 -   `round` is the round number (1 through 10), with 1=practice round (not analyzed) and 10=bonus round (analyzed only for bonus round judgments)
 -   `distance` is the Manhattan distance between consecutive clicks. `NA` for trial 0, the initially revealed random tile
@@ -147,6 +148,15 @@ dat_gridsearch <- read_csv("data/data_gridsearch_Parkinson.csv", show_col_types 
 dat_gridsearch$z = dat_gridsearch$z / 50
 dat_gridsearch$previous_reward = dat_gridsearch$previous_reward / 50
 # length(unique(dat_gridsearch$id))
+
+# compute latency between choices
+dat_gridsearch <-  dat_gridsearch %>%
+  arrange(id, round, trial) %>%
+  group_by(id, round) %>%
+  mutate(
+    latency_ms = time - lag(time)
+  ) %>%
+  ungroup()
 
 ########################################################
 # get bonus round data
@@ -996,7 +1006,7 @@ df_mean_distance_subject <- dat %>%
             SE_distance = SD_distance / sqrt(decisions)) %>% 
   ungroup()
 
-#  distance by  group
+#  distance by group
 df_mean_distance <- 
   df_mean_distance_subject %>%
   group_by(group) %>%
@@ -1795,7 +1805,7 @@ In each group, the GP-UCB model had the highest predictive accuracy (@sec-SI).
 
 # get subject information
 groupDF <-dat_sample %>%
-  select(id, age, gender,group,BDI,MMSE,hoehn_yahr,last_ldopa,next_ldopa,time_exp,time_since_ldopa) %>%
+  select(id, age, gender,group,BDI,MMSE,hoehn_yahr,last_ldopa,next_ldopa,time_exp,time_since_ldopa) %>%#
   group_by(id) %>%
   slice_head(n = 1) %>%
   arrange(group)
@@ -2773,6 +2783,139 @@ model_parameters(brm_performance_PD_only_BDI_MMSE_HY,
                  ci_method = "hdi",
                  digits = 3) %>% 
   kable(digits = 3, format = "html")
+```
+
+#### No medication-related difference in decision latency 
+To examine whether the behavioral differences between PD+ and PD- patients could reflect a general slowing of responding under dopamine depletion, we conducted exploratory analyses of response time, defined as the latency between consecutive clicks on the grid. @fig-latency shows the median response time across all trials and rounds by group. 
+
+```{r}
+#| label: fig-latency
+#| fig-cap: "Median response time between consecutive clicks across all trials and rounds."
+#| fig-width: 9
+#| fig-height: 4
+
+
+# compute latency per subject, pooling all decisions across rounds 2-9
+df_latency_subject <- dat %>%
+  filter(trial > 0 & round %in% 2:9) %>%
+  group_by(id, group) %>%
+  summarise(decisions=n(),
+            mean_latency_ms = mean(latency_ms, na.rm = TRUE),
+            median_latency_ms = median(latency_ms),
+            SD_latency_ms = sd(latency_ms),            
+            SE_latency_ms = SD_latency_ms / sqrt(decisions),
+            .groups = "drop") 
+
+#  latency by  group
+df_summary_latency <- 
+df_latency_subject %>%
+  group_by(group) %>%
+  summarise(
+    n = n(),
+    median_of_subject_medians_ms = median(median_latency_ms, na.rm = TRUE),
+    mean_of_subject_medians_ms   = mean(median_latency_ms, na.rm = TRUE),
+    sd_of_subject_medians_ms     = sd(median_latency_ms, na.rm = TRUE),
+    se_of_subject_medians_ms     = sd_of_subject_medians_ms / sqrt(n),
+    .groups = "drop"
+  )
+
+
+ggplot(df_latency_subject, aes(x = median_latency_ms/1000, fill = group, color = group)) +
+  facet_wrap(~group, nrow = 1) +
+  geom_histogram(aes(y = after_stat(count / sum(count))),
+                 binwidth = 1, 
+                 boundary = 0,
+                 alpha = 0.7) +
+  scale_y_continuous("Proportion of subjects", labels = percent_format(), expand = c(0, 0)) +
+  scale_x_continuous("Median latency between choices (seconds)") +
+  scale_fill_manual(values = groupcolors) +
+  scale_color_manual(values = groupcolors) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 24),
+    legend.title = element_blank(),
+    legend.position = "none",
+    legend.text = element_text(colour = "black"),
+    text = element_text(colour = "black"),
+    strip.background = element_blank(),
+    strip.text = element_text(colour = "black", size = 18),
+    axis.text = element_text(colour = "black", size = 18),
+    axis.title = element_text(colour = "black", size = 18),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.spacing = unit(0.5, "cm"),
+    plot.margin = margin(r = 20)
+  )
+
+ggsave("plots/decision_latency.png", dpi=300, width=9, height=4)
+```
+
+PD patients on and off medication did not differ in their median response time, and patients on medication did not differ from controls. The comparison between patients off medication and controls showed a weak trend toward longer latencies in the PD− group: 
+
+-   PD+ vs. PD-: `r ttestPretty(subset(df_latency_subject, group == "PD+")$median_latency_ms, subset(df_latency_subject, group == "PD-")$median_latency_ms, var.equal = TRUE)`
+-   Control vs. PD+: `r ttestPretty(subset(df_latency_subject, group == "Control")$median_latency_ms, subset(df_latency_subject, group == "PD+")$median_latency_ms, var.equal = TRUE)`
+-   Control vs. PD-: `r ttestPretty(subset(df_latency_subject, group == "Control")$median_latency_ms, subset(df_latency_subject, group == "PD-")$median_latency_ms, var.equal = TRUE)`
+
+To examine decision latency at the trial level, we fit a Bayesian hierarchical regression model predicting response time from group and distance to the previously selected tile, with a random intercept for participant (@tbl-latency-brms). Because response times were strictly positive and right-skewed, we used a lognormal link function. As expected, longer distances between consecutive clicks on the grid were associated with longer latencies. Controls responded faster than PD- patients, but the difference between PD patients on and off medication was small and the HDI included zero. The effect of distance on response time was slightly stronger in controls than in PD- patients, but the effect was small. 
+
+Overall, these analyses suggest that medication status was not associated with a clear difference in response latency within the PD sample, and that latency variation was driven more strongly by search distance than by group.
+
+
+```{r}
+#| label: tbl-latency-brms
+#| tbl-cap: "Hierarchical Bayesian regression: Median decision latency as function of group and distance to previously selected tile."
+
+
+
+# multi-level regression
+# dat <- dat %>% mutate(log_latency_ms = log(latency_ms))
+
+# lmer_latency_reward_distance_group <- lmer(
+#   log_latency_ms ~ previous_reward + distance + group + (1 | id),
+#   data = filter(dat, round %in% 2:9, trial > 0)
+# )
+# 
+# summary(lmer_latency_reward_distance_group)
+# tab_model(lmer_latency_reward_distance_group)
+# 
+# emmeans(m1, pairwise ~ group, pbkrtest.limit = 20600)
+# 
+# lmer_latency_reward_distance_group <- lmer(
+#   log_latency_ms ~ distance * group + (1 | id),
+#   data = filter(dat, round %in% 2:9, trial > 0)
+# )
+# 
+# summary(lmer_latency_reward_distance_group)
+
+
+brm_latency_distance_group <- run_model(
+  brm(
+    latency_ms ~ distance * group + (1 | id),
+    data = subset(dat, round %in% 2:9 & trial > 0 & !is.na(latency_ms)),
+    family = lognormal(),
+    cores = 4,
+    chains = 4,
+    seed = 815,
+    iter = 5000,
+    warmup = 1000,
+    backend = "cmdstanr",
+    control = list(adapt_delta = 0.99)
+  ),
+  modelName = "brm_latency_distance_group"
+)
+# summary(brm_latency_distance_group)
+# tab_model(brm_latency_distance_group, transform="exp")
+# tab_model(brm_latency_distance_group)
+
+model_parameters(
+  brm_latency_distance_group,
+  centrality = "mean",
+  ci = 0.95,
+  ci_method = "hdi",
+  digits = 3
+) %>%
+  kable(digits = 3, format = "html")
+
 ```
 
 
