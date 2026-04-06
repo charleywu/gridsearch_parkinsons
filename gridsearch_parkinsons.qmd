@@ -1633,7 +1633,7 @@ We tested the GP-UCB model in its ability to model learning and predicting each 
 To establish that all components of the GP-UCB model are required to explain behavior, we implemented three lesion variants of the model [@giron2023developmental].
 
 ####  $\lambda$ lesion model
-The $\lambda$ lesion model removes the ability to generalize, such that options’ rewards are learned independently via a Bayesian Mean Tracker (BMT). The BMT is a Kalman filter with time-invariant rewards [@dayan2000learning; @wu2022time], and as such can be interpreted as a Bayesian variant [@gershman2015unifying] of the classic Rescorla-Wagner [@rescorla1972theory] or Q-learning models [@watkins1992q]. Intuitively, reward estimates are updated as a function of prediction error, where the learning rate is dynamically defined based on the degree of uncertainty of the model.
+The $\lambda$ lesion model removes the ability to generalize, such that options’ rewards are learned independently via a Bayesian Mean Tracker (BMT). The BMT is a Kalman filter with time-invariant rewards [@dayan2000learning; @wu2022time], and as such can be interpreted as a Bayesian variant [@gershman2015unifying] of the classic Rescorla-Wagner [@rescorla1972theory] or Q-learning models [@watkins1992q]. Intuitively, reward estimates are updated as a function of judgment error, where the learning rate is dynamically defined based on the degree of uncertainty of the model.
 
 Like the GP, the BMT also assumes a Gaussian prior distribution of reward expectations, but does so independently for each option $\mathbf{x}$:
 
@@ -2978,7 +2978,7 @@ dat_bonus_error <- dat_bonus %>%
 
 ```
 
-#### Prediction error
+#### Judgment error
 
 @fig-bonusround-error shows the mean absolute error between participants' estimates and the true underlying expected reward. Compared to a random baseline, all groups performed better than chance level:
 
@@ -2986,7 +2986,7 @@ dat_bonus_error <- dat_bonus %>%
 -   PD+: `r ttestPretty(subset(dat_bonus_error, group=='PD+')$mean_error, mu =randomPerformance)`
 -   PD-: `r ttestPretty(subset(dat_bonus_error, group=='PD-')$mean_error, mu =randomPerformance)`
 
-Controls had lower prediction error than PD- patients; no other group differences were observed.
+Controls had lower judgment error than PD- patients; no other group differences were observed.
 
 -   Control vs. PD-: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD-' )$mean_error, var.equal = T)`
 -   Control vs. PD+: `r ttestPretty(subset(dat_bonus_error, group == 'Control')$mean_error, subset(dat_bonus_error, group == 'PD+' )$mean_error, var.equal = T)`
@@ -2995,7 +2995,7 @@ Controls had lower prediction error than PD- patients; no other group difference
 
 ```{r, echo=FALSE}
 #| label: fig-bonusround-error
-#| fig-cap: "Prediction error of bonus round judgments. The red dotted line indicates a random baseline."
+#| fig-cap: "Judgment error of bonus round judgments. The red dotted line indicates a random baseline."
 #| fig-width: 6
 #| fig-height: 5
 
@@ -3009,7 +3009,7 @@ p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean
   stat_summary(fun = mean, geom = "point", shape = 23, fill = "white", size = 3) +
   scale_color_manual(values = groupcolors) +
   scale_fill_manual(values = groupcolors) +
-  labs(title = "Reward prediction error", y = "Mean absolute error", x = "") +
+  labs(title = "Reward judgment error", y = "Mean absolute error", x = "") +
   theme_classic() +
   theme(
     legend.position = 'none',
@@ -3021,7 +3021,7 @@ p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean
 
 p_bonusround_prediction_error
 
-ggsave("plots/S2_bonusround_prediction_error.png", p_bonusround_prediction_error, dpi=300, height = 5, width = 6 )
+ggsave("plots/S2_bonusround_judgment_error.png", p_bonusround_prediction_error, dpi=300, height = 5, width = 6 )
 
 ```
 
@@ -3058,8 +3058,8 @@ ggsave("plots/S2_bonusround_prediction_error.png", p_bonusround_prediction_error
 
 ```
 
-#### Prediction error and confidence
-Aggregated across all judgments, there was no relationship between prediction error and confidence, with varying and inconsistent patterns in the different groups. The Control group showed a weak negative relation (i.e., lower confidence was associated with higher prediction error), the PD+ group a weak positive trend (i.e., lower confidence was associated with better lower prediction error), and the PD− group showed no association. None of these patterns were strong or reliable, no relationship between prediction error and confidence.
+#### Judgment error and confidence
+Aggregated across all judgments, there was no relationship between judgment error and confidence, with varying and inconsistent patterns in the different groups. The Control group showed a weak negative relation (i.e., lower confidence was associated with higher judgment error), the PD+ group a weak positive trend (i.e., lower confidence was associated with better lower judgment error), and the PD− group showed no association. None of these patterns were strong or reliable, no relationship between judgment error and confidence.
 
 -   Overall: `r corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "pearson")`
 -   Control: `r corTestPretty(subset(dat_bonus, group == "Control")$error, subset(dat_bonus, group == "Control")$howSecure, method = "pearson")`
@@ -3069,14 +3069,14 @@ Aggregated across all judgments, there was no relationship between prediction er
 ```{r}
 # bivariate relations
 
-# Across all judgments and participants, there was no systematic relation between confidence and prediction error:
+# Across all judgments and participants, there was no systematic relation between confidence and judgment error:
 # corTestPretty(dat_bonus$error, dat_bonus$howSecure, method = "pearson") 
 # cor.test(dat_bonus$error, dat_bonus$howSecure, method = "pearson") 
 # correlationBF(dat_bonus$error, dat_bonus$howSecure, method = "pearson")
 
 ```
 
-A Bayesian regression with  prediction error as dependent variable, and confidence and group and their interaction as population-level (“fixed”) effects, and a random intercept for participants yielded the same conclusions: in control patients, confidence and prediction error were weakly negatively related (i.e., lower confidence was associated with a higher error), whereas for the two Parkinson groups confidence ratings and prediction error were not related.
+A Bayesian regression with  judgment error as dependent variable, and confidence and group and their interaction as population-level (“fixed”) effects, and a random intercept for participants yielded the same conclusions: in control patients, confidence and judgment error were weakly negatively related (i.e., lower confidence was associated with a higher error), whereas for the two Parkinson groups confidence ratings and judgment error were not related.
 
 ```{r}
 brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group + (1|id), 
@@ -3089,7 +3089,7 @@ brm_bonus_confidence_error_by_group <- run_model(brm(error ~ howSecure * group +
                                                      warmup=1000, 
                                                      seed = 0815), 
                                                  modelName = 'brm_bonus_confidence_error_by_group')
-#tab_model(brm_bonus_confidence_error_by_group, bpe = "mean", title = "Bayesian regression results: Prediction error and confidence") 
+#tab_model(brm_bonus_confidence_error_by_group, bpe = "mean", title = "Bayesian regression results: judgment error and confidence") 
 
 #bayes_R2(brm_bonus_confidence_error_by_group)
 
@@ -3118,10 +3118,10 @@ ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
   geom_point(shape = 21, size = 2.5, colour = "black", position = position_dodge(width = 0.3))  +
   scale_fill_manual(values = groupcolors) +
   scale_colour_manual(values = groupcolors) +
-  scale_y_continuous("Prediction Error") + #, breaks = seq(0,30,10)) +
+  scale_y_continuous("Judgment Error") + #, breaks = seq(0,30,10)) +
   scale_x_continuous("Confidence", breaks = seq(0,10,1)) +
   coord_cartesian( xlim = c(0,10)) +
-  ggtitle("Confidence and prediction error") +
+  ggtitle("Confidence and judgment error") +
   theme_classic() +
   theme(#aspect.ratio = 1,
     plot.title = element_text(size=16),
@@ -3140,13 +3140,13 @@ ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank())
 
-ggsave("plots/S3_bonusround_regression_prediction_error_confidence.png", dpi=300, height = 4, width = 7 )
+ggsave("plots/S3_bonusround_regression_judgment_error_confidence.png", dpi=300, height = 4, width = 7 )
 
 ```
 
 
 ```{r}
-# regression: prediction error as function of clinial variables
+# regression: judgment error as function of clinial variables
 
 dat_bonus_error <- dat_bonus_error %>% 
   left_join(
@@ -3159,7 +3159,7 @@ lm_error_PD_only_BDI_MMSE_HY <- lm(mean_error ~ group + BDI + MMSE + hoehn_yahr,
 
 # summary(lm_error_PD_only_BDI_MMSE_HY)
 
-tab_model(lm_error_PD_only_BDI_MMSE_HY, title = "Regression results: Prediction error of PD patients in bonus round as function of BDI, MMSE, and Hoehn-Yahr score.")
+tab_model(lm_error_PD_only_BDI_MMSE_HY, title = "Regression results: Judgment error of PD patients in bonus round as function of BDI, MMSE, and Hoehn-Yahr score.")
 
 
 
