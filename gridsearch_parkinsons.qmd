@@ -2847,7 +2847,7 @@ ggplot(df_latency_subject, aes(x = median_latency_ms/1000, fill = group, color =
     plot.margin = margin(r = 20)
   )
 
-ggsave("plots/decision_latency.png", dpi=300, width=9, height=4)
+ggsave("plots/S2_decision_latency.png", dpi=300, width=9, height=4)
 ```
 
 PD patients on and off medication did not differ in their median response time, and patients on medication did not differ from controls. The comparison between patients off medication and controls showed a weak trend toward longer latencies in the PD− group: 
@@ -3021,7 +3021,7 @@ p_bonusround_prediction_error <- ggplot(dat_bonus_error, aes(x = group, y = mean
 
 p_bonusround_prediction_error
 
-ggsave("plots/S2_bonusround_judgment_error.png", p_bonusround_prediction_error, dpi=300, height = 5, width = 6 )
+ggsave("plots/S3_bonusround_judgment_error.png", p_bonusround_prediction_error, dpi=300, height = 5, width = 6 )
 
 ```
 
@@ -3209,7 +3209,7 @@ ggplot(fixedDF_conf_error, aes(howSecure, error, color = group, fill = group)) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank())
 
-ggsave("plots/S3_bonusround_regression_judgment_error_confidence.png", dpi=300, height = 4, width = 7 )
+ggsave("plots/S4_bonusround_regression_judgment_error_confidence.png", dpi=300, height = 4, width = 7 )
 
 ```
 
@@ -3305,7 +3305,7 @@ p_bonusround_prediction_chosen <-
   )
 
 p_bonusround_prediction_chosen
-ggsave("plots/S4_bonusround_chosen_not_chosen_options_predicted_reward.png", p_bonusround_prediction_chosen, dpi=300, width=9, height = 4)
+ggsave("plots/S5_bonusround_chosen_not_chosen_options_predicted_reward.png", p_bonusround_prediction_chosen, dpi=300, width=9, height = 4)
 
 ```
 
@@ -3448,7 +3448,7 @@ p_model_comparison_R2 <- ggplot(modelFits, aes(x = shortname, y = R2, fill = gro
 
 
 p_model_comparison_R2
-ggsave("plots/S5_model_comparison_R2.png", p_model_comparison_R2, dpi=300, width = 10, height = 5)
+ggsave("plots/S6_model_comparison_R2.png", p_model_comparison_R2, dpi=300, width = 10, height = 5)
 #ggsave("plots/model_comparison.pdf", p_model_comparison, width = 10, height = 5) # ü
 
 # plot for Computational Psychiatry Conference (CPP; Tübingen, July 2025)
@@ -3719,7 +3719,7 @@ p_model_simulation_params <- ggdraw() +
   draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
 
 p_model_simulation_params
-ggsave("plots/S6_model_simulation_params_lambda_0_5.png", p_model_simulation_params, bg="white", width = 14, height = 5, dpi = 300)
+ggsave("plots/S7_model_simulation_params_lambda_0_5.png", p_model_simulation_params, bg="white", width = 14, height = 5, dpi = 300)
 
 ```
 
