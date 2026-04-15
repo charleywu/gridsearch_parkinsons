@@ -2355,7 +2355,7 @@ cowplot::plot_grid(
   task,
   model,
   ncol = 1,
-  labels = c("auto"),      
+  labels = c("AUTO"),      
   label_size = 22,
   label_y = c(1, 1),  # vertikale Position der cowplot-Labels (A, B)
   label_x = c(0, 0)   # horizontale Position (links)
@@ -2380,7 +2380,7 @@ cowplot::plot_grid(
   p_explore_exploit_choices, p_explore_exploit_choices_over_time,
   p_distance_consecutive_sim, p_regression_distance_reward, #p_distance_consecutive p_types_choices_overall
   #p_bonusround_prediction_error, p_bonusround_prediction_chosen,
-  labels = c("auto"),
+  labels = c("AUTO"),
   label_size = 22,
   label_y = 1.02, 
   nrow = 3,
@@ -2405,7 +2405,7 @@ p_model_comparison <- plot_grid(
   p_pxp,
   p_classification_participants,
   ncol = 2,
-  labels = c("a", "b"),      
+  labels = c("A", "B"),      
   label_size = 22,
   rel_widths = c(0.55,0.45)
 )
@@ -2417,7 +2417,7 @@ fig3_computational_results <- cowplot::plot_grid(
   p_model_simulation_params,
   ncol = 1,
   # labels = "auto",
-  labels = c("", "c", "d"),  
+  labels = c("", "C", "D"),  
   label_y = 1.02,
   # label_x = 0.1,   
   label_size = 22,
@@ -3025,6 +3025,75 @@ ggsave("plots/S2_bonusround_judgment_error.png", p_bonusround_prediction_error, 
 
 ```
 
+To address whether the variability in prediction error in the bonus round was related to disease severity, we ran a Bayesian linear regression in the PD sample predicting mean absolute error from medication group, BDI, MMSE, and Hoehn–Yahr score (@tbl-judgment-error-clinical-indicators). Posterior estimates for all predictors were small and their 95% HDIs included zero, including for Hoehn–Yahr score. Thus, we found no evidence that variability in judgment error was systematically related to disease severity or other clinical indicators.
+
+```{r, echo=FALSE}
+#| label: tbl-judgment-error-clinical-indicators
+#| tbl-cap: "Bayesian regression: mean judgment error in the bonus round as a function of medication group and clinical indicators in the PD sample."
+
+dat_bonus_error <- dat_bonus_error %>% 
+  left_join(dat_sample, by = c("id", "group"))
+
+
+brm_bonus_error_clinical_indicators <- run_model(brm(mean_error ~ group + hoehn_yahr + BDI + MMSE, 
+                                                     data=dat_bonus_error, 
+                                                     cores=4,  
+                                                     chains=4,
+                                                     backend = "cmdstanr",
+                                                     control = list(adapt_delta = 0.99),
+                                                     iter = 5000,
+                                                     warmup=1000, 
+                                                     seed = 0815), 
+                                                 modelName = 'brm_bonus_error_clinical_indicators')
+
+model_parameters(brm_bonus_error_clinical_indicators,
+                 centrality = "mean", ci = 0.95,
+                 ci_method = "hdi" ) %>% 
+  kable(digits = 3, format = "html")
+
+# summary(brm_bonus_error_clinical_indicators, digits=3)
+
+# for 3 digits estimates
+# s <- summary(brm_bonus_error_clinical_indicators)
+# 
+# fixef_tab <- as.data.frame(s$fixed)
+# fixef_tab$Estimate <- sprintf("%.3f", fixef_tab$Estimate)
+# fixef_tab$Est.Error <- sprintf("%.3f", fixef_tab$Est.Error)
+# fixef_tab$Q2.5 <- sprintf("%.3f", fixef_tab$Q2.5)
+# fixef_tab$Q97.5 <- sprintf("%.3f", fixef_tab$Q97.5)
+# 
+# fixef_tab
+# 
+# spec_tab <- as.data.frame(s$spec_pars)
+# spec_tab$Estimate <- sprintf("%.3f", spec_tab$Estimate)
+# spec_tab$Est.Error <- sprintf("%.3f", spec_tab$Est.Error)
+# spec_tab$Q2.5 <- sprintf("%.3f", spec_tab$Q2.5)
+# spec_tab$Q97.5 <- sprintf("%.3f", spec_tab$Q97.5)
+# 
+# spec_tab
+
+# tab_model(brm_bonus_error_clinical_indicators)
+
+# get HDI
+# x <- hdi(brm_bonus_error_clinical_indicators, 
+#     paramaters = c("b_Intercept", "b_groupPDP", "b_hoehn_yahr", "b_BDI", "b_MMSE", "sigma"), 
+#     component = "all",
+#     digits = 3)
+# as.data.frame(x)
+# 
+# df <- as.data.frame(x)
+# df$CI_low  <- round(df$CI_low,  3)
+# df$CI_high <- round(df$CI_high, 3)
+# df
+
+# analogous frequentist regression
+# m <- lm(mean_error ~ group + hoehn_yahr + BDI + MMSE, data = subset(dat_bonus_error, group != "Control"))
+# 
+# summary(m)
+# tab_model(m)
+
+```
+
 ```{r echo = F}
 # t.test(subset(dat_bonus_error, group == "PD+")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error, var.equal = T)
 # ttestBF(subset(dat_bonus_error, group == "PD+")$mean_error, subset(dat_bonus_error, group == "PD-")$mean_error)
@@ -3144,26 +3213,6 @@ ggsave("plots/S3_bonusround_regression_judgment_error_confidence.png", dpi=300, 
 
 ```
 
-
-```{r}
-# regression: judgment error as function of clinial variables
-
-dat_bonus_error <- dat_bonus_error %>% 
-  left_join(
-    dat_sample %>% select(id, BDI, MMSE, hoehn_yahr),
-    by = "id"
-  )
-
-lm_error_PD_only_BDI_MMSE_HY <- lm(mean_error ~ group + BDI + MMSE + hoehn_yahr, 
-                                        data = subset(dat_bonus_error, group!='Control'))
-
-# summary(lm_error_PD_only_BDI_MMSE_HY)
-
-tab_model(lm_error_PD_only_BDI_MMSE_HY, title = "Regression results: Judgment error of PD patients in bonus round as function of BDI, MMSE, and Hoehn-Yahr score.")
-
-
-
-```
 
 After making reward predictions for the five tiles, participants could choose one of them and then continued the round as usual. @fig-bonusround-chosen-reward compares the predicted rewards for chosen and not chosen tiles. To analyze selected and not-selected options, we first averaged the predicted reward and confidence of the not-chosen options within subjects, and then compared chosen and not chosen options. In the control group, predicted rewards for chosen tiles were higher than for not-chosen tiles. There was no difference in PD patients either on or off medication. There was no difference in confidence between selected and not selected tiles in any of the groups.
 
