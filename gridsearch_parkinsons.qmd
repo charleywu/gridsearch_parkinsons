@@ -2361,7 +2361,7 @@ cowplot::plot_grid(
   label_x = c(0, 0)   # horizontale Position (links)
 )
 
-ggsave("plots/Fig1_task_model.png", dpi=300, height=10, width=15)
+ggsave("plots/Fig1_task_model.png", bg="white", dpi=300, height=10, width=15)
 # ggsave("plots/Fig1_task_model.pdf", height=10, width=15, limitsize = FALSE )
 
 ```
@@ -2387,7 +2387,7 @@ cowplot::plot_grid(
   rel_widths = c(0.45, 0.55)
 )
 
-ggsave("plots/Fig2_behavioral_results.png", dpi=300, height=15, width=18)
+ggsave("plots/Fig2_behavioral_results.png", bg="white", dpi=300, height=15, width=18)
 # ggsave("plots/Fig2_behavioral_results.pdf", height=15, width=18)
 
 ```
@@ -2428,7 +2428,7 @@ fig3_computational_results <- cowplot::plot_grid(
 
 fig3_computational_results
 
-ggsave("plots/Fig3_computational_results.png", fig3_computational_results, dpi=300, height=12, width=15)
+ggsave("plots/Fig3_computational_results.png", fig3_computational_results, bg="white", dpi=300, height=12, width=15)
 
 ```
 
@@ -3719,7 +3719,7 @@ p_model_simulation_params <- ggdraw() +
   draw_plot(p_model_simulation_params_combined, y = 0, height = 0.9)  
 
 p_model_simulation_params
-ggsave("plots/S6_model_simulation_params_lambda_0_5.png", p_model_simulation_params, width = 14, height = 5, dpi = 300)
+ggsave("plots/S6_model_simulation_params_lambda_0_5.png", p_model_simulation_params, bg="white", width = 14, height = 5, dpi = 300)
 
 ```
 
